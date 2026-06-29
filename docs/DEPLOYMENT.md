@@ -13,7 +13,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
 1. Go to [render.com](https://render.com) -> New -> Blueprint.
 2. Select `NoorRattan/AskMyPDF`.
-3. Render auto-detects `render.yaml` in the repo root.
+3. Render auto-detects `render.yaml` in the repo root. The backend service uses `backend` as its root directory, `Dockerfile` as the Dockerfile path, and `.` as the Docker build context.
 4. Go to the service -> Variables tab -> add each variable exactly:
 
    | Variable | Value |
