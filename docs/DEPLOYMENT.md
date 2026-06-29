@@ -19,7 +19,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | Variable | Value |
    |---|---|
    | `GROQ_API_KEY` | your Groq key |
-   | `ALLOWED_ORIGINS` | `https://askmypdf.vercel.app` |
+   | `ALLOWED_ORIGINS` | `https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app` |
    | `CHROMA_PATH` | `/app/data/chroma` |
    | `UPLOAD_DIR` | `/app/data/uploads` |
    | `PORT` | `8000` |
@@ -65,7 +65,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 Once you have the final Vercel URL:
 
 1. Go to Render -> your service -> Environment.
-2. Update `ALLOWED_ORIGINS` to your exact Vercel URL, with no trailing slash.
+2. Update `ALLOWED_ORIGINS` to your exact Vercel URL, with no trailing slash. For multiple Vercel domains, use a comma-separated list.
 3. Redeploy the Render service.
 
 ## 5. Verify End To End

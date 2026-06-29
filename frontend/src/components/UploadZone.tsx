@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion"
-import { Upload } from "lucide-react"
+import { FileText, Upload } from "lucide-react"
 import { type ChangeEvent, type DragEvent, type KeyboardEvent, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
@@ -124,23 +124,20 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         <input ref={inputRef} type="file" accept=".pdf" onChange={handleChange} className="sr-only" />
 
         {isBusy ? (
-          <div
-            role="status"
-            aria-label="Processing"
-            className="relative z-10 mb-5 h-14 w-14"
-          >
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-border"
-              style={{ borderTopColor: "#7C3AED", borderRightColor: "#A78BFA" }}
-              animate={shouldReduce ? undefined : { rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-            />
-            <motion.div
-              className="absolute inset-[6px] rounded-full border-2 border-transparent"
-              style={{ borderBottomColor: "rgba(167,139,250,0.45)" }}
-              animate={shouldReduce ? undefined : { rotate: -360 }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-            />
+          <div role="status" aria-label="Processing" className="relative z-10 mb-6 flex flex-col items-center">
+            <div className="processing-orb" aria-hidden="true">
+              <span className="processing-ring processing-ring-a" />
+              <span className="processing-ring processing-ring-b" />
+              <span className="processing-dot processing-dot-a" />
+              <span className="processing-dot processing-dot-b" />
+              <span className="processing-document">
+                <FileText size={30} />
+                <span className="processing-scan" />
+              </span>
+            </div>
+            <div className="mt-5 h-1.5 w-52 overflow-hidden rounded-full bg-border/70">
+              <span className="processing-progress block h-full rounded-full" />
+            </div>
           </div>
         ) : (
           <motion.div
