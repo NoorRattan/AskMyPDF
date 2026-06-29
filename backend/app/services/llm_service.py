@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 
-import anthropic
+from groq import AsyncGroq
 
 from app.config import settings
 
@@ -22,13 +22,19 @@ def build_context(chunks: list[dict]) -> str:
 
 async def stream_answer(question: str, chunks: list[dict]) -> AsyncGenerator[str, None]:
     context = build_context(chunks)
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    client = AsyncGroq(api_key=settings.groq_api_key)
 
-    with client.messages.stream(
-        model="claude-sonnet-4-6",
+    stream = await client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"},
+        ],
         max_tokens=1024,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}],
-    ) as stream:
-        for text in stream.text_stream:
+        stream=True,
+    )
+
+    async for chunk in stream:
+        text = chunk.choices[0].delta.content
+        if text:
             yield text

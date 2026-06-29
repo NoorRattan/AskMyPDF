@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: askmypdf-backend
+    runtime: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://askmypdf.vercel.app
+      - key: CHROMA_PATH
+        value: /app/data/chroma
+      - key: UPLOAD_DIR
+        value: /app/data/uploads
+      - key: PORT
+        value: 8000

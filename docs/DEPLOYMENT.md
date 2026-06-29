@@ -1,29 +1,30 @@
 # Deployment Guide
 
-This guide ships AskMyPDF as a Railway backend plus a Vercel frontend.
+This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
 ## 1. Prerequisites
 
 1. GitHub account with `NoorRattan/AskMyPDF` pushed to `main`.
-2. Railway account at [railway.app](https://railway.app). The free tier is enough.
+2. Render account at [render.com](https://render.com). The free tier is enough.
 3. Vercel account at [vercel.com](https://vercel.com). The free tier is enough.
-4. Anthropic API key for Claude.
+4. Groq API key.
 
-## 2. Deploy Backend To Railway
+## 2. Deploy Backend To Render
 
-1. Go to [railway.app](https://railway.app) -> New Project -> Deploy from GitHub repo.
+1. Go to [render.com](https://render.com) -> New -> Blueprint.
 2. Select `NoorRattan/AskMyPDF`.
-3. Railway auto-detects the checked-in Railway config for this repo.
+3. Render auto-detects `render.yaml` in the repo root.
 4. Go to the service -> Variables tab -> add each variable exactly:
 
    | Variable | Value |
    |---|---|
-   | `ANTHROPIC_API_KEY` | your Anthropic key |
+   | `GROQ_API_KEY` | your Groq key |
    | `ALLOWED_ORIGINS` | `https://askmypdf.vercel.app` |
    | `CHROMA_PATH` | `/app/data/chroma` |
    | `UPLOAD_DIR` | `/app/data/uploads` |
+   | `PORT` | `8000` |
 
-   `PORT` is injected by Railway automatically. Do not set it.
+   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000.
 
 5. Click Deploy. The first build downloads the `all-MiniLM-L6-v2` model, about 90MB from HuggingFace. Watch the logs. The deploy is ready when you see:
 
@@ -31,11 +32,11 @@ This guide ships AskMyPDF as a Railway backend plus a Vercel frontend.
    INFO:     Application startup complete.
    ```
 
-6. Copy the Railway-assigned URL, for example `https://askmypdf-production.up.railway.app`.
+6. Copy the Render-assigned URL, for example `https://askmypdf-backend.onrender.com`.
 7. Verify the backend:
 
    ```bash
-   curl https://<railway-url>/health
+   curl https://<render-url>/health
    ```
 
    Expected response:
@@ -54,7 +55,7 @@ This guide ships AskMyPDF as a Railway backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `VITE_API_URL` | your Railway URL, no trailing slash |
+   | `VITE_API_URL` | your Render URL, no trailing slash |
 
 6. Click Deploy.
 7. Copy the Vercel URL, for example `https://askmypdf.vercel.app`.
@@ -63,9 +64,9 @@ This guide ships AskMyPDF as a Railway backend plus a Vercel frontend.
 
 Once you have the final Vercel URL:
 
-1. Go to Railway -> your service -> Variables.
+1. Go to Render -> your service -> Environment.
 2. Update `ALLOWED_ORIGINS` to your exact Vercel URL, with no trailing slash.
-3. Redeploy the Railway service.
+3. Redeploy the Render service.
 
 ## 5. Verify End To End
 

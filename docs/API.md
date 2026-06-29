@@ -2,7 +2,7 @@
 
 Base URL locally: `http://localhost:8000`
 
-Base URL in production: `https://<railway-url>`
+Base URL in production: `https://<render-url>`
 
 All application endpoints except health are prefixed with `/api`.
 
@@ -214,4 +214,4 @@ Production:
 ALLOWED_ORIGINS=https://askmypdf.vercel.app
 ```
 
-If you use a different Vercel URL or custom domain, update `ALLOWED_ORIGINS` in Railway to the exact frontend origin with no trailing slash.
+If you use a different Vercel URL or custom domain, update `ALLOWED_ORIGINS` in Render to the exact frontend origin with no trailing slash.
