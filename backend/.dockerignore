@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Never ship ChromaDB data or uploaded PDFs into the image
+data/
+*.pdf
+
+# Dev/test only
+tests/
+pytest.ini
+
+# Docs live outside backend/
+../docs/
+../README.md
+../frontend/
