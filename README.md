@@ -19,17 +19,17 @@ https://askmypdf.vercel.app
 
 ## Why I Built This
 
-I built this because I wanted to understand RAG from first principles, not just wire a library into a notebook and call it done. The constraint was useful: keep costs low beyond the Groq API, run embeddings locally, use ChromaDB directly, and still make the final demo feel like a real product someone could use. That pushed the project toward the parts I care about most: clean boundaries, honest citations, streaming UX, and a frontend that feels built instead of assembled.
+I built this because I wanted to understand RAG from first principles, not just wire a library into a notebook and call it done. The constraint was useful: keep costs low beyond the Groq API, use lightweight retrieval that fits on a free deployment, and still make the final demo feel like a real product someone could use. That pushed the project toward the parts I care about most: clean boundaries, honest citations, streaming UX, and a frontend that feels built instead of assembled.
 
 ## How It Works
 
 1. A PDF is uploaded to the FastAPI backend.
 2. `pdfplumber` extracts text page by page.
 3. The text is split into overlapping 500-character chunks.
-4. Each chunk is embedded into a 384-dimensional vector with `sentence-transformers`. This runs locally, so there is no embedding API cost.
-5. Chunks and embeddings are stored in ChromaDB.
-6. A question is embedded with the same local model.
-7. ChromaDB finds the nearest chunks for that question.
+4. Each chunk is embedded into a compact deterministic hash vector. This uses no external embedding API and no model download.
+5. Chunks and embeddings are stored in a bounded in-memory session store.
+6. A question is embedded with the same hashing strategy.
+7. The backend ranks chunks by vector similarity for that question.
 8. Those chunks are passed to Llama 3.3 70B on Groq as context.
 9. Groq streams the answer token by token, and the UI shows the cited source chunks.
 
@@ -41,8 +41,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 | Styling | Tailwind CSS, Framer Motion |
 | Backend | FastAPI, Python 3.11 |
 | PDF parsing | pdfplumber |
-| Embeddings | sentence-transformers, all-MiniLM-L6-v2 |
-| Vector store | ChromaDB 0.5.x |
+| Retrieval | Deterministic hash embeddings, in-memory vector ranking |
 | LLM | Llama 3.3 70B Versatile via Groq API |
 | Backend deploy | Render |
 | Frontend deploy | Vercel |
@@ -54,7 +53,6 @@ I built this because I wanted to understand RAG from first principles, not just 
 git clone https://github.com/NoorRattan/AskMyPDF
 cd AskMyPDF/backend
 python -m venv .venv && source .venv/bin/activate
-pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 cp .env.example .env   # then add your GROQ_API_KEY
 uvicorn app.main:app --port 8000
@@ -69,14 +67,14 @@ npm run dev
 ## Fair Warning (Cold Starts)
 
 > The backend runs on Render's free tier, which spins down after inactivity.
-> The first request after sleep takes a bit while the container warms up and
-> re-loads the embedding model. Subsequent requests are fast. If the demo feels
-> unresponsive, wait a few seconds and try again.
+> The first request after sleep can take a bit while Render starts the container.
+> Subsequent requests are fast. If the demo feels unresponsive, wait a few
+> seconds and try again.
 
 ## Known Limitations
 
 - Scanned PDFs are not supported because there is no OCR layer.
-- ChromaDB data resets on redeploy because Render's free filesystem is ephemeral.
+- Uploaded sessions are stored in memory and reset when the Render instance restarts or redeploys.
 - There is no auth. This is a public portfolio project, not a private document vault.
 
 ## License

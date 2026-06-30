@@ -19,14 +19,16 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | Variable | Value |
    |---|---|
    | `GROQ_API_KEY` | your Groq key |
-   | `ALLOWED_ORIGINS` | `https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app` |
-   | `CHROMA_PATH` | `/app/data/chroma` |
+   | `ALLOWED_ORIGINS` | `https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app` |
+   | `ALLOWED_ORIGIN_REGEX` | `^https://ask-my-p(?:df)?[-a-z0-9]*-noorrattans-projects\.vercel\.app$` |
    | `UPLOAD_DIR` | `/app/data/uploads` |
+   | `EMBEDDING_DIMENSIONS` | `256` |
+   | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
 
    `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000.
 
-5. Click Deploy. The first build downloads the `all-MiniLM-L6-v2` model, about 90MB from HuggingFace. Watch the logs. The deploy is ready when you see:
+5. Click Deploy. Watch the logs. The deploy is ready when you see:
 
    ```text
    INFO:     Application startup complete.
@@ -55,7 +57,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `VITE_API_URL` | your Render URL, no trailing slash |
+   | `VITE_API_URL` | optional for local development; production uses the `/api` Vercel rewrite |
 
 6. Click Deploy.
 7. Copy the Vercel URL, for example `https://askmypdf.vercel.app`.
@@ -65,7 +67,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 Once you have the final Vercel URL:
 
 1. Go to Render -> your service -> Environment.
-2. Update `ALLOWED_ORIGINS` to your exact Vercel URL, with no trailing slash. For multiple Vercel domains, use a comma-separated list.
+2. Update `ALLOWED_ORIGINS` to your exact Vercel URL, with no trailing slash. For multiple Vercel domains, use a comma-separated list. Keep `ALLOWED_ORIGIN_REGEX` set if you use generated Vercel preview domains.
 3. Redeploy the Render service.
 
 ## 5. Verify End To End

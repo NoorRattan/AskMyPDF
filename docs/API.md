@@ -23,7 +23,7 @@ Response `200`:
 }
 ```
 
-`model_loaded` is `true` after the startup event has loaded the sentence-transformers embedding model.
+`model_loaded` is `true` after the lightweight retrieval service is initialized.
 
 ## POST /api/upload
 
@@ -173,7 +173,7 @@ Validation also returns `422` when `question` is empty or longer than 1000 chara
 
 ## DELETE /api/session/{session_id}
 
-Deletes a ChromaDB session collection. This is the intended cleanup endpoint contract. The current codebase has the vector service helper for this action, but the route is not mounted yet.
+Deletes an in-memory session. This is the intended cleanup endpoint contract. The current codebase has the vector service helper for this action, but the route is not mounted yet.
 
 cURL:
 

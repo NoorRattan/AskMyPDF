@@ -1,84 +1,73 @@
 from __future__ import annotations
 
-import chromadb
+from collections import OrderedDict
 
 from app.config import settings
 
-_client: chromadb.PersistentClient | None = None
+StoredChunk = dict[str, object]
+
+_sessions: OrderedDict[str, list[StoredChunk]] = OrderedDict()
 
 
-def _collection_name(session_id: str) -> str:
-    return f"session_{session_id}"
-
-
-def get_client() -> chromadb.PersistentClient:
-    global _client
-    if _client is None:
-        _client = chromadb.PersistentClient(path=settings.chroma_path)
-    return _client
-
-
-def get_or_create_collection(session_id: str):
-    client = get_client()
-    return client.get_or_create_collection(
-        name=_collection_name(session_id),
-        metadata={"hnsw:space": "cosine"},
-    )
+def get_client() -> OrderedDict[str, list[StoredChunk]]:
+    return _sessions
 
 
 def session_exists(session_id: str) -> bool:
-    name = _collection_name(session_id)
-    return any(getattr(collection, "name", collection) == name for collection in get_client().list_collections())
+    return session_id in _sessions
+
+
+def _trim_sessions() -> None:
+    while len(_sessions) > settings.max_sessions:
+        _sessions.popitem(last=False)
 
 
 def add_chunks(session_id: str, chunks: list[dict], embeddings: list[list[float]]) -> None:
-    collection = get_or_create_collection(session_id)
-    collection.add(
-        ids=[f"chunk_{chunk['chunk_index']:04d}" for chunk in chunks],
-        documents=[chunk["text"] for chunk in chunks],
-        embeddings=embeddings,
-        metadatas=[
+    stored_chunks: list[StoredChunk] = []
+
+    for chunk, embedding in zip(chunks, embeddings):
+        stored_chunks.append(
             {
+                "text": chunk["text"],
                 "page_number": chunk["page_number"],
                 "chunk_index": chunk["chunk_index"],
                 "char_start": chunk["char_start"],
                 "char_end": chunk["char_end"],
+                "embedding": embedding,
             }
-            for chunk in chunks
-        ],
-    )
+        )
+
+    _sessions[session_id] = stored_chunks
+    _sessions.move_to_end(session_id)
+    _trim_sessions()
+
+
+def _score(left: list[float], right: list[float]) -> float:
+    return sum(left_value * right_value for left_value, right_value in zip(left, right))
 
 
 def query_chunks(session_id: str, query_embedding: list[float], top_k: int) -> list[dict]:
-    collection = get_or_create_collection(session_id)
-    count = collection.count()
-    if count == 0:
+    chunks = _sessions.get(session_id)
+    if not chunks:
         return []
 
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=min(top_k, count),
-        include=["documents", "metadatas", "distances"],
+    _sessions.move_to_end(session_id)
+    ranked = sorted(
+        chunks,
+        key=lambda chunk: _score(query_embedding, chunk["embedding"]),  # type: ignore[arg-type]
+        reverse=True,
     )
 
     return [
         {
-            "text": doc,
-            "page_number": meta["page_number"],
-            "chunk_index": meta["chunk_index"],
-            "distance": dist,
+            "text": chunk["text"],
+            "page_number": chunk["page_number"],
+            "chunk_index": chunk["chunk_index"],
+            "distance": 1 - _score(query_embedding, chunk["embedding"]),  # type: ignore[arg-type]
         }
-        for doc, meta, dist in zip(
-            results["documents"][0],
-            results["metadatas"][0],
-            results["distances"][0],
-        )
+        for chunk in ranked[:top_k]
     ]
 
 
 def delete_session(session_id: str) -> bool:
-    if not session_exists(session_id):
-        return False
-
-    get_client().delete_collection(_collection_name(session_id))
-    return True
+    return _sessions.pop(session_id, None) is not None

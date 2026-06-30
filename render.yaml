@@ -11,10 +11,14 @@ services:
       - key: GROQ_API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
-        value: https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app
-      - key: CHROMA_PATH
-        value: /app/data/chroma
+        value: https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app
+      - key: ALLOWED_ORIGIN_REGEX
+        value: '^https://ask-my-p(?:df)?[-a-z0-9]*-noorrattans-projects\.vercel\.app$'
       - key: UPLOAD_DIR
         value: /app/data/uploads
+      - key: EMBEDDING_DIMENSIONS
+        value: 256
+      - key: MAX_SESSIONS
+        value: 20
       - key: PORT
         value: 8000

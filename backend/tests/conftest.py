@@ -6,7 +6,6 @@ from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
 os.environ.setdefault("GROQ_API_KEY", "test_api_key")
-os.environ.setdefault("CHROMA_PATH", "./data/test_chroma")
 os.environ.setdefault("UPLOAD_DIR", "./data/test_uploads")
 
 import app.main as main_mod

@@ -1,6 +1,7 @@
 import type { UploadResponse } from "../types"
 
-const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace(/\/+$/, "")
+const rawApiUrl = (import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? "/api") : "/api").replace(/\/+$/, "")
+const API_URL = rawApiUrl.endsWith("/api") ? rawApiUrl : `${rawApiUrl}/api`
 
 interface ErrorBody {
   error?: string
@@ -34,7 +35,7 @@ export async function uploadPDF(file: File): Promise<UploadResponse> {
   const form = new FormData()
   form.append("file", file)
 
-  const res = await fetch(`${API_URL}/api/upload`, {
+  const res = await fetch(`${API_URL}/upload`, {
     method: "POST",
     body: form,
   })
@@ -47,7 +48,7 @@ export async function uploadPDF(file: File): Promise<UploadResponse> {
 }
 
 export async function streamChat(sessionId: string, question: string): Promise<Response> {
-  const res = await fetch(`${API_URL}/api/chat`, {
+  const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId, question }),
