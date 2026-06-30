@@ -5,6 +5,21 @@ interface StreamingMessageProps {
   isStreaming: boolean
 }
 
+function AiAvatar() {
+  return (
+    <span
+      className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
+      style={{
+        background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+        boxShadow: "0 0 16px #7C3AED55",
+      }}
+      aria-hidden="true"
+    >
+      AI
+    </span>
+  )
+}
+
 export function StreamingMessage({ content, isStreaming }: StreamingMessageProps) {
   const shouldReduce = useReducedMotion()
 
@@ -13,10 +28,19 @@ export function StreamingMessage({ content, isStreaming }: StreamingMessageProps
       initial={shouldReduce ? false : { opacity: 0, y: 10 }}
       animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="max-w-[85%] self-start sm:max-w-[90%]"
+      className="flex items-start gap-2.5 self-start"
     >
-      <div className="rounded-2xl rounded-tl-sm border-l-2 border-primary bg-surface-raised px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
-        <p className="whitespace-pre-wrap text-sm text-text">
+      <AiAvatar />
+      <div
+        className="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 backdrop-blur-sm sm:max-w-[90%]"
+        style={{
+          background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
+          border: "1px solid rgba(42,43,69,0.9)",
+          borderLeft: "2px solid #7C3AED",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+        }}
+      >
+        <p className="whitespace-pre-wrap text-[15px] leading-6 text-text">
           {content}
           {isStreaming ? (
             <motion.span
@@ -25,13 +49,14 @@ export function StreamingMessage({ content, isStreaming }: StreamingMessageProps
                 display: "inline-block",
                 width: "2px",
                 height: "1em",
-                background: "#A78BFA",
-                marginLeft: "2px",
+                background: "linear-gradient(180deg, #A78BFA, #7C3AED)",
+                marginLeft: "3px",
                 verticalAlign: "middle",
                 borderRadius: "1px",
+                boxShadow: "0 0 8px #A78BFA88",
               }}
               animate={shouldReduce ? undefined : { opacity: [1, 0, 1] }}
-              transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+              transition={{ repeat: Infinity, duration: 0.75, ease: "linear" }}
             />
           ) : null}
         </p>

@@ -14,37 +14,70 @@ function formatTime(date: Date): string {
   }).format(date)
 }
 
+/** Tiny avatar badge */
+function AiAvatar() {
+  return (
+    <span
+      className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
+      style={{
+        background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
+        boxShadow: "0 0 16px #7C3AED55",
+      }}
+      aria-hidden="true"
+    >
+      AI
+    </span>
+  )
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const shouldReduce = useReducedMotion()
 
   if (message.role === "user") {
     return (
       <motion.div
-        initial={shouldReduce ? false : { opacity: 0, y: 12, scale: 0.985 }}
+        initial={shouldReduce ? false : { opacity: 0, y: 14, scale: 0.98 }}
         animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-        className="max-w-[82%] self-end"
+        className="flex flex-col items-end gap-1 self-end"
       >
-        <div className="rounded-2xl rounded-tr-sm border border-primary/15 bg-[#1E1B4B] px-4 py-3 text-primary-light shadow-[0_14px_42px_rgba(30,27,75,0.36)]">
-          <p className="whitespace-pre-wrap text-[15px] leading-6">{message.content}</p>
+        <div
+          className="max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 shadow-[0_8px_32px_rgba(30,27,75,0.45)]"
+          style={{
+            background: "linear-gradient(135deg, #1E1B4B 0%, #2D2A60 100%)",
+            border: "1px solid rgba(124,58,237,0.2)",
+          }}
+        >
+          <p className="whitespace-pre-wrap text-[15px] leading-6 text-primary-light">{message.content}</p>
         </div>
-        <p className="mt-1.5 text-right font-mono text-xs text-secondary">{formatTime(message.timestamp)}</p>
+        <p className="pr-1 font-mono text-[11px] text-secondary/50">{formatTime(message.timestamp)}</p>
       </motion.div>
     )
   }
 
   return (
     <motion.div
-      initial={shouldReduce ? false : { opacity: 0, y: 12, scale: 0.985 }}
+      initial={shouldReduce ? false : { opacity: 0, y: 14, scale: 0.98 }}
       animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-      className="max-w-[88%] self-start"
+      className="flex flex-col gap-1 self-start"
     >
-      <div className="rounded-2xl rounded-tl-sm border border-border/70 border-l-2 border-l-primary bg-surface-raised/95 px-4 py-3 shadow-[0_14px_42px_rgba(0,0,0,0.26)] backdrop-blur">
-        <p className="whitespace-pre-wrap text-[15px] leading-6 text-text">{message.content}</p>
-        {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
+      <div className="flex items-start gap-2.5">
+        <AiAvatar />
+        <div
+          className="max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-3 backdrop-blur-sm"
+          style={{
+            background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
+            border: "1px solid rgba(42,43,69,0.9)",
+            borderLeft: "2px solid #7C3AED",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }}
+        >
+          <p className="whitespace-pre-wrap text-[15px] leading-6 text-text">{message.content}</p>
+          {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
+        </div>
       </div>
-      <p className="mt-1.5 font-mono text-xs text-secondary">{formatTime(message.timestamp)}</p>
+      <p className="pl-9 font-mono text-[11px] text-secondary/50">{formatTime(message.timestamp)}</p>
     </motion.div>
   )
 }
