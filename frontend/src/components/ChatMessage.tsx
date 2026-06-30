@@ -39,16 +39,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
         initial={shouldReduce ? false : { opacity: 0, y: 14, scale: 0.98 }}
         animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col items-end gap-1 self-end"
+        className="flex max-w-full flex-col items-end gap-1 self-end"
       >
         <div
-          className="max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 shadow-[0_8px_32px_rgba(30,27,75,0.45)]"
+          className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 shadow-[0_8px_32px_rgba(30,27,75,0.45)]"
           style={{
             background: "linear-gradient(135deg, #1E1B4B 0%, #2D2A60 100%)",
             border: "1px solid rgba(124,58,237,0.2)",
           }}
         >
-          <p className="whitespace-pre-wrap text-[15px] leading-6 text-primary-light">{message.content}</p>
+          <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-primary-light [overflow-wrap:anywhere]">
+            {message.content}
+          </p>
         </div>
         <p className="pr-1 font-mono text-[11px] text-secondary/50">{formatTime(message.timestamp)}</p>
       </motion.div>
@@ -60,12 +62,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
       initial={shouldReduce ? false : { opacity: 0, y: 14, scale: 0.98 }}
       animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-      className="flex flex-col gap-1 self-start"
+      className="flex max-w-full flex-col gap-1 self-start"
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex max-w-full items-start gap-2.5">
         <AiAvatar />
         <div
-          className="max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-3 backdrop-blur-sm"
+          className="min-w-0 max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-3 backdrop-blur-sm"
           style={{
             background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
             border: "1px solid rgba(42,43,69,0.9)",
@@ -73,7 +75,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
             boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
           }}
         >
-          <p className="whitespace-pre-wrap text-[15px] leading-6 text-text">{message.content}</p>
+          <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-text [overflow-wrap:anywhere]">
+            {message.content}
+          </p>
           {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
         </div>
       </div>

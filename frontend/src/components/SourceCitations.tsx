@@ -54,7 +54,7 @@ export function SourceCitations({ sources }: SourceCitationsProps) {
                       Page {src.page_number}
                     </span>
                   </div>
-                  <p className="font-mono text-xs leading-relaxed text-secondary/80">
+                  <p className="break-words font-mono text-xs leading-relaxed text-secondary/80 [overflow-wrap:anywhere]">
                     {src.text.length > 220 ? `${src.text.slice(0, 220)}...` : src.text}
                   </p>
                 </motion.div>
