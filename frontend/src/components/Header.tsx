@@ -14,27 +14,27 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
   const shouldReduce = useReducedMotion()
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/70 bg-bg/80 px-4 shadow-[0_1px_0_0_rgba(124,58,237,0.08)] backdrop-blur-xl">
-      <div className="flex items-center gap-2.5">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/80 bg-bg/88 px-5 shadow-[0_1px_0_0_rgba(124,58,237,0.12),0_14px_44px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         <div
-          className="grid h-7 w-7 place-items-center rounded-lg"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
           style={{
             background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-            boxShadow: "0 0 14px #7C3AED33",
+            boxShadow: "0 0 16px #7C3AED44, inset 0 1px 0 rgba(255,255,255,0.22)",
             animation: shouldReduce ? undefined : "icon-breathe 2.5s ease-in-out infinite",
           }}
           aria-hidden="true"
         >
           <FileText size={16} className="text-white" aria-hidden="true" />
         </div>
-        <span className="text-lg font-bold tracking-normal text-text">AskMyPDF</span>
+        <span className="truncate text-xl font-extrabold tracking-normal text-text">AskMyPDF</span>
       </div>
 
       {isReady ? (
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span
             title={uploadState.filename ?? undefined}
-            className="flex max-w-[140px] items-center gap-1.5 rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm text-secondary transition-all duration-200 hover:border-success/50 hover:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] sm:max-w-[220px]"
+            className="flex max-w-[136px] items-center gap-2 rounded-xl border border-border bg-surface-raised/95 px-3 py-2 text-sm font-medium text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 hover:border-success/50 hover:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] sm:max-w-[260px]"
           >
             <span
               className="h-2 w-2 shrink-0 rounded-full bg-success"
@@ -46,9 +46,18 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
           <motion.button
             type="button"
             onClick={onReset}
-            whileHover={shouldReduce ? undefined : { x: -2 }}
+            whileHover={
+              shouldReduce
+                ? undefined
+                : {
+                    y: -1,
+                    borderColor: "#7C3AED",
+                    boxShadow: "0 10px 28px rgba(124,58,237,0.16)",
+                  }
+            }
+            whileTap={shouldReduce ? undefined : { scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="rounded px-1 py-1 text-sm text-secondary transition-colors duration-150 hover:text-primary-light hover:underline hover:underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="shrink-0 rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-secondary outline-none transition-colors duration-150 hover:text-primary-light focus-visible:ring-2 focus-visible:ring-primary"
           >
             Upload new PDF
           </motion.button>

@@ -50,6 +50,54 @@ html {
   opacity: 0.42;
 }
 
+.chat-workspace {
+  background:
+    linear-gradient(180deg, rgba(18, 19, 31, 0.48), rgba(10, 11, 20, 0.96) 62%),
+    radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.16), transparent 42%),
+    var(--color-bg);
+}
+
+.chat-grid,
+.chat-scanline,
+.chat-energy {
+  position: absolute;
+  inset: 0;
+}
+
+.chat-grid {
+  background:
+    linear-gradient(90deg, rgba(167, 139, 250, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(167, 139, 250, 0.045) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 72px 72px;
+  opacity: 0.46;
+  animation: chat-grid-drift 18s linear infinite;
+}
+
+.chat-scanline {
+  background: linear-gradient(180deg, transparent 0%, rgba(124, 58, 237, 0.1) 48%, rgba(16, 185, 129, 0.07) 50%, transparent 100%);
+  height: 34%;
+  opacity: 0.58;
+  animation: chat-scanline 8s ease-in-out infinite;
+}
+
+.chat-energy {
+  opacity: 0.52;
+  mix-blend-mode: screen;
+}
+
+.chat-energy-a {
+  background: linear-gradient(110deg, transparent 12%, rgba(124, 58, 237, 0.14) 34%, transparent 58%);
+  transform: translateX(-32%);
+  animation: chat-energy-a 11s ease-in-out infinite;
+}
+
+.chat-energy-b {
+  background: linear-gradient(72deg, transparent 20%, rgba(16, 185, 129, 0.09) 44%, transparent 66%);
+  transform: translateX(28%);
+  animation: chat-energy-b 13s ease-in-out infinite;
+}
+
 /* violet radial pulse - used by upload zone idle state */
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
@@ -230,6 +278,27 @@ textarea {
   100% {
     transform: translateY(100%);
   }
+}
+
+@keyframes chat-grid-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 72px 72px; }
+}
+
+@keyframes chat-scanline {
+  0% { transform: translateY(-120%); opacity: 0; }
+  16%, 72% { opacity: 0.58; }
+  100% { transform: translateY(330%); opacity: 0; }
+}
+
+@keyframes chat-energy-a {
+  0%, 100% { transform: translateX(-32%) skewX(-8deg); opacity: 0.28; }
+  50% { transform: translateX(28%) skewX(-8deg); opacity: 0.58; }
+}
+
+@keyframes chat-energy-b {
+  0%, 100% { transform: translateX(28%) skewX(8deg); opacity: 0.22; }
+  50% { transform: translateX(-22%) skewX(8deg); opacity: 0.48; }
 }
 
 @media (prefers-reduced-motion: reduce) {
