@@ -49,4 +49,4 @@ def warm_up_services() -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model_loaded": get_model() is not None}
+    return {"status": "ok", "model_loaded": get_model() is not None, "retriever": get_model()}
