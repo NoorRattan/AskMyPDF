@@ -16,10 +16,18 @@ interface ChatInterfaceProps {
   onSend: (question: string) => Promise<void>
 }
 
+const SUGGESTED_QUESTIONS = [
+  "Summarize this document.",
+  "What are the key findings?",
+  "List the main topics covered.",
+  "Are there any numbers or statistics I should know?",
+] as const
+
 export function ChatInterface({ uploadState, messages, isLoading, error, onSend }: ChatInterfaceProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState("")
+  const [isInputFocused, setIsInputFocused] = useState(false)
   const shouldReduce = useReducedMotion()
   const hasStreamingMessage = messages.some((msg) => msg.isStreaming && msg.content.length > 0)
   const hasEmptyStreamingMessage = messages.some((msg) => msg.isStreaming && msg.content.length === 0)
@@ -46,8 +54,8 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
     setValue(el.value)
   }
 
-  async function handleSend() {
-    const question = value.trim()
+  async function handleSend(nextValue = value) {
+    const question = nextValue.trim()
 
     if (!question || isLoading) {
       return
@@ -60,6 +68,11 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
     }
 
     await onSend(question)
+  }
+
+  function handleSuggestion(question: string) {
+    setValue(question)
+    void handleSend(question)
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -75,25 +88,61 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
         role="log"
         aria-live="polite"
         aria-label="Chat messages"
-        className="flex flex-1 flex-col gap-4 overflow-y-auto p-4"
+        className="flex flex-1 overflow-y-auto p-4"
       >
-        {messages.length === 0 ? <ChatMessage message={welcomeMessage} /> : null}
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5">
+          {messages.length === 0 ? (
+            <>
+              <ChatMessage message={welcomeMessage} />
+              <div className="flex flex-1 items-center justify-center py-8">
+                <div className="w-full max-w-2xl">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {SUGGESTED_QUESTIONS.map((question, idx) => (
+                      <motion.button
+                        key={question}
+                        type="button"
+                        onClick={() => handleSuggestion(question)}
+                        disabled={isLoading}
+                        initial={shouldReduce ? false : { opacity: 0, y: 12 }}
+                        animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.08, duration: 0.24, ease: "easeOut" }}
+                        whileHover={
+                          shouldReduce || isLoading
+                            ? undefined
+                            : {
+                                y: -2,
+                                borderColor: "#7C3AED",
+                                boxShadow: "0 8px 24px rgba(124,58,237,0.18)",
+                              }
+                        }
+                        whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                        className="rounded-xl border border-border bg-surface-raised px-4 py-3 text-left text-sm text-secondary outline-none transition-colors duration-200 hover:text-text focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {question}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
 
-        {messages.map((message) => {
-          if (message.isStreaming && message.content.length > 0) {
-            return <StreamingMessage key={message.id} content={message.content} isStreaming={message.isStreaming} />
-          }
+          {messages.map((message) => {
+            if (message.isStreaming && message.content.length > 0) {
+              return <StreamingMessage key={message.id} content={message.content} isStreaming={message.isStreaming} />
+            }
 
-          if (message.isStreaming && message.content.length === 0) {
-            return null
-          }
+            if (message.isStreaming && message.content.length === 0) {
+              return null
+            }
 
-          return <ChatMessage key={message.id} message={message} />
-        })}
+            return <ChatMessage key={message.id} message={message} />
+          })}
 
-        {showThinking || hasEmptyStreamingMessage ? <ThinkingIndicator /> : null}
-        {error ? <p className="self-start rounded-lg border border-error/50 px-3 py-2 text-sm text-error">{error}</p> : null}
-        <div ref={bottomRef} />
+          {showThinking || hasEmptyStreamingMessage ? <ThinkingIndicator /> : null}
+          {error ? <p className="self-start rounded-lg border border-error/50 px-3 py-2 text-sm text-error">{error}</p> : null}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       <div className="border-t border-border p-4">
@@ -101,6 +150,7 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
           Ask a question about your PDF
         </label>
         <div className="flex items-end gap-3">
+          <div className="relative flex-1">
           <textarea
             ref={textareaRef}
             id="chat-question"
@@ -111,12 +161,24 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
             value={value}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
+            style={{ borderColor: isInputFocused ? "#7C3AED" : undefined }}
             className={cn(
-              "min-h-12 flex-1 resize-none rounded-xl bg-surface-raised px-4 py-3 text-sm text-text",
-              "placeholder:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "min-h-12 w-full resize-none rounded-xl border border-transparent bg-surface-raised px-4 py-3 pr-20 text-sm text-text",
+              "placeholder:text-secondary outline-none transition-colors duration-200 focus:ring-2 focus:ring-primary/40",
               isLoading && "cursor-not-allowed opacity-50",
             )}
           />
+            <span
+              className={cn(
+                "pointer-events-none absolute bottom-2.5 right-3 text-xs text-secondary",
+                value.length >= 950 && "text-error",
+              )}
+            >
+              {value.length}/1000
+            </span>
+          </div>
           <motion.button
             type="button"
             aria-label="Send message"
@@ -136,7 +198,14 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
             }
             whileTap={shouldReduce ? undefined : { scale: 0.94, rotate: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 18 }}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-raised text-secondary outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40"
+            style={{
+              backgroundColor: value.trim() && !isLoading ? "#7C3AED" : undefined,
+              color: value.trim() && !isLoading ? "#FFFFFF" : undefined,
+            }}
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-40",
+              value.trim() && !isLoading ? "bg-primary text-white" : "bg-surface-raised text-secondary",
+            )}
           >
             <Send size={16} aria-hidden="true" />
           </motion.button>

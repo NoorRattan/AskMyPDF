@@ -14,7 +14,7 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
   const shouldReduce = useReducedMotion()
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/70 bg-bg/80 px-4 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/70 bg-bg/80 px-4 shadow-[0_1px_0_0_rgba(124,58,237,0.08)] backdrop-blur-xl">
       <div className="flex items-center gap-2.5">
         <div
           className="grid h-7 w-7 place-items-center rounded-lg"
@@ -32,13 +32,16 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
 
       {isReady ? (
         <div className="flex items-center gap-3">
-          <span className="hidden max-w-[180px] items-center gap-1.5 truncate rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm text-secondary transition-all duration-200 hover:border-success/50 hover:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] sm:flex">
+          <span
+            title={uploadState.filename ?? undefined}
+            className="flex max-w-[140px] items-center gap-1.5 rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-sm text-secondary transition-all duration-200 hover:border-success/50 hover:shadow-[0_0_0_2px_rgba(16,185,129,0.15)] sm:max-w-[220px]"
+          >
             <span
               className="h-2 w-2 shrink-0 rounded-full bg-success"
               style={{ animation: shouldReduce ? undefined : "success-ping 2s ease-out infinite" }}
               aria-hidden="true"
             />
-            {uploadState.filename}
+            <span className="min-w-0 truncate">{uploadState.filename}</span>
           </span>
           <motion.button
             type="button"

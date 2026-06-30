@@ -23,7 +23,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         initial={shouldReduce ? false : { opacity: 0, y: 10 }}
         animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="max-w-[75%] self-end sm:max-w-[90%]"
+        className="max-w-[82%] self-end"
       >
         <div className="rounded-2xl rounded-tr-sm bg-[#1E1B4B] px-4 py-3 text-primary-light shadow-[0_2px_12px_rgba(30,27,75,0.5)]">
           <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -38,7 +38,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       initial={shouldReduce ? false : { opacity: 0, y: 10 }}
       animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="max-w-[85%] self-start sm:max-w-[90%]"
+      className="max-w-[88%] self-start"
     >
       <div className="rounded-2xl rounded-tl-sm border-l-2 border-primary bg-surface-raised px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
         <p className="whitespace-pre-wrap text-sm text-text">{message.content}</p>
