@@ -94,6 +94,7 @@ html {
   position: relative;
   width: 112px;
   height: 112px;
+  animation: process-orb-glow 2.4s ease-in-out infinite;
 }
 
 .processing-ring,
@@ -113,14 +114,15 @@ html {
 
 .processing-ring-a {
   border-top-color: rgba(167, 139, 250, 0.95);
-  animation: process-spin 1.5s linear infinite;
+  border-left-color: rgba(124, 58, 237, 0.64);
+  animation: process-spin 1.2s linear infinite;
 }
 
 .processing-ring-b {
   inset: 12px;
   border-right-color: rgba(16, 185, 129, 0.75);
   border-bottom-color: rgba(124, 58, 237, 0.78);
-  animation: process-spin 2.2s linear infinite reverse;
+  animation: process-spin 1.8s linear infinite reverse;
 }
 
 .processing-dot {
@@ -132,17 +134,17 @@ html {
 }
 
 .processing-dot-a {
-  left: 18px;
-  top: 16px;
-  animation: process-float-a 1.8s ease-in-out infinite;
+  left: 50%;
+  top: 50%;
+  animation: process-orbit-a 1.35s linear infinite;
 }
 
 .processing-dot-b {
-  bottom: 18px;
-  right: 16px;
+  left: 50%;
+  top: 50%;
   background: var(--color-success);
   box-shadow: 0 0 18px rgba(16, 185, 129, 0.75);
-  animation: process-float-b 2.1s ease-in-out infinite;
+  animation: process-orbit-b 1.8s linear infinite reverse;
 }
 
 .processing-document {
@@ -172,21 +174,29 @@ html {
   width: 36%;
   background: linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-success), transparent);
   box-shadow: 0 0 18px rgba(124, 58, 237, 0.7);
-  animation: process-progress 1.15s ease-in-out infinite;
+  animation: process-progress 0.95s ease-in-out infinite;
 }
 
 @keyframes process-spin {
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@keyframes process-float-a {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.6; }
-  50% { transform: translate3d(7px, -5px, 0) scale(1.35); opacity: 1; }
+@keyframes process-orb-glow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(124, 58, 237, 0.28)); }
+  50% { filter: drop-shadow(0 0 28px rgba(124, 58, 237, 0.55)); }
 }
 
-@keyframes process-float-b {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
-  50% { transform: translate3d(-8px, 6px, 0) scale(1.25); opacity: 1; }
+@keyframes process-orbit-a {
+  0% { transform: rotate(0deg) translateX(48px) rotate(0deg) scale(0.9); opacity: 0.65; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(48px) rotate(-360deg) scale(1.25); opacity: 0.65; }
+}
+
+@keyframes process-orbit-b {
+  0% { transform: rotate(0deg) translateX(48px) rotate(0deg) scale(1.2); opacity: 0.75; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(48px) rotate(-360deg) scale(0.9); opacity: 0.75; }
 }
 
 @keyframes process-document {
@@ -223,7 +233,7 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *:not(.processing-active):not(.processing-active *) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

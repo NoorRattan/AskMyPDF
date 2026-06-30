@@ -89,7 +89,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         animate={
-          shouldReduce
+          shouldReduce || isBusy
             ? undefined
             : {
                 borderColor: isDragging ? "#7C3AED" : isError ? "#EF4444" : "#2A2B45",
@@ -99,7 +99,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         }
         transition={{ duration: 0.25, ease: "easeOut" }}
         whileHover={shouldReduce ? undefined : { borderColor: "#7C3AED", scale: 1.004 }}
-        style={isBusy && !shouldReduce ? { animation: "border-pulse 2s ease-in-out infinite" } : undefined}
+        style={isBusy ? { animation: "border-pulse 2s ease-in-out infinite" } : undefined}
         className={cn(
           "group relative flex min-h-[220px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 bg-surface/92 p-8 text-center transition sm:min-h-72 sm:p-12",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -107,7 +107,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
           "after:absolute after:inset-px after:rounded-[15px] after:bg-[linear-gradient(180deg,rgba(255,255,255,0.035),transparent)]",
           isDragging && "border-solid border-primary bg-primary/5 shadow-[0_0_0_4px_#7C3AED22,0_28px_80px_#7C3AED24] before:opacity-100",
           !isDragging && !isBusy && !isError && "border-dashed border-border hover:border-primary/60 hover:shadow-[0_26px_70px_#00000045]",
-          isBusy && "pointer-events-none border-solid border-primary shadow-[0_0_42px_#7C3AED24] before:opacity-100",
+          isBusy && "processing-active pointer-events-none border-solid border-primary shadow-[0_0_42px_#7C3AED24] before:opacity-100",
           isError && "border-solid border-error",
         )}
       >
