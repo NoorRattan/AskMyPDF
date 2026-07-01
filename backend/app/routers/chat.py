@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from app.config import settings
 from app.models.schemas import ChatRequest
 from app.services.embedding_service import embed_texts
-from app.services.llm_service import stream_answer
+from app.services.llm_service import model_for_preference, stream_answer
 from app.services.vector_service import query_chunks, session_exists
 
 router = APIRouter()
@@ -38,11 +38,16 @@ async def chat(req: ChatRequest) -> StreamingResponse:
     loop = asyncio.get_running_loop()
     query_embedding = await loop.run_in_executor(None, embed_texts, [req.question])
     chunks = query_chunks(req.session_id, query_embedding[0], settings.top_k_results)
+    model_used = model_for_preference(req.model_preference)
 
     async def events():
-        async for text in stream_answer(req.question, chunks):
+        async for text in stream_answer(req.question, chunks, model_used):
             yield f"data: {json.dumps({'token': text})}\n\n"
-        yield f"data: {json.dumps({'done': True, 'sources': _source_payload(chunks)})}\n\n"
+        yield (
+            f"data: "
+            f"{json.dumps({'done': True, 'sources': _source_payload(chunks), 'model_used': model_used})}"
+            f"\n\n"
+        )
 
     return StreamingResponse(
         events(),

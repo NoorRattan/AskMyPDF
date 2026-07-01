@@ -1,9 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion"
-import { BarChart3, BookOpen, FileSearch, ListTree, Send, Sparkles } from "lucide-react"
+import { BarChart3, BookOpen, Brain, FileSearch, ListTree, Send, Sparkles, Zap } from "lucide-react"
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
-import type { Message, UploadState } from "../types"
+import type { Message, ModelPreference, UploadState } from "../types"
 import { ChatMessage } from "./ChatMessage"
 import { StreamingMessage } from "./StreamingMessage"
 import { ThinkingIndicator } from "./ThinkingIndicator"
@@ -13,7 +13,7 @@ interface ChatInterfaceProps {
   messages: Message[]
   isLoading: boolean
   error: string | null
-  onSend: (question: string) => Promise<void>
+  onSend: (question: string, modelPreference: ModelPreference) => Promise<void>
 }
 
 const SUGGESTED_QUESTIONS = [
@@ -27,6 +27,7 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState("")
+  const [modelPreference, setModelPreference] = useState<ModelPreference>("fast")
   const [isInputFocused, setIsInputFocused] = useState(false)
   const shouldReduce = useReducedMotion()
 
@@ -67,7 +68,7 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
       textareaRef.current.style.height = "auto"
     }
 
-    await onSend(question)
+    await onSend(question, modelPreference)
   }
 
   function handleSuggestion(question: string) {
@@ -188,7 +189,11 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
             return <ChatMessage key={message.id} message={message} />
           })}
 
-          {showThinking || hasEmptyStreamingMessage ? <ThinkingIndicator /> : null}
+          {showThinking || hasEmptyStreamingMessage ? (
+            <ThinkingIndicator
+              label={modelPreference === "thinking" ? "Thinking more carefully..." : "Finding cited answer..."}
+            />
+          ) : null}
 
           {error ? (
             <motion.p
@@ -237,7 +242,33 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
           />
 
           <div className="flex items-center justify-between border-t border-border/40 px-4 py-2.5">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="grid grid-cols-2 rounded-xl border border-border/70 bg-surface-raised/70 p-0.5"
+                aria-label="Model preference"
+              >
+                {[
+                  { value: "fast", label: "Fast", icon: Zap },
+                  { value: "thinking", label: "Thinking", icon: Brain },
+                ].map(({ value: option, label, icon: Icon }) => (
+                  <button
+                    key={option}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => setModelPreference(option as ModelPreference)}
+                    className={cn(
+                      "inline-flex h-8 min-w-[82px] items-center justify-center gap-1.5 rounded-[0.65rem] px-2 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60",
+                      modelPreference === option
+                        ? "bg-primary text-white shadow-[0_0_18px_rgba(124,58,237,0.35)]"
+                        : "text-secondary hover:text-text",
+                    )}
+                    aria-pressed={modelPreference === option}
+                  >
+                    <Icon size={13} aria-hidden="true" />
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="h-1 w-20 overflow-hidden rounded-full bg-surface-raised">
                 <div
                   className="h-full rounded-full transition-all duration-200"

@@ -3,19 +3,35 @@ import re
 from reportlab.pdfgen import canvas
 
 
-def test_upload_happy_path(client, sample_pdf):
-    with sample_pdf.open("rb") as file:
-        response = client.post(
+def _post_pdf(client, path, filename: str):
+    with path.open("rb") as file:
+        return client.post(
             "/api/upload",
-            files={"file": ("sample.pdf", file, "application/pdf")},
+            files={"file": (filename, file, "application/pdf")},
         )
+
+
+def _status(client, job_id: str):
+    response = client.get(f"/api/upload/status/{job_id}")
+    assert response.status_code == 200
+    return response.json()
+
+
+def test_upload_happy_path(client, sample_pdf):
+    response = _post_pdf(client, sample_pdf, "sample.pdf")
 
     assert response.status_code == 200
     body = response.json()
-    assert re.fullmatch(r"[a-f0-9]{16}", body["session_id"])
-    assert body["filename"] == "sample.pdf"
-    assert body["page_count"] == 1
-    assert body["chunk_count"] > 0
+    assert re.fullmatch(r"[a-f0-9]{16}", body["job_id"])
+    assert body["status"] == "queued"
+
+    status = _status(client, body["job_id"])
+    assert status["status"] == "ready"
+    assert re.fullmatch(r"[a-f0-9]{16}", status["session_id"])
+    assert status["filename"] == "sample.pdf"
+    assert status["page_count"] == 1
+    assert status["chunk_count"] > 0
+    assert status["progress"] == 100
 
 
 def test_upload_short_text_pdf(client, tmp_path):
@@ -24,17 +40,35 @@ def test_upload_short_text_pdf(client, tmp_path):
     c.drawString(72, 720, "Short PDF with extractable text.")
     c.save()
 
-    with path.open("rb") as file:
-        response = client.post(
-            "/api/upload",
-            files={"file": ("short.pdf", file, "application/pdf")},
-        )
+    response = _post_pdf(client, path, "short.pdf")
 
     assert response.status_code == 200
-    body = response.json()
-    assert body["filename"] == "short.pdf"
-    assert body["page_count"] == 1
-    assert body["chunk_count"] == 1
+    status = _status(client, response.json()["job_id"])
+    assert status["status"] == "ready"
+    assert status["filename"] == "short.pdf"
+    assert status["page_count"] == 1
+    assert status["chunk_count"] == 1
+
+
+def test_upload_scanned_pdf_job_fails(client, tmp_path):
+    path = tmp_path / "blank.pdf"
+    c = canvas.Canvas(str(path))
+    c.showPage()
+    c.save()
+
+    response = _post_pdf(client, path, "blank.pdf")
+
+    assert response.status_code == 200
+    status = _status(client, response.json()["job_id"])
+    assert status["status"] == "error"
+    assert status["error"]
+
+
+def test_upload_status_unknown_job(client):
+    response = client.get("/api/upload/status/abcdef1234567890")
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "job_not_found"
 
 
 def test_upload_wrong_content_type(client, sample_pdf):

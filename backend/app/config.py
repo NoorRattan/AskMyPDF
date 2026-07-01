@@ -9,11 +9,16 @@ class Settings(BaseSettings):
     allowed_origin_regex: str | None = None
     upload_dir: str = "./data/uploads"
     max_file_size_mb: int = 50
-    chunk_size: int = 1200
+    chunk_size: int = 1800
     chunk_overlap: int = 0
+    upload_embedding_batch_size: int = 256
+    upload_job_ttl_seconds: int = 3600
     top_k_results: int = 5
     embedding_dimensions: int = 256
     max_sessions: int = 20
+    fast_model: str = "llama-3.1-8b-instant"
+    thinking_model: str = "llama-3.3-70b-versatile"
+    torch_num_threads: int = 1
     port: int = 8000
 
 

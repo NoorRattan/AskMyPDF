@@ -1,4 +1,4 @@
-import type { UploadResponse } from "../types"
+import type { ModelPreference, UploadJobResponse, UploadStatusResponse } from "../types"
 
 const rawApiUrl = (import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? "/api") : "/api").replace(/\/+$/, "")
 const API_URL = rawApiUrl.endsWith("/api") ? rawApiUrl : `${rawApiUrl}/api`
@@ -31,7 +31,7 @@ async function parseError(res: Response): Promise<APIError> {
   return new APIError(res.status, body.error ?? "request_failed", body.detail)
 }
 
-export async function uploadPDF(file: File): Promise<UploadResponse> {
+export async function uploadPDF(file: File): Promise<UploadJobResponse> {
   const form = new FormData()
   form.append("file", file)
 
@@ -44,14 +44,28 @@ export async function uploadPDF(file: File): Promise<UploadResponse> {
     throw await parseError(res)
   }
 
-  return (await res.json()) as UploadResponse
+  return (await res.json()) as UploadJobResponse
 }
 
-export async function streamChat(sessionId: string, question: string): Promise<Response> {
+export async function getUploadStatus(jobId: string): Promise<UploadStatusResponse> {
+  const res = await fetch(`${API_URL}/upload/status/${jobId}`)
+
+  if (!res.ok) {
+    throw await parseError(res)
+  }
+
+  return (await res.json()) as UploadStatusResponse
+}
+
+export async function streamChat(
+  sessionId: string,
+  question: string,
+  modelPreference: ModelPreference,
+): Promise<Response> {
   const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session_id: sessionId, question }),
+    body: JSON.stringify({ session_id: sessionId, question, model_preference: modelPreference }),
   })
 
   if (!res.ok) {

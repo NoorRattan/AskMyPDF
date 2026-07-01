@@ -67,7 +67,7 @@ def fake_pipeline(monkeypatch):
 
 @pytest.fixture
 def mock_llm(monkeypatch):
-    async def fake_stream(question: str, chunks: list[dict]):
+    async def fake_stream(question: str, chunks: list[dict], model: str):
         yield "This document describes "
         yield "AskMyPDF."
 

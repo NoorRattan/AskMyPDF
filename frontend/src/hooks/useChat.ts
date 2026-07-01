@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react"
 
 import { APIError, streamChat } from "../lib/api"
-import type { Message, SSEMessage, SourceChunk } from "../types"
+import type { Message, ModelPreference, SSEMessage, SourceChunk } from "../types"
 
 function newMessage(role: Message["role"], content: string, isStreaming: boolean): Message {
   return {
@@ -17,8 +17,9 @@ function appendToken(id: string, token: string) {
   return (msg: Message): Message => (msg.id === id ? { ...msg, content: msg.content + token } : msg)
 }
 
-function finishMessage(id: string, sources: SourceChunk[]) {
-  return (msg: Message): Message => (msg.id === id ? { ...msg, isStreaming: false, sources } : msg)
+function finishMessage(id: string, sources: SourceChunk[], modelUsed?: string) {
+  return (msg: Message): Message =>
+    msg.id === id ? { ...msg, isStreaming: false, sources, modelUsed } : msg
 }
 
 function failMessage(id: string, content: string) {
@@ -37,7 +38,7 @@ export function useChat(sessionId: string | null): {
   messages: Message[]
   isLoading: boolean
   error: string | null
-  sendMessage: (question: string) => Promise<void>
+  sendMessage: (question: string, modelPreference?: ModelPreference) => Promise<void>
   clearChat: () => void
 } {
   const [messages, setMessages] = useState<Message[]>([])
@@ -45,7 +46,7 @@ export function useChat(sessionId: string | null): {
   const [error, setError] = useState<string | null>(null)
 
   const sendMessage = useCallback(
-    async (question: string) => {
+    async (question: string, modelPreference: ModelPreference = "fast") => {
       if (!sessionId || isLoading) {
         return
       }
@@ -58,7 +59,7 @@ export function useChat(sessionId: string | null): {
       setError(null)
 
       try {
-        const res = await streamChat(sessionId, question)
+        const res = await streamChat(sessionId, question, modelPreference)
         const reader = res.body?.getReader()
 
         if (!reader) {
@@ -88,7 +89,9 @@ export function useChat(sessionId: string | null): {
             if ("token" in msg) {
               setMessages((current) => current.map(appendToken(assistantMessage.id, msg.token)))
             } else if (msg.done) {
-              setMessages((current) => current.map(finishMessage(assistantMessage.id, msg.sources)))
+              setMessages((current) =>
+                current.map(finishMessage(assistantMessage.id, msg.sources, msg.model_used)),
+              )
             }
           }
         }

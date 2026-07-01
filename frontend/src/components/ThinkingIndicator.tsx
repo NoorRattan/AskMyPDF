@@ -1,6 +1,10 @@
 import { motion, useReducedMotion } from "framer-motion"
 
-export function ThinkingIndicator() {
+interface ThinkingIndicatorProps {
+  label?: string
+}
+
+export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorProps) {
   const shouldReduce = useReducedMotion()
 
   return (
@@ -55,7 +59,7 @@ export function ThinkingIndicator() {
             }}
           />
         ))}
-        <span className="ml-1 font-mono text-[11px] text-secondary/60">Thinking...</span>
+        <span className="ml-1 font-mono text-[11px] text-secondary/60">{label}</span>
       </div>
     </motion.div>
   )

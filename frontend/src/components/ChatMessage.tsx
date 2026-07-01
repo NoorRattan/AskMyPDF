@@ -14,6 +14,18 @@ function formatTime(date: Date): string {
   }).format(date)
 }
 
+function modelLabel(modelUsed: string): string {
+  if (modelUsed.includes("8b") || modelUsed.includes("instant")) {
+    return "Fast model"
+  }
+
+  if (modelUsed.includes("70b") || modelUsed.includes("versatile")) {
+    return "Thinking model"
+  }
+
+  return modelUsed
+}
+
 /** Tiny avatar badge */
 function AiAvatar() {
   return (
@@ -78,6 +90,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
           <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-text [overflow-wrap:anywhere]">
             {message.content}
           </p>
+          {message.modelUsed ? (
+            <p className="mt-3 inline-flex rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-primary-light">
+              Answered with {modelLabel(message.modelUsed)}
+            </p>
+          ) : null}
           {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
         </div>
       </div>

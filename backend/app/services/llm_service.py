@@ -20,12 +20,22 @@ def build_context(chunks: list[dict]) -> str:
     )
 
 
-async def stream_answer(question: str, chunks: list[dict]) -> AsyncGenerator[str, None]:
+def model_for_preference(model_preference: str) -> str:
+    if model_preference == "thinking":
+        return settings.thinking_model
+    return settings.fast_model
+
+
+async def stream_answer(
+    question: str,
+    chunks: list[dict],
+    model: str,
+) -> AsyncGenerator[str, None]:
     context = build_context(chunks)
     client = AsyncGroq(api_key=settings.groq_api_key)
 
     stream = await client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=model,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"},

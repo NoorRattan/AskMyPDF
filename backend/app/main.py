@@ -33,6 +33,16 @@ app.include_router(upload.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 
 
+def tune_optional_runtime_threads() -> None:
+    try:
+        import torch
+    except ImportError:
+        return
+
+    torch.set_num_threads(settings.torch_num_threads)
+    logger.info("Torch thread count set to %s.", settings.torch_num_threads)
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(req: Request, exc: HTTPException) -> JSONResponse:
     if isinstance(exc.detail, dict) and "error" in exc.detail:
@@ -42,6 +52,7 @@ async def http_exception_handler(req: Request, exc: HTTPException) -> JSONRespon
 
 @app.on_event("startup")
 def warm_up_services() -> None:
+    tune_optional_runtime_threads()
     get_model()
     get_client()
     logger.info("Embedding model and vector store loaded.")

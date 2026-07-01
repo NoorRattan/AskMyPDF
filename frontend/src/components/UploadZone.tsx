@@ -21,6 +21,8 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
   const isBusy = uploadState.status === "uploading" || uploadState.status === "processing"
   const isError = uploadState.status === "error" || Boolean(clientError)
   const error = clientError ?? uploadState.error ?? fallbackError
+  const progress = uploadState.progress ?? (uploadState.status === "uploading" ? 2 : 0)
+  const stageLabel = uploadState.stage ? uploadState.stage.replace(/^\w/, (char) => char.toUpperCase()) : "Queued"
 
   function openPicker() {
     if (!isBusy) {
@@ -125,7 +127,15 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
               </span>
             </div>
             <div className="mt-5 h-1.5 w-52 overflow-hidden rounded-full bg-border/70">
-              <span className="processing-progress block h-full rounded-full" />
+              <span
+                className="block h-full rounded-full bg-gradient-to-r from-plasma to-cyan-300 transition-[width] duration-500"
+                style={{ width: `${Math.max(2, Math.min(100, progress))}%` }}
+              />
+            </div>
+            <div className="mt-3 flex items-center gap-2 font-mono text-[11px] uppercase text-cyan-50/62">
+              <span>{stageLabel}</span>
+              <span className="opacity-35">/</span>
+              <span>{Math.round(progress)}%</span>
             </div>
           </div>
         ) : (
@@ -149,13 +159,18 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         )}
 
         <p className="relative z-10 mt-2 text-2xl font-extrabold leading-tight text-ghost sm:text-3xl">
-          {isBusy ? "Turning pages into context..." : "Drop your PDF here"}
+          {isBusy ? (uploadState.message ?? "Turning pages into context...") : "Drop your PDF here"}
         </p>
-        {!isBusy ? (
-          <p className="relative z-10 mt-2 text-sm font-medium text-cyan-50/80">
-            Drag a file in or click to open your browser
-          </p>
-        ) : null}
+        <p className="relative z-10 mt-2 min-h-5 text-sm font-medium text-cyan-50/80">
+          {isBusy
+            ? [
+                uploadState.pageCount ? `${uploadState.pageCount} pages` : null,
+                uploadState.chunkCount ? `${uploadState.chunkCount} chunks` : null,
+              ]
+                .filter(Boolean)
+                .join(" / ") || "The upload can continue while the document index builds."
+            : "Drag a file in or click to open your browser"}
+        </p>
         <div className="relative z-10 mt-6 flex flex-wrap justify-center gap-2">
           {["PDF only", "50MB max", "Private session"].map((item) => (
             <span
