@@ -7,7 +7,8 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 1. GitHub account with `NoorRattan/AskMyPDF` pushed to `main`.
 2. Render account at [render.com](https://render.com). The free tier is enough.
 3. Vercel account at [vercel.com](https://vercel.com). The free tier is enough.
-4. Groq API key.
+4. Anthropic API key.
+5. Groq API key if you want Fast mode to use Groq. Without it, Fast falls back to Anthropic.
 
 ## 2. Deploy Backend To Render
 
@@ -18,11 +19,19 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `GROQ_API_KEY` | your Groq key |
+   | `ANTHROPIC_API_KEY` | your Anthropic key |
+   | `GROQ_API_KEY` | optional Groq key for Fast mode |
+   | `FAST_MODEL` | `llama-3.1-8b-instant` |
+   | `FAST_MODEL_PROVIDER` | `groq` |
+   | `THINKING_MODEL` | `claude-sonnet-4-6` |
+   | `THINKING_MODEL_PROVIDER` | `anthropic` |
    | `ALLOWED_ORIGINS` | `https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app` |
    | `ALLOWED_ORIGIN_REGEX` | `^https://ask-my-p(?:df)?[-a-z0-9]*-noorrattans-projects\.vercel\.app$` |
    | `UPLOAD_DIR` | `/app/data/uploads` |
-   | `EMBEDDING_DIMENSIONS` | `256` |
+   | `CHUNK_SIZE` | `1200` |
+   | `CHUNK_OVERLAP` | `0` |
+   | `UPLOAD_EMBEDDING_BATCH_SIZE` | `256` |
+   | `TORCH_NUM_THREADS` | `2` |
    | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
 
@@ -44,7 +53,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true}
+   {"status":"ok","model_loaded":true,"embedding_model":"all-MiniLM-L6-v2"}
    ```
 
 ## 3. Deploy Frontend To Vercel
@@ -73,9 +82,10 @@ Once you have the final Vercel URL:
 ## 5. Verify End To End
 
 1. Visit your Vercel URL.
-2. Upload a PDF.
-3. Ask a question.
-4. Confirm tokens stream in the chat interface.
+2. Upload a PDF and confirm the upload panel shows progress through extraction and embedding.
+3. Ask a question in Fast mode.
+4. Ask a question in Thinking mode.
+5. Confirm tokens stream and completed messages show the model/provider that answered.
 
 ## 6. Local Development
 

@@ -32,6 +32,7 @@ export interface Message {
   content: string
   sources?: SourceChunk[]
   modelUsed?: string
+  providerUsed?: string
   isStreaming: boolean
   timestamp: Date
 }
@@ -58,7 +59,8 @@ export interface SSETokenMessage {
 export interface SSEDoneMessage {
   done: true
   sources: SourceChunk[]
-  model_used?: string
+  model_used: string
+  provider_used: string
 }
 
 export type SSEMessage = SSETokenMessage | SSEDoneMessage

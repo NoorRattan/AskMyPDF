@@ -60,7 +60,7 @@ export async function getUploadStatus(jobId: string): Promise<UploadStatusRespon
 export async function streamChat(
   sessionId: string,
   question: string,
-  modelPreference: ModelPreference,
+  modelPreference: ModelPreference = "fast",
 ): Promise<Response> {
   const res = await fetch(`${API_URL}/chat`, {
     method: "POST",

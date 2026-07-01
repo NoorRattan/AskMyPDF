@@ -1,6 +1,7 @@
 import json
 
 from app.config import settings
+from app.services.llm_service import resolve_model
 
 
 def _upload(client, sample_pdf) -> str:
@@ -44,13 +45,14 @@ def test_chat_happy_path(client, sample_pdf, mock_llm):
     assert len(done_messages) == 1
     assert done_messages[0]["sources"]
     assert done_messages[0]["model_used"] == settings.fast_model
+    assert done_messages[0]["provider_used"] == settings.fast_model_provider
 
 
 def test_chat_thinking_model(client, sample_pdf, monkeypatch):
     seen = {}
 
-    async def fake_stream(question: str, chunks: list[dict], model: str):
-        seen["model"] = model
+    async def fake_stream(question: str, chunks: list[dict], model_preference: str = "fast"):
+        seen["model_preference"] = model_preference
         yield "Thinking answer."
 
     monkeypatch.setattr("app.routers.chat.stream_answer", fake_stream)
@@ -70,8 +72,37 @@ def test_chat_thinking_model(client, sample_pdf, monkeypatch):
     assert response.status_code == 200
     messages = _sse_messages(body)
     done_messages = [message for message in messages if message.get("done") is True]
-    assert seen["model"] == settings.thinking_model
+    assert seen["model_preference"] == "thinking"
     assert done_messages[0]["model_used"] == settings.thinking_model
+    assert done_messages[0]["provider_used"] == settings.thinking_model_provider
+
+
+def test_chat_fast_falls_back_to_anthropic_without_groq_key(client, sample_pdf, monkeypatch):
+    monkeypatch.setattr(settings, "groq_api_key", None)
+
+    async def fake_stream(question: str, chunks: list[dict], model_preference: str = "fast"):
+        yield "Fallback answer."
+
+    monkeypatch.setattr("app.routers.chat.stream_answer", fake_stream)
+    session_id = _upload(client, sample_pdf)
+
+    with client.stream(
+        "POST",
+        "/api/chat",
+        json={
+            "session_id": session_id,
+            "question": "What is this document about?",
+            "model_preference": "fast",
+        },
+    ) as response:
+        body = response.read().decode()
+
+    assert response.status_code == 200
+    messages = _sse_messages(body)
+    done_messages = [message for message in messages if message.get("done") is True]
+    assert resolve_model("fast").fell_back is True
+    assert done_messages[0]["model_used"] == settings.thinking_model
+    assert done_messages[0]["provider_used"] == settings.thinking_model_provider
 
 
 def test_chat_unknown_session_id(client):

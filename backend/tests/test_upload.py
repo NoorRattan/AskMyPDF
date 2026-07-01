@@ -3,6 +3,24 @@ import re
 from reportlab.pdfgen import canvas
 
 
+def test_embeddings_are_semantic():
+    """Semantically similar sentences must be closer than unrelated ones."""
+    import numpy as np
+
+    from app.services.embedding_service import embed_texts
+
+    a = "The company's revenue increased significantly this quarter."
+    b = "Sales grew a lot in the last three months."
+    c = "The cat sat on the windowsill in the afternoon sun."
+
+    emb_a, emb_b, emb_c = embed_texts([a, b, c])
+    sim_ab = np.dot(emb_a, emb_b)
+    sim_ac = np.dot(emb_a, emb_c)
+
+    assert sim_ab > sim_ac, "Semantically related sentences should be more similar than unrelated ones"
+    assert sim_ab > 0.5, "Related sentences should have reasonably high cosine similarity"
+
+
 def _post_pdf(client, path, filename: str):
     with path.open("rb") as file:
         return client.post(

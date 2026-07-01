@@ -8,16 +8,32 @@ services:
     dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
       - key: GROQ_API_KEY
         sync: false
+      - key: FAST_MODEL
+        value: llama-3.1-8b-instant
+      - key: FAST_MODEL_PROVIDER
+        value: groq
+      - key: THINKING_MODEL
+        value: claude-sonnet-4-6
+      - key: THINKING_MODEL_PROVIDER
+        value: anthropic
       - key: ALLOWED_ORIGINS
         value: https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app
       - key: ALLOWED_ORIGIN_REGEX
         value: '^https://ask-my-p(?:df)?[-a-z0-9]*-noorrattans-projects\.vercel\.app$'
       - key: UPLOAD_DIR
         value: /app/data/uploads
-      - key: EMBEDDING_DIMENSIONS
+      - key: CHUNK_SIZE
+        value: 1200
+      - key: CHUNK_OVERLAP
+        value: 0
+      - key: UPLOAD_EMBEDDING_BATCH_SIZE
         value: 256
+      - key: TORCH_NUM_THREADS
+        value: 2
       - key: MAX_SESSIONS
         value: 20
       - key: PORT

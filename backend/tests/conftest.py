@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
 os.environ.setdefault("GROQ_API_KEY", "test_api_key")
+os.environ.setdefault("ANTHROPIC_API_KEY", "test_anthropic_key")
 os.environ.setdefault("UPLOAD_DIR", "./data/test_uploads")
 
 import app.main as main_mod
@@ -67,7 +68,7 @@ def fake_pipeline(monkeypatch):
 
 @pytest.fixture
 def mock_llm(monkeypatch):
-    async def fake_stream(question: str, chunks: list[dict], model: str):
+    async def fake_stream(question: str, chunks: list[dict], model_preference: str = "fast"):
         yield "This document describes "
         yield "AskMyPDF."
 

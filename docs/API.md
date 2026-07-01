@@ -2,7 +2,7 @@
 
 Base URL locally: `http://localhost:8000`
 
-Base URL in production: `https://<render-url>`
+Base URL in production: `https://askmypdf-gxwp.onrender.com`
 
 All application endpoints except health are prefixed with `/api`.
 
@@ -19,15 +19,14 @@ Response `200`:
 ```json
 {
   "status": "ok",
-  "model_loaded": true
+  "model_loaded": true,
+  "embedding_model": "all-MiniLM-L6-v2"
 }
 ```
 
-`model_loaded` is `true` after the lightweight retrieval service is initialized.
-
 ## POST /api/upload
 
-Uploads a PDF and runs the ingestion pipeline.
+Uploads a PDF, stores it temporarily, creates an in-memory background processing job, and returns immediately.
 
 Request:
 
@@ -47,11 +46,9 @@ Success response `200`:
 
 ```json
 {
-  "session_id": "a3f8c2d1e0b4a5f6",
-  "filename": "research_paper.pdf",
-  "page_count": 24,
-  "chunk_count": 187,
-  "message": "PDF processed successfully. Ready to chat!"
+  "job_id": "a3f8c2d1e0b4a5f6",
+  "status": "queued",
+  "message": "Upload received. Processing started."
 }
 ```
 
@@ -82,16 +79,71 @@ File too large `413`:
 }
 ```
 
-Processing failed `500`:
+Malformed multipart requests return FastAPI's standard `422` validation response.
+
+## GET /api/upload/status/{job_id}
+
+Returns upload processing progress. Poll this endpoint until `status` is `ready` or `error`.
+
+Success response `200`:
 
 ```json
 {
-  "error": "processing_failed",
-  "detail": "Failed to extract text. The PDF may be scanned or encrypted."
+  "job_id": "a3f8c2d1e0b4a5f6",
+  "status": "embedding",
+  "stage": "embedding",
+  "message": "Generating embeddings (256/1000 chunks)...",
+  "progress": 76,
+  "filename": "research_paper.pdf",
+  "page_count": 24,
+  "chunk_count": 1000,
+  "session_id": null,
+  "error": null
 }
 ```
 
-Malformed multipart requests return FastAPI's standard `422` validation response.
+Ready response:
+
+```json
+{
+  "job_id": "a3f8c2d1e0b4a5f6",
+  "status": "ready",
+  "stage": "ready",
+  "message": "PDF processed successfully. Ready to chat!",
+  "progress": 100,
+  "filename": "research_paper.pdf",
+  "page_count": 24,
+  "chunk_count": 187,
+  "session_id": "b4f0c6d9a1e2478a",
+  "error": null
+}
+```
+
+Failure response:
+
+```json
+{
+  "job_id": "a3f8c2d1e0b4a5f6",
+  "status": "error",
+  "stage": "error",
+  "message": "Failed to extract text. The PDF may be scanned or encrypted.",
+  "progress": 100,
+  "filename": "scanned.pdf",
+  "page_count": null,
+  "chunk_count": null,
+  "session_id": null,
+  "error": "PDF appears to be scanned or has no extractable text."
+}
+```
+
+Unknown job `404`:
+
+```json
+{
+  "error": "job_not_found",
+  "detail": "Upload job was not found."
+}
+```
 
 ## POST /api/chat
 
@@ -101,18 +153,24 @@ Request:
 
 ```json
 {
-  "session_id": "a3f8c2d1e0b4a5f6",
-  "question": "What were the main findings of this study?"
+  "session_id": "b4f0c6d9a1e2478a",
+  "question": "What were the main findings of this study?",
+  "model_preference": "fast"
 }
 ```
+
+`model_preference` may be `"fast"` or `"thinking"` and defaults to `"fast"`.
+
+- Fast mode uses Groq with `llama-3.1-8b-instant` when `GROQ_API_KEY` is configured.
+- Thinking mode uses Anthropic with `claude-sonnet-4-6`.
+- If Fast mode is requested without `GROQ_API_KEY`, the backend falls back to Anthropic and reports the actual provider in the final SSE message.
 
 cURL:
 
 ```bash
-curl -X POST http://localhost:8000/api/chat \
+curl -N -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id": "a3f8c2d1e0b4a5f6", "question": "What is the main argument?"}' \
-  --no-buffer
+  -d '{"session_id": "b4f0c6d9a1e2478a", "question": "What is the main argument?", "model_preference": "fast"}'
 ```
 
 Response headers:
@@ -127,7 +185,7 @@ SSE wire format:
 ```text
 data: {"token": "The"}\n\n
 data: {"token": " main"}\n\n
-data: {"done": true, "sources": [...]}\n\n
+data: {"done": true, "sources": [...], "model_used": "llama-3.1-8b-instant", "provider_used": "groq"}\n\n
 ```
 
 Final done message shape:
@@ -141,7 +199,9 @@ Final done message shape:
       "page_number": 3,
       "chunk_index": 42
     }
-  ]
+  ],
+  "model_used": "llama-3.1-8b-instant",
+  "provider_used": "groq"
 }
 ```
 
@@ -169,7 +229,7 @@ Validation error `422`:
 }
 ```
 
-Validation also returns `422` when `question` is empty or longer than 1000 characters.
+Validation also returns `422` when `question` is empty, longer than 1000 characters, or `model_preference` is not `"fast"` or `"thinking"`.
 
 ## DELETE /api/session/{session_id}
 
@@ -178,7 +238,7 @@ Deletes an in-memory session. This is the intended cleanup endpoint contract. Th
 cURL:
 
 ```bash
-curl -X DELETE http://localhost:8000/api/session/a3f8c2d1e0b4a5f6
+curl -X DELETE http://localhost:8000/api/session/b4f0c6d9a1e2478a
 ```
 
 Success response `200`:
@@ -211,7 +271,7 @@ ALLOWED_ORIGINS=http://localhost:5173
 Production:
 
 ```bash
-ALLOWED_ORIGINS=https://askmypdf.vercel.app
+ALLOWED_ORIGINS=https://ask-my-pdf-weld.vercel.app
 ```
 
 If you use a different Vercel URL or custom domain, update `ALLOWED_ORIGINS` in Render to the exact frontend origin with no trailing slash.

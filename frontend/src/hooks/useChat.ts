@@ -17,9 +17,9 @@ function appendToken(id: string, token: string) {
   return (msg: Message): Message => (msg.id === id ? { ...msg, content: msg.content + token } : msg)
 }
 
-function finishMessage(id: string, sources: SourceChunk[], modelUsed?: string) {
+function finishMessage(id: string, sources: SourceChunk[], modelUsed?: string, providerUsed?: string) {
   return (msg: Message): Message =>
-    msg.id === id ? { ...msg, isStreaming: false, sources, modelUsed } : msg
+    msg.id === id ? { ...msg, isStreaming: false, sources, modelUsed, providerUsed } : msg
 }
 
 function failMessage(id: string, content: string) {
@@ -90,7 +90,7 @@ export function useChat(sessionId: string | null): {
               setMessages((current) => current.map(appendToken(assistantMessage.id, msg.token)))
             } else if (msg.done) {
               setMessages((current) =>
-                current.map(finishMessage(assistantMessage.id, msg.sources, msg.model_used)),
+                current.map(finishMessage(assistantMessage.id, msg.sources, msg.model_used, msg.provider_used)),
               )
             }
           }

@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.routers import chat, upload
-from app.services.embedding_service import get_model
+from app.services.embedding_service import EMBEDDING_MODEL_NAME, get_model
 from app.services.vector_service import get_client
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,10 @@ async def http_exception_handler(req: Request, exc: HTTPException) -> JSONRespon
 @app.on_event("startup")
 def warm_up_services() -> None:
     tune_optional_runtime_threads()
+    if not settings.groq_api_key:
+        logger.warning(
+            "GROQ_API_KEY not set; fast mode will be unavailable, falling back to thinking model."
+        )
     get_model()
     get_client()
     logger.info("Embedding model and vector store loaded.")
@@ -60,4 +64,8 @@ def warm_up_services() -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model_loaded": get_model() is not None, "retriever": get_model()}
+    return {
+        "status": "ok",
+        "model_loaded": get_model() is not None,
+        "embedding_model": EMBEDDING_MODEL_NAME,
+    }
