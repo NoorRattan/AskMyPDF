@@ -103,14 +103,17 @@ def warm_up_services() -> None:
 @app.get("/health")
 def health() -> dict:
     fast_model, fast_provider = settings.fast_model, "groq"
+    embedding_backend = get_embedding_backend()
     thinking_model = settings.thinking_model_anthropic if settings.anthropic_api_key else settings.thinking_model_groq
     thinking_provider = "anthropic" if settings.anthropic_api_key else "groq"
+    memory_profile = "render-512-safe" if embedding_backend == "hash" else "semantic-full"
 
     return {
         "status": "ok",
         "model_loaded": get_model() is not None,
         "embedding_model": get_embedding_model_name(),
-        "embedding_backend": get_embedding_backend(),
+        "embedding_backend": embedding_backend,
+        "memory_profile": memory_profile,
         "fast_model": fast_model,
         "fast_provider": fast_provider,
         "thinking_model": thinking_model,

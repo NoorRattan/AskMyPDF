@@ -31,6 +31,7 @@ export interface SystemStatusResponse {
   model_loaded: boolean
   embedding_model: string
   embedding_backend: string
+  memory_profile: string
   fast_model: string
   fast_provider: string
   thinking_model: string

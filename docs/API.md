@@ -23,6 +23,7 @@ Response `200`:
   "model_loaded": true,
   "embedding_model": "all-MiniLM-L6-v2",
   "embedding_backend": "sentence-transformers",
+  "memory_profile": "semantic-full",
   "fast_model": "llama-3.1-8b-instant",
   "fast_provider": "groq",
   "thinking_model": "llama-3.3-70b-versatile",
@@ -30,7 +31,7 @@ Response `200`:
 }
 ```
 
-The deployed free-tier backend may report `hashing-vectorizer-256d` when configured for the lightweight embedding backend.
+The deployed free-tier backend may report `hashing-vectorizer-256d` with `memory_profile` set to `render-512-safe` when configured for the lightweight embedding backend.
 
 The frontend calls `/api/health` through Vercel's rewrite so the browser can display live production status without reaching around the deployed frontend origin.
 

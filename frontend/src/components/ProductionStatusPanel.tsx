@@ -72,8 +72,9 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
         </div>
       </div>
 
-      <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CompactMetric label="Retrieval" value={details?.embedding_model ?? "checking"} />
+        <CompactMetric label="Memory" value={details?.memory_profile ?? "checking"} />
         <CompactMetric label="Fast route" value={details ? `${details.fast_model} / ${details.fast_provider}` : "checking"} />
         <CompactMetric label="Thinking route" value={details ? `${details.thinking_model} / ${details.thinking_provider}` : "checking"} />
       </div>

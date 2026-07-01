@@ -25,7 +25,7 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 | Upload UX | Non-blocking upload jobs with polling via `/api/upload/status/{job_id}` |
 | Text extraction | PyMuPDF first when installed, then `pypdf`, then `pdfplumber` for small difficult PDFs |
 | Chunking | 1200 characters, no overlap |
-| Embeddings | Normalized embeddings; MiniLM for local/full environments, hashing for the free Render deployment |
+| Embeddings | Normalized embeddings; MiniLM for local/full environments, hashing plus lean dependencies for the free Render deployment |
 | Retrieval | Bounded in-memory session store with cosine ranking |
 | Generation | Groq-primary provider layer with optional Anthropic upgrade for Thinking mode |
 | Streaming | Server-sent events with `token` events and final `done` metadata |
@@ -34,7 +34,7 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 ## Architectural Decisions
 
 1. Upload processing is asynchronous from the user's perspective. `/api/upload` creates a short-lived in-memory job and returns a `job_id`; the frontend polls status until the backend returns a ready `session_id`.
-2. Retrieval quality and deployment reliability are balanced through `EMBEDDING_BACKEND`. Local/full environments use `all-MiniLM-L6-v2`; the free Render deployment uses the hashing backend to avoid transformer-memory crashes during upload processing.
+2. Retrieval quality and deployment reliability are balanced through `EMBEDDING_BACKEND`. Local/full environments use `all-MiniLM-L6-v2`; the free Render deployment uses the hashing backend and `backend/requirements-prod.txt` to avoid transformer-memory crashes and 512 MB dependency pressure.
 3. Fast and Thinking are deliberate model routes. Fast mode always uses Groq `llama-3.1-8b-instant`. Thinking mode uses Groq `llama-3.3-70b-versatile` by default, and automatically upgrades to Anthropic `claude-sonnet-4-6` only when `ANTHROPIC_API_KEY` is configured. `resolve_model()` is the single source of truth for this rule, and final SSE events report the actual provider and model used.
 4. Runtime state is intentionally in memory for this portfolio app. Uploaded sessions and job status are not durable across Render restarts.
 5. Scanned PDFs fail fast. OCR is out of scope for the current version.

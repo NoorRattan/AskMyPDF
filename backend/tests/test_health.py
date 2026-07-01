@@ -7,6 +7,7 @@ def test_health_contract(client):
     assert body["model_loaded"] is True
     assert body["embedding_model"]
     assert body["embedding_backend"]
+    assert body["memory_profile"] in {"render-512-safe", "semantic-full"}
     assert body["fast_model"]
     assert body["fast_provider"] == "groq"
     assert body["thinking_model"]

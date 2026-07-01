@@ -14,7 +14,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
 1. Go to [render.com](https://render.com) -> New -> Blueprint.
 2. Select `NoorRattan/AskMyPDF`.
-3. Render auto-detects `render.yaml` in the repo root. The backend service uses `backend` as its root directory, `Dockerfile` as the Dockerfile path, and `.` as the Docker build context.
+3. Render auto-detects `render.yaml` in the repo root. The backend service uses `backend` as its root directory, `Dockerfile` as the Dockerfile path, and `.` as the Docker build context. The Dockerfile installs `requirements-prod.txt`, not the local development `requirements.txt`, so the free deployment does not install Torch, sentence-transformers, NumPy, PyMuPDF, pytest, or reportlab.
 4. Go to the service -> Variables tab -> add each variable exactly:
 
    | Variable | Value |
@@ -55,10 +55,10 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq"}
+   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","memory_profile":"render-512-safe","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq"}
    ```
 
-   If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2`.
+   If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2` and `memory_profile` is `semantic-full`. In that case, use the full `requirements.txt` dependency set or a custom image that includes sentence-transformers and Torch.
 
 8. Verify the browser-facing health rewrite:
 
