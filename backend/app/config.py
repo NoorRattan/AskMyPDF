@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     upload_embedding_batch_size: int = 256
     upload_job_ttl_seconds: int = 3600
     top_k_results: int = 5
+    embedding_backend: str = "auto"
     embedding_dimensions: int = 256
     max_sessions: int = 20
     fast_model: str = "llama-3.1-8b-instant"

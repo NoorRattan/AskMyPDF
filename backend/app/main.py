@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.routers import chat, upload
-from app.services.embedding_service import EMBEDDING_MODEL_NAME, get_model
+from app.services.embedding_service import get_embedding_backend, get_embedding_model_name, get_model
 from app.services.vector_service import get_client
 
 logger = logging.getLogger("uvicorn.error")
@@ -34,6 +34,9 @@ app.include_router(chat.router, prefix="/api")
 
 
 def tune_optional_runtime_threads() -> None:
+    if get_embedding_backend() != "sentence-transformers":
+        return
+
     try:
         import torch
     except ImportError:
@@ -67,5 +70,5 @@ def health() -> dict:
     return {
         "status": "ok",
         "model_loaded": get_model() is not None,
-        "embedding_model": EMBEDDING_MODEL_NAME,
+        "embedding_model": get_embedding_model_name(),
     }

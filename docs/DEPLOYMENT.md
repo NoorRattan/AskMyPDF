@@ -31,6 +31,8 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | `CHUNK_SIZE` | `1200` |
    | `CHUNK_OVERLAP` | `0` |
    | `UPLOAD_EMBEDDING_BATCH_SIZE` | `256` |
+   | `EMBEDDING_BACKEND` | `hash` on free Render; use `sentence-transformers` on larger instances |
+   | `EMBEDDING_DIMENSIONS` | `256` |
    | `TORCH_NUM_THREADS` | `2` |
    | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
@@ -53,8 +55,10 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true,"embedding_model":"all-MiniLM-L6-v2"}
+   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d"}
    ```
+
+   If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2`.
 
 ## 3. Deploy Frontend To Vercel
 

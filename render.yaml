@@ -30,6 +30,10 @@ services:
         value: 0
       - key: UPLOAD_EMBEDDING_BATCH_SIZE
         value: 256
+      - key: EMBEDDING_BACKEND
+        value: hash
+      - key: EMBEDDING_DIMENSIONS
+        value: 256
       - key: TORCH_NUM_THREADS
         value: 2
       - key: MAX_SESSIONS

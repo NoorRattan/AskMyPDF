@@ -24,6 +24,8 @@ Response `200`:
 }
 ```
 
+The deployed free-tier backend may report `hashing-vectorizer-256d` when configured for the lightweight embedding backend.
+
 ## POST /api/upload
 
 Uploads a PDF, stores it temporarily, creates an in-memory background processing job, and returns immediately.

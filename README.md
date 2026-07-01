@@ -24,7 +24,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 3. The frontend polls `/api/upload/status/{job_id}` while the backend extracts text, chunks the document, and generates embeddings.
 4. PyMuPDF is tried first when available, then `pypdf`, then `pdfplumber` for small tricky PDFs.
 5. Text is split into 1200-character chunks with no overlap.
-6. Each chunk is embedded with `sentence-transformers` using `all-MiniLM-L6-v2` and normalized vectors.
+6. Each chunk is embedded and normalized. Local/full deployments use `sentence-transformers` with `all-MiniLM-L6-v2`; the free Render demo uses a lightweight hashing backend to stay within memory limits.
 7. Chunks and embeddings are stored in a bounded in-memory session store.
 8. Questions are embedded with the same semantic model and ranked by cosine similarity.
 9. Fast mode streams from Groq using `llama-3.1-8b-instant`.
@@ -39,7 +39,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 | Styling | Tailwind CSS 3.4, GSAP, Framer Motion |
 | Backend | FastAPI, Python 3.11 |
 | PDF parsing | PyMuPDF optional, `pypdf`, `pdfplumber` fallback |
-| Retrieval | `sentence-transformers` `all-MiniLM-L6-v2`, normalized in-memory vector ranking |
+| Retrieval | Configurable normalized embeddings: `all-MiniLM-L6-v2` locally, lightweight hashing on the free Render demo |
 | LLM | Groq fast mode + Groq thinking mode by default; optional Anthropic Claude Sonnet 4.6 upgrade |
 | Backend deploy | Render |
 | Frontend deploy | Vercel |
@@ -72,6 +72,8 @@ Thinking mode is the quality-oriented path for synthesis, comparison, and multi-
 ## Fair Warning
 
 The backend runs on Render, and free-tier instances can still be CPU constrained or cold-start after inactivity. Uploads no longer block on one long request: the UI gets a job id quickly and shows processing progress while indexing continues.
+
+The live demo is configured with `EMBEDDING_BACKEND=hash` because free Render instances can run out of memory while loading transformer embeddings. Set `EMBEDDING_BACKEND=sentence-transformers` on a larger backend if you want the highest retrieval quality.
 
 ## Known Limitations
 

@@ -21,6 +21,21 @@ def test_embeddings_are_semantic():
     assert sim_ab > 0.5, "Related sentences should have reasonably high cosine similarity"
 
 
+def test_hash_embedding_backend_is_lightweight(monkeypatch):
+    from app.config import settings
+    import app.services.embedding_service as embedding_service
+
+    monkeypatch.setattr(settings, "embedding_backend", "hash")
+    monkeypatch.setattr(settings, "embedding_dimensions", 32)
+
+    embeddings = embedding_service.embed_texts(["AskMyPDF retrieves cited PDF answers."])
+
+    assert embedding_service.get_embedding_model_name() == "hashing-vectorizer-32d"
+    assert len(embeddings) == 1
+    assert len(embeddings[0]) == 32
+    assert any(value != 0 for value in embeddings[0])
+
+
 def _post_pdf(client, path, filename: str):
     with path.open("rb") as file:
         return client.post(
