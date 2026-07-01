@@ -109,6 +109,76 @@ body::before {
   animation: waveform-draw 2.8s ease-in-out infinite;
 }
 
+.production-panel {
+  isolation: isolate;
+}
+
+.production-aurora {
+  position: absolute;
+  inset: auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+.production-aurora-a {
+  right: -86px;
+  top: -112px;
+  background: #67E8F9;
+  animation: production-aurora-a 8s ease-in-out infinite;
+}
+
+.production-aurora-b {
+  bottom: -118px;
+  left: -82px;
+  background: #F59E0B;
+  animation: production-aurora-b 10s ease-in-out infinite;
+}
+
+.production-orbit {
+  position: relative;
+  width: 86px;
+  height: 86px;
+}
+
+.production-orbit-ring,
+.production-orbit-core {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+}
+
+.production-orbit-ring {
+  inset: 0;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+}
+
+.production-orbit-ring-a {
+  border-top-color: rgba(103, 232, 249, 0.94);
+  border-left-color: rgba(16, 185, 129, 0.68);
+  animation: process-spin 1.6s linear infinite;
+}
+
+.production-orbit-ring-b {
+  inset: 10px;
+  border-right-color: rgba(245, 158, 11, 0.76);
+  border-bottom-color: rgba(123, 97, 255, 0.72);
+  animation: process-spin 2.35s linear infinite reverse;
+}
+
+.production-orbit-core {
+  inset: 24px;
+  color: #D1FAE5;
+  background: rgba(16, 24, 32, 0.9);
+  box-shadow:
+    0 0 28px rgba(16, 185, 129, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
 .upload-icon:hover {
   transform: translateY(-4px) scale(1.08);
   background: linear-gradient(135deg, rgba(123, 97, 255, 0.18), rgba(103, 232, 249, 0.08));
@@ -477,6 +547,16 @@ body::before {
   0% { stroke-dashoffset: 520; opacity: 0.35; }
   42%, 68% { stroke-dashoffset: 0; opacity: 1; }
   100% { stroke-dashoffset: -520; opacity: 0.35; }
+}
+
+@keyframes production-aurora-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.9); opacity: 0.22; }
+  50% { transform: translate3d(-40px, 48px, 0) scale(1.16); opacity: 0.36; }
+}
+
+@keyframes production-aurora-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.18; }
+  50% { transform: translate3d(56px, -34px, 0) scale(1.18); opacity: 0.32; }
 }
 
 @keyframes upload-drift {

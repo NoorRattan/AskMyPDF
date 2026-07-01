@@ -6,12 +6,13 @@ Base URL in production: `https://askmypdf-gxwp.onrender.com`
 
 All application endpoints except health are prefixed with `/api`.
 
-## GET /health
+## GET /health and /api/health
 
 Checks whether the backend is ready.
 
 ```bash
 curl http://localhost:8000/health
+curl http://localhost:8000/api/health
 ```
 
 Response `200`:
@@ -20,11 +21,18 @@ Response `200`:
 {
   "status": "ok",
   "model_loaded": true,
-  "embedding_model": "all-MiniLM-L6-v2"
+  "embedding_model": "all-MiniLM-L6-v2",
+  "embedding_backend": "sentence-transformers",
+  "fast_model": "llama-3.1-8b-instant",
+  "fast_provider": "groq",
+  "thinking_model": "llama-3.3-70b-versatile",
+  "thinking_provider": "groq"
 }
 ```
 
 The deployed free-tier backend may report `hashing-vectorizer-256d` when configured for the lightweight embedding backend.
+
+The frontend calls `/api/health` through Vercel's rewrite so the browser can display live production status without reaching around the deployed frontend origin.
 
 ## POST /api/upload
 

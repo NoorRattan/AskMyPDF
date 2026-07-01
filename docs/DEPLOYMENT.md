@@ -55,10 +55,18 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d"}
+   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq"}
    ```
 
    If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2`.
+
+8. Verify the browser-facing health rewrite:
+
+   ```bash
+   curl https://<vercel-url>/api/health
+   ```
+
+   This endpoint powers the live production status panel on the frontend.
 
 ## 3. Deploy Frontend To Vercel
 

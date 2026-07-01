@@ -31,6 +31,10 @@ function errorText(error: unknown): string {
     return error.message
   }
 
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return "The answer stream timed out. Try Fast mode or ask a shorter question."
+  }
+
   return error instanceof Error ? error.message : "Failed to stream response."
 }
 

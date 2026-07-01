@@ -75,6 +75,8 @@ The backend runs on Render, and free-tier instances can still be CPU constrained
 
 The live demo is configured with `EMBEDDING_BACKEND=hash` because free Render instances can run out of memory while loading transformer embeddings. Set `EMBEDDING_BACKEND=sentence-transformers` on a larger backend if you want the highest retrieval quality.
 
+The frontend also checks `/api/health` at runtime and shows the active embedding backend plus fast/thinking model routes in the live status panel.
+
 ## Known Limitations
 
 - Scanned PDFs are not supported because there is no OCR layer.

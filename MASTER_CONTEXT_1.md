@@ -29,6 +29,7 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 | Retrieval | Bounded in-memory session store with cosine ranking |
 | Generation | Groq-primary provider layer with optional Anthropic upgrade for Thinking mode |
 | Streaming | Server-sent events with `token` events and final `done` metadata |
+| Observability | `/health` plus browser-facing `/api/health` return embedding and model route status |
 
 ## Architectural Decisions
 
@@ -37,6 +38,7 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 3. Fast and Thinking are deliberate model routes. Fast mode always uses Groq `llama-3.1-8b-instant`. Thinking mode uses Groq `llama-3.3-70b-versatile` by default, and automatically upgrades to Anthropic `claude-sonnet-4-6` only when `ANTHROPIC_API_KEY` is configured. `resolve_model()` is the single source of truth for this rule, and final SSE events report the actual provider and model used.
 4. Runtime state is intentionally in memory for this portfolio app. Uploaded sessions and job status are not durable across Render restarts.
 5. Scanned PDFs fail fast. OCR is out of scope for the current version.
+6. The frontend status panel uses `/api/health` through the Vercel rewrite. Keep this route in sync with `/health` so production checks exercise the same origin the browser uses.
 
 ## Environment Variables
 

@@ -16,9 +16,15 @@ const idleState: UploadState = {
   error: null,
 }
 
+const maxPolls = 120
+
 function errorMessage(error: unknown): string {
   if (error instanceof APIError) {
     return error.message
+  }
+
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return "The request timed out. The backend may be waking up; try again in a moment."
   }
 
   return error instanceof Error ? error.message : "Upload failed."
@@ -75,7 +81,11 @@ export function useUpload(): {
         error: null,
       }))
 
-      while (activeJobRef.current === response.job_id) {
+      for (let pollCount = 0; activeJobRef.current === response.job_id; pollCount += 1) {
+        if (pollCount >= maxPolls) {
+          throw new Error("Processing took too long. Try a smaller PDF or upload again.")
+        }
+
         const status = await getUploadStatus(response.job_id)
 
         if (activeJobRef.current !== response.job_id) {

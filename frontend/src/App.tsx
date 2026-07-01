@@ -19,8 +19,10 @@ import { type ReactNode, type RefObject, useEffect, useRef, useState } from "rea
 import { ChatInterface } from "./components/ChatInterface"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { Header } from "./components/Header"
+import { ProductionStatusPanel } from "./components/ProductionStatusPanel"
 import { UploadZone } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
+import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
 
 gsap.registerPlugin(ScrollTrigger)
@@ -437,10 +439,12 @@ function Landing({
   uploadState,
   uploadFile,
   reset,
+  systemStatus,
 }: {
   uploadState: ReturnType<typeof useUpload>["state"]
   uploadFile: ReturnType<typeof useUpload>["uploadFile"]
   reset: ReturnType<typeof useUpload>["reset"]
+  systemStatus: ReturnType<typeof useSystemStatus>
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
@@ -560,6 +564,9 @@ function Landing({
                 See the system <ChevronRight size={18} aria-hidden="true" />
               </MagneticButton>
             </div>
+          </div>
+          <div className="hero-reveal mt-10 max-w-4xl">
+            <ProductionStatusPanel {...systemStatus} />
           </div>
         </div>
       </section>
@@ -688,6 +695,7 @@ function Footer() {
 export default function App() {
   const { state: uploadState, uploadFile, reset } = useUpload()
   const { messages, isLoading, error, sendMessage, clearChat } = useChat(uploadState.sessionId)
+  const systemStatus = useSystemStatus()
   const isChat = uploadState.status === "ready"
 
   function handleReset() {
@@ -702,7 +710,7 @@ export default function App() {
 
         <main>
           {!isChat ? (
-            <Landing uploadState={uploadState} uploadFile={uploadFile} reset={reset} />
+            <Landing uploadState={uploadState} uploadFile={uploadFile} reset={reset} systemStatus={systemStatus} />
           ) : (
             <div className="flex h-[calc(100vh-56px)] flex-col overflow-hidden">
               <ChatInterface

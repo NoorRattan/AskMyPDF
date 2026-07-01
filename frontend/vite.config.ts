@@ -3,6 +3,17 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          motion: ["framer-motion", "gsap"],
+          icons: ["lucide-react"],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api": "http://localhost:8000",

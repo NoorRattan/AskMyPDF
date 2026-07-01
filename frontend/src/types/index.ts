@@ -26,6 +26,17 @@ export interface UploadStatusResponse {
   error: string | null
 }
 
+export interface SystemStatusResponse {
+  status: "ok"
+  model_loaded: boolean
+  embedding_model: string
+  embedding_backend: string
+  fast_model: string
+  fast_provider: string
+  thinking_model: string
+  thinking_provider: string
+}
+
 export interface Message {
   id: string
   role: "user" | "assistant"

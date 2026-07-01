@@ -1,6 +1,8 @@
 import logging
+import time
+from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -31,6 +33,39 @@ app.add_middleware(
 
 app.include_router(upload.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
+
+
+@app.middleware("http")
+async def add_request_observability(request: Request, call_next) -> Response:
+    request_id = request.headers.get("x-request-id", uuid4().hex[:12])
+    start = time.perf_counter()
+
+    try:
+        response = await call_next(request)
+    except Exception:
+        duration_ms = round((time.perf_counter() - start) * 1000, 2)
+        logger.exception(
+            "Unhandled request failure",
+            extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "duration_ms": duration_ms,
+            },
+        )
+        raise
+
+    duration_ms = round((time.perf_counter() - start) * 1000, 2)
+    response.headers["x-request-id"] = request_id
+    logger.info(
+        "%s %s -> %s %.2fms request_id=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+        request_id,
+    )
+    return response
 
 
 def tune_optional_runtime_threads() -> None:
@@ -67,8 +102,22 @@ def warm_up_services() -> None:
 
 @app.get("/health")
 def health() -> dict:
+    fast_model, fast_provider = settings.fast_model, "groq"
+    thinking_model = settings.thinking_model_anthropic if settings.anthropic_api_key else settings.thinking_model_groq
+    thinking_provider = "anthropic" if settings.anthropic_api_key else "groq"
+
     return {
         "status": "ok",
         "model_loaded": get_model() is not None,
         "embedding_model": get_embedding_model_name(),
+        "embedding_backend": get_embedding_backend(),
+        "fast_model": fast_model,
+        "fast_provider": fast_provider,
+        "thinking_model": thinking_model,
+        "thinking_provider": thinking_provider,
     }
+
+
+@app.get("/api/health")
+def api_health() -> dict:
+    return health()
