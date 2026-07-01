@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     allowed_origin_regex: str | None = None
     upload_dir: str = "./data/uploads"
     max_file_size_mb: int = 50
-    chunk_size: int = 500
-    chunk_overlap: int = 50
+    chunk_size: int = 1200
+    chunk_overlap: int = 0
     top_k_results: int = 5
     embedding_dimensions: int = 256
     max_sessions: int = 20
