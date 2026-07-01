@@ -15,7 +15,7 @@ def extract_text_by_page(file_path: str) -> list[dict]:
             pages.append({"page_number": idx, "text": stripped})
             total_text_parts.append(stripped)
 
-    if len("".join(total_text_parts)) < 100:
+    if len("".join(total_text_parts)) < 20:
         raise ValueError("PDF appears to be scanned or has no extractable text.")
 
     return pages
@@ -37,7 +37,7 @@ def chunk_text(pages: list[dict], chunk_size: int, chunk_overlap: int) -> list[d
             end = start + chunk_size
             chunk = text[start:end].strip()
 
-            if len(chunk) >= 50:
+            if len(chunk) >= 20:
                 chunks.append(
                     {
                         "text": chunk,

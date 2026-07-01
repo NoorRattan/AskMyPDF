@@ -1,5 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { useEffect, useMemo } from "react"
+import { type CSSProperties, useEffect, useMemo } from "react"
 
 interface PDFParticlesProps {
   onComplete: () => void
@@ -17,7 +16,6 @@ interface Particle {
 }
 
 export function PDFParticles({ onComplete }: PDFParticlesProps) {
-  const shouldReduce = useReducedMotion()
   const particles = useMemo<Particle[]>(
     () =>
       Array.from({ length: 28 }, (_, idx) => {
@@ -31,7 +29,7 @@ export function PDFParticles({ onComplete }: PDFParticlesProps) {
           y: -(70 + Math.random() * 140),
           delay: Math.random() * 0.5,
           duration: 1.2 + Math.random() * 0.7,
-          color: Math.random() > 0.45 ? "#7C3AED" : "#A78BFA",
+          color: Math.random() > 0.45 ? "#7B61FF" : "#67E8F9",
           opacity: 0.6 + Math.random() * 0.35,
         }
       }),
@@ -39,43 +37,30 @@ export function PDFParticles({ onComplete }: PDFParticlesProps) {
   )
 
   useEffect(() => {
-    if (shouldReduce) {
-      onComplete()
-    }
-  }, [onComplete, shouldReduce])
-
-  if (shouldReduce) {
-    return null
-  }
+    const timeout = window.setTimeout(onComplete, 2300)
+    return () => window.clearTimeout(timeout)
+  }, [onComplete])
 
   return (
-    <AnimatePresence>
-      <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            style={{
-              position: "absolute",
+    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden="true">
+      {particles.map((particle) => (
+        <span
+          key={particle.id}
+          className="pdf-particle"
+          style={
+            {
               width: particle.size,
               height: particle.size,
-              borderRadius: "50%",
               background: particle.color,
               opacity: particle.opacity,
-              left: "50%",
-              top: "50%",
-              translateX: "-50%",
-              translateY: "-50%",
-            }}
-            animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0 }}
-            transition={{
-              duration: particle.duration,
-              delay: particle.delay,
-              ease: [0, 0.6, 1, 0.4],
-            }}
-            onAnimationComplete={particle.id === 27 ? onComplete : undefined}
-          />
-        ))}
-      </div>
-    </AnimatePresence>
+              "--particle-x": `${particle.x}px`,
+              "--particle-y": `${particle.y}px`,
+              "--particle-delay": `${particle.delay}s`,
+              "--particle-duration": `${particle.duration}s`,
+            } as CSSProperties
+          }
+        />
+      ))}
+    </div>
   )
 }
