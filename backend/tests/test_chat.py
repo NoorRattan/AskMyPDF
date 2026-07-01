@@ -26,6 +26,12 @@ def _sse_messages(text: str) -> list[dict]:
     return messages
 
 
+def _done_message(body: str) -> dict:
+    done_messages = [message for message in _sse_messages(body) if message.get("done") is True]
+    assert len(done_messages) == 1
+    return done_messages[0]
+
+
 def test_chat_happy_path(client, sample_pdf, mock_llm):
     session_id = _upload(client, sample_pdf)
 
@@ -40,12 +46,11 @@ def test_chat_happy_path(client, sample_pdf, mock_llm):
     assert response.headers["content-type"].startswith("text/event-stream")
     messages = _sse_messages(body)
     token_messages = [message for message in messages if "token" in message]
-    done_messages = [message for message in messages if message.get("done") is True]
     assert token_messages
-    assert len(done_messages) == 1
-    assert done_messages[0]["sources"]
-    assert done_messages[0]["model_used"] == settings.fast_model
-    assert done_messages[0]["provider_used"] == settings.fast_model_provider
+    done = _done_message(body)
+    assert done["sources"]
+    assert done["model_used"] == settings.fast_model
+    assert done["provider_used"] == settings.fast_model_provider
 
 
 def test_chat_thinking_model(client, sample_pdf, monkeypatch):
@@ -70,20 +75,98 @@ def test_chat_thinking_model(client, sample_pdf, monkeypatch):
         body = response.read().decode()
 
     assert response.status_code == 200
-    messages = _sse_messages(body)
-    done_messages = [message for message in messages if message.get("done") is True]
+    done = _done_message(body)
     assert seen["model_preference"] == "thinking"
-    assert done_messages[0]["model_used"] == settings.thinking_model
-    assert done_messages[0]["provider_used"] == settings.thinking_model_provider
+    assert done["model_used"] == settings.thinking_model_groq
+    assert done["provider_used"] == "groq"
 
 
-def test_chat_fast_falls_back_to_anthropic_without_groq_key(client, sample_pdf, monkeypatch):
-    monkeypatch.setattr(settings, "groq_api_key", None)
+def test_thinking_mode_without_anthropic_key_uses_groq(client, monkeypatch, sample_pdf, set_anthropic_key):
+    set_anthropic_key(None)
+    seen = {}
 
-    async def fake_stream(question: str, chunks: list[dict], model_preference: str = "fast"):
-        yield "Fallback answer."
+    async def fake_groq(prompt: str, model: str):
+        seen["provider"] = "groq"
+        seen["model"] = model
+        yield "Groq thinking answer."
 
-    monkeypatch.setattr("app.routers.chat.stream_answer", fake_stream)
+    async def forbidden_anthropic(prompt: str, model: str):
+        raise AssertionError("Anthropic should not be used without ANTHROPIC_API_KEY")
+        yield ""
+
+    monkeypatch.setattr("app.services.llm_service._stream_groq", fake_groq)
+    monkeypatch.setattr("app.services.llm_service._stream_anthropic", forbidden_anthropic)
+    session_id = _upload(client, sample_pdf)
+
+    with client.stream(
+        "POST",
+        "/api/chat",
+        json={
+            "session_id": session_id,
+            "question": "What is this document about?",
+            "model_preference": "thinking",
+        },
+    ) as response:
+        body = response.read().decode()
+
+    assert response.status_code == 200
+    assert seen == {"provider": "groq", "model": settings.thinking_model_groq}
+    assert "llama-3.3-70b-versatile" in body
+    done = _done_message(body)
+    assert done["model_used"] == settings.thinking_model_groq
+    assert done["provider_used"] == "groq"
+
+
+def test_thinking_mode_with_anthropic_key_uses_claude(client, monkeypatch, sample_pdf, set_anthropic_key):
+    set_anthropic_key("sk-ant-dummy-for-test")
+    seen = {}
+
+    async def forbidden_groq(prompt: str, model: str):
+        raise AssertionError("Groq should not be used for thinking mode when Anthropic is configured")
+        yield ""
+
+    async def fake_anthropic(prompt: str, model: str):
+        seen["provider"] = "anthropic"
+        seen["model"] = model
+        yield "Claude thinking answer."
+
+    monkeypatch.setattr("app.services.llm_service._stream_groq", forbidden_groq)
+    monkeypatch.setattr("app.services.llm_service._stream_anthropic", fake_anthropic)
+    session_id = _upload(client, sample_pdf)
+
+    with client.stream(
+        "POST",
+        "/api/chat",
+        json={
+            "session_id": session_id,
+            "question": "What is this document about?",
+            "model_preference": "thinking",
+        },
+    ) as response:
+        body = response.read().decode()
+
+    assert response.status_code == 200
+    assert seen == {"provider": "anthropic", "model": settings.thinking_model_anthropic}
+    done = _done_message(body)
+    assert done["model_used"] == settings.thinking_model_anthropic
+    assert done["provider_used"] == "anthropic"
+
+
+def test_fast_mode_always_uses_groq(client, monkeypatch, sample_pdf, set_anthropic_key):
+    set_anthropic_key("sk-ant-dummy-for-test")
+    seen = {}
+
+    async def fake_groq(prompt: str, model: str):
+        seen["provider"] = "groq"
+        seen["model"] = model
+        yield "Fast Groq answer."
+
+    async def forbidden_anthropic(prompt: str, model: str):
+        raise AssertionError("Fast mode must never route to Anthropic")
+        yield ""
+
+    monkeypatch.setattr("app.services.llm_service._stream_groq", fake_groq)
+    monkeypatch.setattr("app.services.llm_service._stream_anthropic", forbidden_anthropic)
     session_id = _upload(client, sample_pdf)
 
     with client.stream(
@@ -98,11 +181,11 @@ def test_chat_fast_falls_back_to_anthropic_without_groq_key(client, sample_pdf, 
         body = response.read().decode()
 
     assert response.status_code == 200
-    messages = _sse_messages(body)
-    done_messages = [message for message in messages if message.get("done") is True]
-    assert resolve_model("fast").fell_back is True
-    assert done_messages[0]["model_used"] == settings.thinking_model
-    assert done_messages[0]["provider_used"] == settings.thinking_model_provider
+    assert resolve_model("fast") == (settings.fast_model, "groq")
+    assert seen == {"provider": "groq", "model": settings.fast_model}
+    done = _done_message(body)
+    assert done["model_used"] == settings.fast_model
+    assert done["provider_used"] == "groq"
 
 
 def test_chat_unknown_session_id(client):

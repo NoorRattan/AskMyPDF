@@ -28,7 +28,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 7. Chunks and embeddings are stored in a bounded in-memory session store.
 8. Questions are embedded with the same semantic model and ranked by cosine similarity.
 9. Fast mode streams from Groq using `llama-3.1-8b-instant`.
-10. Thinking mode streams from Anthropic using `claude-sonnet-4-6`.
+10. Thinking mode streams from Groq using `llama-3.3-70b-versatile` by default, or from Claude Sonnet 4.6 when an Anthropic key is configured.
 11. Every final SSE response includes source chunks plus the actual `model_used` and `provider_used`.
 
 ## Tech Stack
@@ -40,7 +40,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 | Backend | FastAPI, Python 3.11 |
 | PDF parsing | PyMuPDF optional, `pypdf`, `pdfplumber` fallback |
 | Retrieval | `sentence-transformers` `all-MiniLM-L6-v2`, normalized in-memory vector ranking |
-| LLM | Groq fast mode + Anthropic Claude Sonnet 4.6 thinking mode |
+| LLM | Groq fast mode + Groq thinking mode by default; optional Anthropic Claude Sonnet 4.6 upgrade |
 | Backend deploy | Render |
 | Frontend deploy | Vercel |
 
@@ -53,7 +53,7 @@ cd AskMyPDF/backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# then set ANTHROPIC_API_KEY; optionally set GROQ_API_KEY for Fast mode
+# then set GROQ_API_KEY; ANTHROPIC_API_KEY is optional
 uvicorn app.main:app --port 8000
 
 # Frontend (separate terminal)
@@ -65,9 +65,9 @@ npm run dev
 
 ## Model Modes
 
-Fast mode is optimized for low-latency factual lookups and uses Groq when `GROQ_API_KEY` is configured. If that optional key is missing, Fast mode falls back to the Anthropic thinking model and reports the fallback through `provider_used`.
+Fast mode is optimized for low-latency factual lookups and always uses Groq `llama-3.1-8b-instant`. `GROQ_API_KEY` is the one required LLM secret.
 
-Thinking mode is the quality-oriented path for synthesis, comparison, and multi-part questions. It uses Claude Sonnet 4.6 through Anthropic.
+Thinking mode is the quality-oriented path for synthesis, comparison, and multi-part questions. The live deployed demo runs Groq-only by design: Thinking mode uses Groq `llama-3.3-70b-versatile`, keeping the app reliable and cost-conscious while preserving a provider-agnostic LLM layer. If `ANTHROPIC_API_KEY` is configured later, the same code path automatically upgrades Thinking mode to Claude Sonnet 4.6 and reports that in `provider_used`.
 
 ## Fair Warning
 

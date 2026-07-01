@@ -7,8 +7,8 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 1. GitHub account with `NoorRattan/AskMyPDF` pushed to `main`.
 2. Render account at [render.com](https://render.com). The free tier is enough.
 3. Vercel account at [vercel.com](https://vercel.com). The free tier is enough.
-4. Anthropic API key.
-5. Groq API key if you want Fast mode to use Groq. Without it, Fast falls back to Anthropic.
+4. Groq API key.
+5. Anthropic API key only if you want Thinking mode to upgrade to Claude.
 
 ## 2. Deploy Backend To Render
 
@@ -19,12 +19,12 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `ANTHROPIC_API_KEY` | your Anthropic key |
-   | `GROQ_API_KEY` | optional Groq key for Fast mode |
+   | `GROQ_API_KEY` | your Groq key |
+   | `ANTHROPIC_API_KEY` | optional; omit to run Thinking mode on Groq 70B |
    | `FAST_MODEL` | `llama-3.1-8b-instant` |
    | `FAST_MODEL_PROVIDER` | `groq` |
-   | `THINKING_MODEL` | `claude-sonnet-4-6` |
-   | `THINKING_MODEL_PROVIDER` | `anthropic` |
+   | `THINKING_MODEL_GROQ` | `llama-3.3-70b-versatile` |
+   | `THINKING_MODEL_ANTHROPIC` | `claude-sonnet-4-6` |
    | `ALLOWED_ORIGINS` | `https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app` |
    | `ALLOWED_ORIGIN_REGEX` | `^https://ask-my-p(?:df)?[-a-z0-9]*-noorrattans-projects\.vercel\.app$` |
    | `UPLOAD_DIR` | `/app/data/uploads` |
@@ -35,7 +35,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
 
-   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000.
+   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000. On a Groq-only deployment, Render startup logs should include `Thinking mode: Llama 3.3 70B via Groq (no Anthropic key set)`.
 
 5. Click Deploy. Watch the logs. The deploy is ready when you see:
 

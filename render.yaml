@@ -8,18 +8,16 @@ services:
     dockerfilePath: Dockerfile
     healthCheckPath: /health
     envVars:
-      - key: ANTHROPIC_API_KEY
-        sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: FAST_MODEL
         value: llama-3.1-8b-instant
       - key: FAST_MODEL_PROVIDER
         value: groq
-      - key: THINKING_MODEL
+      - key: THINKING_MODEL_GROQ
+        value: llama-3.3-70b-versatile
+      - key: THINKING_MODEL_ANTHROPIC
         value: claude-sonnet-4-6
-      - key: THINKING_MODEL_PROVIDER
-        value: anthropic
       - key: ALLOWED_ORIGINS
         value: https://ask-my-pdf-weld.vercel.app,https://askmypdf.vercel.app,https://ask-my-pdf-git-main-noorrattans-projects.vercel.app,https://ask-my-p3723ujj9-noorrattans-projects.vercel.app
       - key: ALLOWED_ORIGIN_REGEX

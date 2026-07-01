@@ -38,14 +38,14 @@ async def chat(req: ChatRequest) -> StreamingResponse:
     loop = asyncio.get_running_loop()
     query_embedding = await loop.run_in_executor(None, embed_texts, [req.question])
     chunks = query_chunks(req.session_id, query_embedding[0], settings.top_k_results)
-    resolved = resolve_model(req.model_preference)
+    model_used, provider_used = resolve_model(req.model_preference)
 
     async def events():
         async for text in stream_answer(req.question, chunks, req.model_preference):
             yield f"data: {json.dumps({'token': text})}\n\n"
         yield (
             f"data: "
-            f"{json.dumps({'done': True, 'sources': _source_payload(chunks), 'model_used': resolved.model, 'provider_used': resolved.provider})}"
+            f"{json.dumps({'done': True, 'sources': _source_payload(chunks), 'model_used': model_used, 'provider_used': provider_used})}"
             f"\n\n"
         )
 

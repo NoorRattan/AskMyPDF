@@ -6,7 +6,6 @@ from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
 os.environ.setdefault("GROQ_API_KEY", "test_api_key")
-os.environ.setdefault("ANTHROPIC_API_KEY", "test_anthropic_key")
 os.environ.setdefault("UPLOAD_DIR", "./data/test_uploads")
 
 import app.main as main_mod
@@ -73,3 +72,11 @@ def mock_llm(monkeypatch):
         yield "AskMyPDF."
 
     monkeypatch.setattr("app.routers.chat.stream_answer", fake_stream)
+
+
+@pytest.fixture
+def set_anthropic_key(monkeypatch):
+    def apply(value: str | None) -> None:
+        monkeypatch.setattr(main_mod.settings, "anthropic_api_key", value)
+
+    return apply

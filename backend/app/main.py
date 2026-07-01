@@ -9,7 +9,7 @@ from app.routers import chat, upload
 from app.services.embedding_service import EMBEDDING_MODEL_NAME, get_model
 from app.services.vector_service import get_client
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(
     title="AskMyPDF",
@@ -53,10 +53,10 @@ async def http_exception_handler(req: Request, exc: HTTPException) -> JSONRespon
 @app.on_event("startup")
 def warm_up_services() -> None:
     tune_optional_runtime_threads()
-    if not settings.groq_api_key:
-        logger.warning(
-            "GROQ_API_KEY not set; fast mode will be unavailable, falling back to thinking model."
-        )
+    if settings.anthropic_api_key:
+        logger.info("Thinking mode: Claude Sonnet 4.6 (Anthropic key detected)")
+    else:
+        logger.info("Thinking mode: Llama 3.3 70B via Groq (no Anthropic key set)")
     get_model()
     get_client()
     logger.info("Embedding model and vector store loaded.")

@@ -2,10 +2,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    anthropic_api_key: str
-    groq_api_key: str | None = None
+    groq_api_key: str
+    anthropic_api_key: str | None = None
     allowed_origins: str = "*"
     allowed_origin_regex: str | None = None
     upload_dir: str = "./data/uploads"
@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     max_sessions: int = 20
     fast_model: str = "llama-3.1-8b-instant"
     fast_model_provider: str = "groq"
-    thinking_model: str = "claude-sonnet-4-6"
-    thinking_model_provider: str = "anthropic"
+    thinking_model_groq: str = "llama-3.3-70b-versatile"
+    thinking_model_anthropic: str = "claude-sonnet-4-6"
     torch_num_threads: int = 2
     port: int = 8000
 

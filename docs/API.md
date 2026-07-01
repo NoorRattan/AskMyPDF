@@ -161,9 +161,10 @@ Request:
 
 `model_preference` may be `"fast"` or `"thinking"` and defaults to `"fast"`.
 
-- Fast mode uses Groq with `llama-3.1-8b-instant` when `GROQ_API_KEY` is configured.
-- Thinking mode uses Anthropic with `claude-sonnet-4-6`.
-- If Fast mode is requested without `GROQ_API_KEY`, the backend falls back to Anthropic and reports the actual provider in the final SSE message.
+- Fast mode always uses Groq with `llama-3.1-8b-instant`.
+- Thinking mode uses Groq with `llama-3.3-70b-versatile` by default.
+- If `ANTHROPIC_API_KEY` is configured, Thinking mode upgrades to Anthropic with `claude-sonnet-4-6`.
+- The final SSE `done` message reports the dynamic per-request `model_used` and `provider_used`.
 
 cURL:
 

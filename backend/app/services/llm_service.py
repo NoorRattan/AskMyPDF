@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from dataclasses import dataclass
 
 from anthropic import AsyncAnthropic
 from groq import AsyncGroq
@@ -18,28 +17,19 @@ Rules:
 - Do not make up information or extrapolate beyond what the text says."""
 
 
-@dataclass(frozen=True)
-class ResolvedModel:
-    model: str
-    provider: str
-    fell_back: bool = False
-
-
 def build_context(chunks: list[dict]) -> str:
     return "\n\n---\n\n".join(
         f"[Page {chunk['page_number']}]\n{chunk['text']}" for chunk in chunks
     )
 
 
-def resolve_model(model_preference: str = "fast") -> ResolvedModel:
-    if model_preference == "fast" and settings.groq_api_key:
-        return ResolvedModel(settings.fast_model, settings.fast_model_provider)
+def resolve_model(model_preference: str = "fast") -> tuple[str, str]:
+    if model_preference == "fast":
+        return settings.fast_model, "groq"
 
-    return ResolvedModel(
-        settings.thinking_model,
-        settings.thinking_model_provider,
-        fell_back=model_preference == "fast",
-    )
+    if settings.anthropic_api_key:
+        return settings.thinking_model_anthropic, "anthropic"
+    return settings.thinking_model_groq, "groq"
 
 
 async def _stream_groq(prompt: str, model: str) -> AsyncGenerator[str, None]:
@@ -81,12 +71,12 @@ async def stream_answer(
 ) -> AsyncGenerator[str, None]:
     context = build_context(context_chunks)
     prompt = f"Context:\n{context}\n\nQuestion: {question}"
-    resolved = resolve_model(model_preference)
+    model, provider = resolve_model(model_preference)
 
-    if resolved.provider == settings.fast_model_provider:
-        async for token in _stream_groq(prompt, resolved.model):
+    if provider == "groq":
+        async for token in _stream_groq(prompt, model):
             yield token
         return
 
-    async for token in _stream_anthropic(prompt, resolved.model):
+    async for token in _stream_anthropic(prompt, model):
         yield token

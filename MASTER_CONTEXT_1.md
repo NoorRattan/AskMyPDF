@@ -15,7 +15,7 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 | Embeddings | `sentence-transformers` 3.0.1 with `all-MiniLM-L6-v2` |
 | Vector ranking | Normalized in-memory vectors scored by cosine similarity |
 | Fast LLM | Groq `llama-3.1-8b-instant` |
-| Thinking LLM | Anthropic `claude-sonnet-4-6` |
+| Thinking LLM | Groq `llama-3.3-70b-versatile` by default; Anthropic `claude-sonnet-4-6` optional |
 | Deploy | Render backend, Vercel frontend |
 
 ## Final Tech Stack
@@ -27,14 +27,14 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 | Chunking | 1200 characters, no overlap |
 | Embeddings | Semantic MiniLM embeddings normalized at encode time |
 | Retrieval | Bounded in-memory session store with cosine ranking |
-| Generation | Dual provider: Groq for Fast mode, Anthropic Claude Sonnet 4.6 for Thinking mode |
+| Generation | Groq-primary provider layer with optional Anthropic upgrade for Thinking mode |
 | Streaming | Server-sent events with `token` events and final `done` metadata |
 
 ## Architectural Decisions
 
 1. Upload processing is asynchronous from the user's perspective. `/api/upload` creates a short-lived in-memory job and returns a `job_id`; the frontend polls status until the backend returns a ready `session_id`.
 2. Semantic embeddings are required. `all-MiniLM-L6-v2` is the retrieval model because document chat depends on meaning-level similarity, not token-bucket matching.
-3. Fast and Thinking are deliberate model routes. Fast mode uses Groq `llama-3.1-8b-instant` for low-latency factual lookups. Thinking mode uses Anthropic `claude-sonnet-4-6` for synthesis and harder analysis. If Fast mode is requested without `GROQ_API_KEY`, the backend falls back to Anthropic and reports the actual provider in the final SSE event.
+3. Fast and Thinking are deliberate model routes. Fast mode always uses Groq `llama-3.1-8b-instant`. Thinking mode uses Groq `llama-3.3-70b-versatile` by default, and automatically upgrades to Anthropic `claude-sonnet-4-6` only when `ANTHROPIC_API_KEY` is configured. `resolve_model()` is the single source of truth for this rule, and final SSE events report the actual provider and model used.
 4. Runtime state is intentionally in memory for this portfolio app. Uploaded sessions and job status are not durable across Render restarts.
 5. Scanned PDFs fail fast. OCR is out of scope for the current version.
 
@@ -42,12 +42,12 @@ AskMyPDF is a portfolio RAG application for conversational PDF intelligence. Use
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | Thinking mode provider and Fast fallback |
-| `GROQ_API_KEY` | No | Enables Fast mode |
+| `GROQ_API_KEY` | Yes | Required provider for Fast mode and default Thinking mode |
+| `ANTHROPIC_API_KEY` | No | Optional Claude-tier upgrade for Thinking mode |
 | `FAST_MODEL` | No | Defaults to `llama-3.1-8b-instant` |
 | `FAST_MODEL_PROVIDER` | No | Defaults to `groq` |
-| `THINKING_MODEL` | No | Defaults to `claude-sonnet-4-6` |
-| `THINKING_MODEL_PROVIDER` | No | Defaults to `anthropic` |
+| `THINKING_MODEL_GROQ` | No | Defaults to `llama-3.3-70b-versatile` |
+| `THINKING_MODEL_ANTHROPIC` | No | Defaults to `claude-sonnet-4-6` |
 | `ALLOWED_ORIGINS` | No | Comma-separated CORS origins |
 | `UPLOAD_DIR` | No | Temporary upload storage path |
 | `CHUNK_SIZE` | No | Defaults to `1200` |
