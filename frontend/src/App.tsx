@@ -418,33 +418,82 @@ function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
   if (index === 0) {
     return (
       <svg viewBox="0 0 240 240" className="protocol-motif h-52 w-52" style={{ color: accent }} aria-hidden="true">
-        <circle cx="120" cy="120" r="76" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.28" />
-        <circle cx="120" cy="120" r="44" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.58" />
-        <path d="M72 74c44 18 52 74 96 92M168 74c-44 18-52 74-96 92" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-        {[62, 88, 114, 140, 166].map((y) => (
-          <line key={y} x1="82" x2="158" y1={y} y2={y} stroke="currentColor" strokeWidth="2" opacity="0.45" />
-        ))}
+        <defs>
+          <filter id="protocol-glow-1" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g className="protocol-spin-slow" filter="url(#protocol-glow-1)">
+          <animateTransform attributeName="transform" type="rotate" from="0 120 120" to="360 120 120" dur="8s" repeatCount="indefinite" />
+          <circle cx="120" cy="120" r="76" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.34" strokeDasharray="22 10" />
+          <path d="M72 74c44 18 52 74 96 92M168 74c-44 18-52 74-96 92" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+        </g>
+        <g className="protocol-spin-reverse" opacity="0.82">
+          <animateTransform attributeName="transform" type="rotate" from="360 120 120" to="0 120 120" dur="5.5s" repeatCount="indefinite" />
+          <circle cx="120" cy="120" r="44" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="14 8" />
+          {[62, 88, 114, 140, 166].map((y) => (
+            <line key={y} x1="82" x2="158" y1={y} y2={y} stroke="currentColor" strokeWidth="2.5" opacity="0.58" />
+          ))}
+        </g>
+        <circle className="protocol-pulse-dot" cx="120" cy="120" r="8" fill="currentColor">
+          <animate attributeName="r" values="5;11;5" dur="1.2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.55;1;0.55" dur="1.2s" repeatCount="indefinite" />
+        </circle>
       </svg>
     )
   }
 
   if (index === 1) {
     return (
-      <div
-        className="relative grid h-52 w-52 grid-cols-6 gap-2 overflow-hidden rounded-[2rem] border-4 bg-white/[0.05] p-5"
-        style={{ borderColor: accent, boxShadow: `0 0 28px ${accent}66` }}
-        aria-hidden="true"
-      >
-        <span className="scan-laser absolute left-0 right-0 top-6 h-1 rounded-full bg-[#FFE600] shadow-[0_0_24px_rgba(255,230,0,0.9)]" />
-        {Array.from({ length: 36 }, (_, cell) => (
-          <span key={cell} className="rounded-full bg-white/18" />
-        ))}
-      </div>
+      <svg viewBox="0 0 240 240" className="protocol-scanner h-52 w-52 rounded-[2rem]" style={{ color: accent }} aria-hidden="true">
+        <rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(255,255,255,0.05)" stroke="currentColor" strokeWidth="5" />
+        {Array.from({ length: 36 }, (_, cell) => {
+          const col = cell % 6
+          const row = Math.floor(cell / 6)
+          const delay = (cell % 6) * 0.08 + row * 0.04
+
+          return (
+            <circle key={cell} cx={48 + col * 29} cy={48 + row * 29} r="6" fill="white" opacity="0.18">
+              <animate attributeName="opacity" values="0.12;0.62;0.12" dur="1.8s" begin={`${delay}s`} repeatCount="indefinite" />
+            </circle>
+          )
+        })}
+        <line x1="18" x2="222" y1="44" y2="44" stroke="#FFE600" strokeWidth="5" strokeLinecap="round" className="scan-laser-svg">
+          <animate attributeName="y1" values="42;198;42" dur="2.15s" repeatCount="indefinite" />
+          <animate attributeName="y2" values="42;198;42" dur="2.15s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.82;1" dur="2.15s" repeatCount="indefinite" />
+        </line>
+        <rect x="32" y="32" width="176" height="176" rx="22" fill="none" stroke="#FF6B35" strokeWidth="3" strokeDasharray="16 10">
+          <animate attributeName="stroke-dashoffset" values="0;-52" dur="1.6s" repeatCount="indefinite" />
+        </rect>
+      </svg>
     )
   }
 
   return (
     <svg viewBox="0 0 260 160" className="h-52 w-60" style={{ color: accent }} aria-hidden="true">
+      <defs>
+        <filter id="protocol-glow-3" x="-20%" y="-80%" width="140%" height="260%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <path
+        d="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="11"
+        opacity="0.18"
+      />
       <path
         className="waveform-path"
         d="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
@@ -453,7 +502,20 @@ function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="5"
-      />
+        filter="url(#protocol-glow-3)"
+        pathLength="520"
+      >
+        <animate attributeName="stroke-dashoffset" values="520;0;-520" dur="2.35s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.35;1;1;0.35" keyTimes="0;0.25;0.7;1" dur="2.35s" repeatCount="indefinite" />
+      </path>
+      <circle r="5.5" fill="#FFE600" filter="url(#protocol-glow-3)">
+        <animateMotion
+          dur="2.35s"
+          repeatCount="indefinite"
+          path="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
+        />
+        <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.82;1" dur="2.35s" repeatCount="indefinite" />
+      </circle>
     </svg>
   )
 }

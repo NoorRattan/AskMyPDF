@@ -287,7 +287,38 @@ body::before {
 }
 
 .protocol-motif {
+  overflow: visible;
   animation: protocol-rotate 22s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.protocol-spin-slow,
+.protocol-spin-reverse {
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.protocol-spin-slow {
+  animation: protocol-rotate 8s linear infinite;
+}
+
+.protocol-spin-reverse {
+  animation: protocol-rotate-reverse 5.5s linear infinite;
+}
+
+.protocol-pulse-dot {
+  filter: drop-shadow(0 0 14px currentColor);
+}
+
+.protocol-scanner {
+  box-shadow: 0 0 28px currentColor;
+}
+
+.scan-laser-svg {
+  filter: drop-shadow(0 0 14px #FFE600) drop-shadow(0 0 28px #FF3AF2);
 }
 
 .scan-laser {
@@ -298,6 +329,7 @@ body::before {
   stroke-dasharray: 520;
   stroke-dashoffset: 520;
   animation: waveform-draw 2.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px currentColor);
 }
 
 .production-panel {
@@ -731,6 +763,11 @@ body::before {
   100% { transform: rotate(360deg); }
 }
 
+@keyframes protocol-rotate-reverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
 @keyframes scan-laser {
   0%, 100% { transform: translateY(0); opacity: 0; }
   15%, 85% { opacity: 1; }
@@ -814,9 +851,17 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *:not(.processing-active):not(.processing-active *) {
+  *:not(.processing-active):not(.processing-active *):not(.protocol-motif):not(.protocol-motif *):not(.protocol-scanner):not(.protocol-scanner *):not(.waveform-path) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .protocol-motif,
+  .protocol-motif *,
+  .protocol-scanner,
+  .protocol-scanner *,
+  .waveform-path {
+    animation-duration: 6s !important;
   }
 }
