@@ -4,7 +4,7 @@ import {
   CalendarDays,
   CheckCircle2,
   CircuitBoard,
-  FileText,
+  FileSearch,
   MousePointer2,
   ScanLine,
   TerminalSquare,
@@ -195,9 +195,10 @@ function FloatingNav({
       className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 flex-wrap items-center justify-between gap-2 rounded-[1.75rem] px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:rounded-full sm:px-4"
       aria-label="Landing navigation"
     >
-      <button type="button" onClick={() => onNavigate("upload")} className="max-focus flex min-w-0 items-center gap-3 rounded-full">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] text-[#00F5D4] shadow-[0_0_22px_rgba(0,245,212,0.65),4px_4px_0_#FF6B35]">
-          <FileText size={17} aria-hidden="true" />
+      <button type="button" onClick={() => onNavigate("upload")} className="max-focus flex min-w-0 items-center gap-3 rounded-full" aria-label="Return to AskMyPDF home">
+        <span className="brand-glyph grid h-10 w-10 shrink-0 place-items-center rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] text-[#00F5D4] shadow-[0_0_22px_rgba(0,245,212,0.65),4px_4px_0_#FF6B35]">
+          <FileSearch size={18} aria-hidden="true" />
+          <span className="brand-glyph-pulse" aria-hidden="true" />
         </span>
         <span className="truncate font-display text-sm tracking-normal sm:text-base">AskMyPDF</span>
       </button>
@@ -830,7 +831,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[#0D0D1A] text-white">
-        {isChat ? <Header uploadState={uploadState} onReset={handleReset} /> : null}
+        {isChat ? <Header uploadState={uploadState} onReset={handleReset} onHome={handleReset} /> : null}
 
         <main>
           {!isChat ? (

@@ -1,23 +1,29 @@
 import { motion, useReducedMotion } from "framer-motion"
-import { FileText } from "lucide-react"
+import { FileSearch } from "lucide-react"
 
 import type { UploadState } from "../types"
 
 interface HeaderProps {
   uploadState: UploadState
   onReset: () => void
+  onHome?: () => void
   onStart?: () => void
 }
 
-export function Header({ uploadState, onReset, onStart }: HeaderProps) {
+export function Header({ uploadState, onReset, onHome, onStart }: HeaderProps) {
   const isReady = uploadState.status === "ready"
   const shouldReduce = useReducedMotion()
 
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between overflow-hidden border-b-4 border-[#FFE600] bg-[#0D0D1A]/92 px-5 shadow-[0_0_34px_rgba(255,58,242,0.28),0_8px_0_#7B2FFF] backdrop-blur-xl sm:px-6">
-      <div className="flex min-w-0 items-center gap-3">
+      <button
+        type="button"
+        onClick={onHome ?? onStart}
+        className="max-focus flex min-w-0 items-center gap-3 rounded-xl text-left"
+        aria-label="Return to AskMyPDF home"
+      >
         <div
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600]"
+          className="brand-glyph grid h-10 w-10 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600]"
           style={{
             background: "linear-gradient(135deg, #FF3AF2, #7B2FFF, #00F5D4)",
             boxShadow: "0 0 22px rgba(255,58,242,0.58), 4px 4px 0 #00F5D4",
@@ -25,10 +31,11 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
           }}
           aria-hidden="true"
         >
-          <FileText size={16} className="text-white" aria-hidden="true" />
+          <FileSearch size={17} className="text-white" aria-hidden="true" />
+          <span className="brand-glyph-pulse" aria-hidden="true" />
         </div>
         <span className="truncate font-display text-xl tracking-normal text-white">AskMyPDF</span>
-      </div>
+      </button>
 
       {isReady ? (
         <div className="flex min-w-0 items-center gap-3">

@@ -171,6 +171,32 @@ body::before {
     0 0 0 9px var(--max-cyan);
 }
 
+.brand-glyph {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-glyph::before {
+  position: absolute;
+  inset: 7px;
+  border: 2px solid rgba(255, 230, 0, 0.72);
+  border-radius: inherit;
+  content: "";
+  animation: brand-orbit 3.2s linear infinite;
+}
+
+.brand-glyph-pulse {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--max-yellow);
+  box-shadow: 0 0 12px rgba(255, 230, 0, 0.88);
+  animation: success-ping 1.8s ease-out infinite;
+}
+
 .floating-shape {
   position: absolute;
   pointer-events: none;
@@ -314,6 +340,12 @@ body::before {
   transform-box: fill-box;
   transform-origin: center;
   animation: protocol-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes brand-orbit {
+  0% { transform: rotate(0deg) scale(0.92); opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg) scale(0.92); opacity: 0.7; }
 }
 
 .protocol-scanner {
