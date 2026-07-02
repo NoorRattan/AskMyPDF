@@ -13,14 +13,14 @@ export function SourceCitations({ sources }: SourceCitationsProps) {
   const shouldReduce = useReducedMotion()
 
   return (
-    <div className="mt-3.5 border-t border-border/40 pt-3">
+    <div className="mt-3.5 border-t-4 border-[#FF3AF2]/60 pt-3">
       <motion.button
         type="button"
         onClick={() => setIsOpen((value) => !value)}
-        className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-medium text-secondary outline-none transition-colors duration-150 hover:bg-primary/10 hover:text-primary-light focus-visible:ring-2 focus-visible:ring-primary"
+        className="flex items-center gap-2 rounded-lg border-2 border-[#FFE600] bg-[#0D0D1A]/70 px-2 py-1 text-xs font-black uppercase tracking-wide text-white outline-none shadow-[3px_3px_0_#FF3AF2] transition-colors duration-150 hover:bg-[#2D1B4E] hover:text-[#FFE600] focus-visible:ring-4 focus-visible:ring-[#FFE600]"
         whileTap={shouldReduce ? undefined : { scale: 0.97 }}
       >
-        <BookOpen size={12} aria-hidden="true" className="text-primary-light" />
+        <BookOpen size={12} aria-hidden="true" className="text-[#00F5D4]" />
         <span>{isOpen ? "Hide sources" : `View ${sources.length} source${sources.length !== 1 ? "s" : ""}`}</span>
         <motion.span
           animate={shouldReduce ? undefined : { rotate: isOpen ? 180 : 0 }}
@@ -47,14 +47,14 @@ export function SourceCitations({ sources }: SourceCitationsProps) {
                   initial={shouldReduce ? false : { opacity: 0, x: -8 }}
                   animate={shouldReduce ? undefined : { opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.055, duration: 0.22, ease: "easeOut" }}
-                  className="group rounded-xl border border-border/70 bg-bg/60 p-3 transition-colors duration-150 hover:border-primary/30 hover:bg-primary/5"
+                  className="group rounded-xl border-2 border-[#00F5D4]/80 bg-[#0D0D1A]/76 p-3 shadow-[4px_4px_0_#7B2FFF] transition-colors duration-150 hover:border-[#FFE600] hover:bg-[#2D1B4E]/80"
                 >
                   <div className="mb-1.5 flex items-center gap-1.5">
-                    <span className="rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-primary-light">
+                    <span className="rounded-md border-2 border-[#FFE600] bg-[#FFE600]/12 px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wide text-[#FFE600]">
                       Page {src.page_number}
                     </span>
                   </div>
-                  <p className="break-words font-mono text-xs leading-relaxed text-secondary/80 [overflow-wrap:anywhere]">
+                  <p className="break-words font-mono text-xs font-semibold leading-relaxed text-[#DCD7FF] [overflow-wrap:anywhere]">
                     {src.text.length > 220 ? `${src.text.slice(0, 220)}...` : src.text}
                   </p>
                 </motion.div>

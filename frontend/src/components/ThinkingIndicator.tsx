@@ -15,10 +15,10 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
       className="flex items-start gap-2.5 self-start"
     >
       <span
-        className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600] text-[11px] font-black text-white"
         style={{
-          background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
-          boxShadow: "0 0 16px #14B8A655",
+          background: "linear-gradient(135deg, #FF3AF2, #7B2FFF, #00F5D4)",
+          boxShadow: "0 0 18px rgba(255,58,242,0.56), 4px 4px 0 #00F5D4",
         }}
         aria-label="AI thinking"
       >
@@ -26,12 +26,10 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
       </span>
 
       <div
-        className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm px-4 py-3.5"
+        className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border-4 border-[#00F5D4] px-4 py-3.5"
         style={{
-          background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
-          border: "1px solid rgba(42,43,69,0.9)",
-          borderLeft: "2px solid #14B8A6",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          background: "linear-gradient(135deg, rgba(13,13,26,0.96) 0%, rgba(45,27,78,0.92) 100%)",
+          boxShadow: "6px 6px 0 #7B2FFF, 0 0 24px rgba(0,245,212,0.24)",
         }}
       >
         {[0, 1, 2].map((idx) => (
@@ -54,12 +52,12 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
             }}
             className="h-2 w-2 rounded-full"
             style={{
-              background: idx === 1 ? "#67E8F9" : "#14B8A6",
-              boxShadow: idx === 1 ? "0 0 8px #67E8F988" : "0 0 6px #14B8A666",
+              background: idx === 1 ? "#FFE600" : idx === 2 ? "#FF3AF2" : "#00F5D4",
+              boxShadow: idx === 1 ? "0 0 10px rgba(255,230,0,0.88)" : "0 0 8px rgba(0,245,212,0.72)",
             }}
           />
         ))}
-        <span className="ml-1 font-mono text-[11px] text-secondary/60">{label}</span>
+        <span className="ml-1 font-mono text-[11px] font-bold text-[#DCD7FF]">{label}</span>
       </div>
     </motion.div>
   )

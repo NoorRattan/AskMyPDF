@@ -21,6 +21,8 @@ import { UploadZone } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
 import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
+import { accentAt, maxCardAt } from "./lib/designSystem"
+import { cn } from "./lib/utils"
 import type { ModelPreference } from "./types"
 
 const navLinks = ["Signal", "Artifacts", "Protocol", "Upload"] as const
@@ -79,6 +81,30 @@ const protocolSteps = [
     icon: Waves,
   },
 ] as const
+
+const floatingShapes = [
+  { label: "PDF", className: "left-[3%] top-[14%] h-16 w-16 -rotate-6 animate-[float_6s_ease-in-out_infinite]", color: "#FFE600" },
+  { label: "AI", className: "right-[7%] top-[18%] h-20 w-20 rotate-6 animate-[float-reverse_5s_ease-in-out_infinite]", color: "#00F5D4" },
+  { label: "ASK", className: "bottom-[12%] left-[8%] h-14 w-24 rotate-3 animate-[wiggle_1.8s_ease-in-out_infinite]", color: "#FF6B35" },
+  { label: "GO", className: "bottom-[18%] right-[11%] h-16 w-16 -rotate-3 animate-[float_7s_ease-in-out_infinite]", color: "#FF3AF2" },
+] as const
+
+function FloatingShapes() {
+  return (
+    <>
+      {floatingShapes.map((shape) => (
+        <span
+          key={shape.label}
+          className={`floating-shape hidden rounded-[1.5rem] lg:grid ${shape.className}`}
+          style={{ color: shape.color }}
+          aria-hidden="true"
+        >
+          {shape.label}
+        </span>
+      ))}
+    </>
+  )
+}
 
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -150,14 +176,14 @@ function FloatingNav({
   return (
     <nav
       ref={navRef}
-      className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 items-center justify-between rounded-[2rem] border border-white/10 px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:px-4"
+      className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 items-center justify-between rounded-full px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:px-4"
       aria-label="Landing navigation"
     >
-      <a href="#top" className="flex min-w-0 items-center gap-3 rounded-[1.5rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plasma">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[1.25rem] bg-plasma text-white shadow-[0_0_32px_rgba(245,158,11,0.45)]">
+      <a href="#top" className="max-focus flex min-w-0 items-center gap-3 rounded-full">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] text-[#00F5D4] shadow-[0_0_22px_rgba(0,245,212,0.65),4px_4px_0_#FF6B35]">
           <FileText size={17} aria-hidden="true" />
         </span>
-        <span className="truncate text-sm font-extrabold tracking-normal sm:text-base">AskMyPDF</span>
+        <span className="truncate font-display text-sm tracking-normal sm:text-base">AskMyPDF</span>
       </a>
 
       <div className="hidden items-center gap-1 md:flex">
@@ -165,14 +191,14 @@ function FloatingNav({
           <a
             key={link}
             href={link === "Upload" ? "#upload" : `#${link.toLowerCase()}`}
-            className="rounded-[1.25rem] px-3 py-2 text-sm font-medium transition hover:-translate-y-px hover:text-plasma focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plasma"
+            className="max-focus rounded-full px-3 py-2 text-sm font-black uppercase tracking-widest transition hover:-translate-y-1 hover:rotate-1 hover:bg-[#FFE600] hover:text-[#0D0D1A]"
           >
             {link}
           </a>
         ))}
       </div>
 
-      <MagneticButton onClick={onStart} className="bg-plasma px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.32)]">
+      <MagneticButton onClick={onStart} className="max-button px-4 py-2 text-xs font-black uppercase tracking-widest sm:px-5 sm:text-sm">
         Upload <ArrowDown size={15} aria-hidden="true" />
       </MagneticButton>
     </nav>
@@ -200,11 +226,11 @@ function DiagnosticShuffler() {
   }, [])
 
   return (
-    <div className="relative h-52 overflow-hidden rounded-[2rem] border border-ghost/10 bg-deep-void p-4">
+    <div className="pattern-checker relative h-52 overflow-hidden rounded-[2rem] border-4 border-[#00F5D4] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(0,245,212,0.46),8px_8px_0_#FF6B35]">
       {order.map((labelIndex, stackIndex) => (
         <div
           key={shufflerLabels[labelIndex]}
-          className="absolute left-4 right-4 rounded-[1.5rem] border border-plasma/25 bg-graphite/95 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.38)] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+          className="absolute left-4 right-4 rounded-[1.5rem] border-4 border-dashed border-[#FFE600] bg-[#2D1B4E]/95 p-4 shadow-[6px_6px_0_#FF3AF2] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           style={{
             top: 18 + stackIndex * 44,
             zIndex: 10 - stackIndex,
@@ -213,12 +239,12 @@ function DiagnosticShuffler() {
           }}
         >
           <div className="mb-3 flex items-center justify-between">
-            <span className="font-mono text-[11px] uppercase text-ghost/55">diagnostic layer {labelIndex + 1}</span>
-            <CheckCircle2 size={15} className="text-plasma" aria-hidden="true" />
+            <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">diagnostic layer {labelIndex + 1}</span>
+            <CheckCircle2 size={15} className="text-[#00F5D4]" aria-hidden="true" />
           </div>
           <p className="text-lg font-bold text-ghost">{shufflerLabels[labelIndex]}</p>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
-            <span className="block h-full w-4/5 rounded-full bg-gradient-to-r from-plasma to-cyan-300" />
+          <div className="mt-4 h-3 overflow-hidden rounded-full border-2 border-[#00F5D4] bg-white/8">
+            <span className="block h-full w-4/5 rounded-full bg-gradient-to-r from-[#FF3AF2] via-[#FFE600] to-[#00F5D4]" />
           </div>
         </div>
       ))}
@@ -252,19 +278,19 @@ function TelemetryTypewriter() {
   }, [line])
 
   return (
-    <div className="rounded-[2rem] border border-ghost/10 bg-deep-void p-4">
+    <div className="pattern-dots rounded-[2rem] border-4 border-[#FF3AF2] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(255,58,242,0.46),8px_8px_0_#FFE600]">
       <div className="mb-4 flex items-center justify-between">
-        <span className="flex items-center gap-2 font-mono text-xs uppercase text-ghost/60">
-          <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,0.85)] animate-pulse" />
+        <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white/70">
+          <span className="h-3 w-3 rounded-full bg-[#00F5D4] shadow-[0_0_18px_rgba(0,245,212,0.85)] animate-pulse" />
           Live Feed
         </span>
-        <TerminalSquare size={16} className="text-plasma" aria-hidden="true" />
+        <TerminalSquare size={16} className="text-[#FFE600]" aria-hidden="true" />
       </div>
-      <div className="min-h-40 rounded-[1.5rem] border border-white/8 bg-black/35 p-4 font-mono text-sm leading-7 text-cyan-100">
-        <p className="text-ghost/40">askmypdf.kernel</p>
+      <div className="min-h-40 rounded-[1.5rem] border-4 border-dashed border-[#00F5D4] bg-black/50 p-4 font-mono text-sm leading-7 text-white">
+        <p className="text-white/48">askmypdf.kernel</p>
         <p className="mt-3">
-          <span className="text-plasma">$</span> {line.slice(0, visibleChars)}
-          <span className="ml-1 inline-block h-5 w-2 translate-y-1 bg-plasma animate-pulse" aria-hidden="true" />
+          <span className="text-[#FFE600]">$</span> {line.slice(0, visibleChars)}
+          <span className="ml-1 inline-block h-5 w-2 translate-y-1 bg-[#FF3AF2] animate-pulse" aria-hidden="true" />
         </p>
       </div>
     </div>
@@ -313,13 +339,13 @@ function SchedulerArtifact() {
   }, [])
 
   return (
-    <div ref={schedulerRef} className="relative overflow-hidden rounded-[2rem] border border-ghost/10 bg-deep-void p-4">
-      <div ref={cursorRef} className="pointer-events-none absolute left-0 top-0 z-20 text-cyan-200 opacity-0 drop-shadow-[0_0_10px_rgba(103,232,249,0.9)]">
+    <div ref={schedulerRef} className="pattern-stripes relative overflow-hidden rounded-[2rem] border-4 border-[#FFE600] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(255,230,0,0.42),8px_8px_0_#00F5D4]">
+      <div ref={cursorRef} className="pointer-events-none absolute left-0 top-0 z-20 text-[#00F5D4] opacity-0 drop-shadow-[0_0_10px_rgba(0,245,212,0.9)]">
         <MousePointer2 size={24} fill="currentColor" />
       </div>
       <div className="mb-4 flex items-center justify-between">
-        <span className="font-mono text-xs uppercase text-ghost/60">citation protocol</span>
-        <CalendarDays size={16} className="text-plasma" aria-hidden="true" />
+        <span className="font-mono text-xs uppercase tracking-widest text-white/70">citation protocol</span>
+        <CalendarDays size={16} className="text-[#FF3AF2]" aria-hidden="true" />
       </div>
       <div className="grid grid-cols-7 gap-2">
         {weekDays.map((day, index) => (
@@ -333,15 +359,15 @@ function SchedulerArtifact() {
             onClick={() => setActiveDay(index)}
             className={`aspect-square rounded-[1rem] border font-mono text-xs transition ${
               activeDay === index
-                ? "border-plasma bg-plasma text-white shadow-[0_0_28px_rgba(245,158,11,0.38)]"
-                : "border-white/10 bg-white/[0.04] text-ghost/60"
+                ? "border-[#FFE600] bg-[#FFE600] text-[#0D0D1A] shadow-[0_0_28px_rgba(255,230,0,0.58)]"
+                : "border-[#FF3AF2]/45 bg-white/[0.06] text-white/70"
             }`}
           >
             {day.short}
           </button>
         ))}
       </div>
-      <button type="button" className="scheduler-save mt-4 w-full rounded-[1.25rem] bg-ghost px-4 py-3 text-sm font-bold text-deep-void">
+      <button type="button" className="scheduler-save mt-4 w-full rounded-full border-4 border-[#FF3AF2] bg-[#00F5D4] px-4 py-3 text-sm font-black uppercase text-[#0D0D1A] shadow-[5px_5px_0_#FFE600] transition hover:-translate-y-1 hover:rotate-1">
         Save cited answer
       </button>
     </div>
@@ -349,45 +375,49 @@ function SchedulerArtifact() {
 }
 
 function FeatureArtifacts() {
+  const artifacts = [<DiagnosticShuffler key="diagnostic" />, <TelemetryTypewriter key="telemetry" />, <SchedulerArtifact key="scheduler" />] as const
+
   return (
-    <section id="artifacts" className="relative bg-ghost px-4 py-24 text-deep-void sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section id="artifacts" className="pattern-mesh relative overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-[#0D0D1A]/78" aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl">
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
-            <p className="font-mono text-xs uppercase text-plasma">Interactive functional artifacts</p>
-            <h2 className="mt-4 max-w-2xl text-4xl font-extrabold leading-none sm:text-6xl">Document intelligence you can feel working.</h2>
+            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Interactive artifacts</p>
+            <h2 className="max-subtitle mt-4 max-w-3xl text-4xl leading-none sm:text-6xl">Document intelligence with visible motion.</h2>
           </div>
-          <p className="max-w-2xl text-base leading-8 text-graphite/70">
+          <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FFE600] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#FF3AF2]">
             Each surface translates a real AskMyPDF behavior into a software instrument: indexing, retrieval, and citation control.
           </p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3">
-          <article className="artifact-card rounded-[2rem] border border-deep-void/10 bg-white p-4 shadow-[0_26px_90px_rgba(10,10,20,0.12)]">
-            <DiagnosticShuffler />
-            <h3 className="mt-5 text-2xl font-bold">{valueProps[0].title}</h3>
-            <p className="mt-3 text-sm leading-6 text-graphite/65">{valueProps[0].descriptor}</p>
-          </article>
-          <article className="artifact-card rounded-[2rem] border border-deep-void/10 bg-white p-4 shadow-[0_26px_90px_rgba(10,10,20,0.12)]">
-            <TelemetryTypewriter />
-            <h3 className="mt-5 text-2xl font-bold">{valueProps[1].title}</h3>
-            <p className="mt-3 text-sm leading-6 text-graphite/65">{valueProps[1].descriptor}</p>
-          </article>
-          <article className="artifact-card rounded-[2rem] border border-deep-void/10 bg-white p-4 shadow-[0_26px_90px_rgba(10,10,20,0.12)]">
-            <SchedulerArtifact />
-            <h3 className="mt-5 text-2xl font-bold">{valueProps[2].title}</h3>
-            <p className="mt-3 text-sm leading-6 text-graphite/65">{valueProps[2].descriptor}</p>
-          </article>
+          {valueProps.map((item, index) => (
+            <article
+              key={item.title}
+              className={cn("artifact-card rounded-[2rem] bg-[#0D0D1A]/94 p-4 text-white transition duration-300 hover:-translate-y-2 hover:rotate-1", maxCardAt(index))}
+            >
+              {artifacts[index]}
+              <span
+                className="mt-6 inline-flex rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-[#0D0D1A]"
+                style={{ backgroundColor: accentAt(index) }}
+              >
+                Signal {index + 1}
+              </span>
+              <h3 className="mt-4 font-heading text-2xl font-black leading-tight">{item.title}</h3>
+              <p className="mt-3 text-sm font-semibold leading-6 text-white/76">{item.descriptor}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
   )
 }
 
-function ProtocolVisual({ index }: { index: number }) {
+function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
   if (index === 0) {
     return (
-      <svg viewBox="0 0 240 240" className="protocol-motif h-52 w-52 text-plasma" aria-hidden="true">
+      <svg viewBox="0 0 240 240" className="protocol-motif h-52 w-52" style={{ color: accent }} aria-hidden="true">
         <circle cx="120" cy="120" r="76" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.28" />
         <circle cx="120" cy="120" r="44" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.58" />
         <path d="M72 74c44 18 52 74 96 92M168 74c-44 18-52 74-96 92" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
@@ -400,17 +430,21 @@ function ProtocolVisual({ index }: { index: number }) {
 
   if (index === 1) {
     return (
-      <div className="relative grid h-52 w-52 grid-cols-6 gap-2 overflow-hidden rounded-[2rem] border border-cyan-200/20 bg-white/[0.03] p-5" aria-hidden="true">
-        <span className="scan-laser absolute left-0 right-0 top-6 h-px bg-cyan-200 shadow-[0_0_24px_rgba(103,232,249,0.9)]" />
+      <div
+        className="relative grid h-52 w-52 grid-cols-6 gap-2 overflow-hidden rounded-[2rem] border-4 bg-white/[0.05] p-5"
+        style={{ borderColor: accent, boxShadow: `0 0 28px ${accent}66` }}
+        aria-hidden="true"
+      >
+        <span className="scan-laser absolute left-0 right-0 top-6 h-1 rounded-full bg-[#FFE600] shadow-[0_0_24px_rgba(255,230,0,0.9)]" />
         {Array.from({ length: 36 }, (_, cell) => (
-          <span key={cell} className="rounded-full bg-ghost/15" />
+          <span key={cell} className="rounded-full bg-white/18" />
         ))}
       </div>
     )
   }
 
   return (
-    <svg viewBox="0 0 260 160" className="h-52 w-60 text-cyan-200" aria-hidden="true">
+    <svg viewBox="0 0 260 160" className="h-52 w-60" style={{ color: accent }} aria-hidden="true">
       <path
         className="waveform-path"
         d="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
@@ -480,34 +514,35 @@ function Landing({
   }
 
   return (
-    <div ref={rootRef} id="top" className="relative min-h-screen overflow-hidden bg-deep-void text-ghost">
+    <div ref={rootRef} id="top" className="dopamine-shell relative min-h-screen overflow-hidden text-white">
+      <FloatingShapes />
       <FloatingNav onStart={scrollToUpload} navRef={navRef} />
 
       <section
         id="upload"
         ref={uploadRef}
-        className="relative min-h-[100dvh] overflow-hidden bg-ghost px-4 pb-12 pt-24 text-deep-void sm:px-8 lg:px-12"
+        className="relative min-h-[100dvh] overflow-hidden px-4 pb-14 pt-28 text-white sm:px-8 lg:px-12"
       >
-        <div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(245,158,11,0.18),transparent_28%),radial-gradient(circle_at_84%_22%,rgba(103,232,249,0.24),transparent_26%),linear-gradient(135deg,#F8F8FF_0%,#FFFFFF_48%,#EFF7F6_100%)]"
-          aria-hidden="true"
-        />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-deep-void/20 to-transparent" aria-hidden="true" />
+        <div className="absolute inset-0 pattern-mesh opacity-95" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,58,242,0.12)_2px,transparent_2px),linear-gradient(0deg,rgba(0,245,212,0.09)_2px,transparent_2px)] bg-[size:76px_76px]" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[#0D0D1A]/56" aria-hidden="true" />
 
-        <div className="relative mx-auto grid min-h-[calc(100dvh-8rem)] max-w-7xl gap-7 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+        <div className="relative mx-auto grid min-h-[calc(100dvh-8rem)] max-w-7xl gap-7 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
           <div className="hero-reveal min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border border-deep-void/10 bg-white/70 px-4 py-2 font-mono text-xs uppercase text-plasma shadow-[0_16px_50px_rgba(10,10,20,0.08)] backdrop-blur">
+            <p className="inline-flex items-center gap-2 rounded-full border-4 border-[#00F5D4] bg-[#0D0D1A] px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.18em] text-[#FFE600] shadow-[6px_6px_0_#FF3AF2]">
               <TerminalSquare size={14} aria-hidden="true" />
               AskMyPDF workspace
             </p>
-            <h1 className="mt-5 max-w-3xl text-[clamp(2.8rem,4.8vw,4.7rem)] font-extrabold leading-[0.94] tracking-normal text-deep-void">
-              Upload. Choose. Ask.
+            <h1 className="max-title mt-6 max-w-3xl text-[clamp(3rem,7.2vw,6.8rem)] leading-[0.86]">
+              Choose model.
+              <span className="block max-gradient-text">Drop PDF.</span>
+              Ask fast.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-graphite/72 sm:text-lg">
+            <p className="mt-7 max-w-2xl rounded-[1.5rem] border-4 border-[#FFE600] bg-[#2D1B4E]/88 p-5 text-base font-bold leading-7 text-white shadow-[6px_6px_0_#00F5D4] sm:text-lg">
               The document flow starts here. Pick the answer route before uploading, then AskMyPDF indexes the PDF and opens the chat workspace with citations attached.
             </p>
 
-            <div className="mt-6 rounded-[1.75rem] border border-deep-void/10 bg-deep-void p-4 text-ghost shadow-[0_26px_90px_rgba(10,10,20,0.18)]">
+            <div className="max-card max-card-cyan mt-7 rounded-[2rem] p-4 text-white">
               <ModelSelector
                 compact
                 value={selectedModel}
@@ -519,8 +554,8 @@ function Landing({
 
           </div>
 
-          <div className="hero-reveal relative min-w-0 lg:pt-12">
-            <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(20,184,166,0.22),rgba(245,158,11,0.18),rgba(103,232,249,0.2))] blur-2xl" aria-hidden="true" />
+          <div className="hero-reveal relative min-w-0">
+            <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(255,58,242,0.28),rgba(255,230,0,0.22),rgba(0,245,212,0.24))] blur-2xl" aria-hidden="true" />
             <div className="relative">
               <UploadZone uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
             </div>
@@ -528,9 +563,13 @@ function Landing({
 
           <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["No external AI option", "Online Groq routes", "Cited answer stream"].map((item) => (
-                <p key={item} className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border border-deep-void/10 bg-white/72 px-4 py-3 text-sm font-semibold text-graphite shadow-[0_16px_42px_rgba(10,10,20,0.06)]">
-                  <CheckCircle2 size={16} className="shrink-0 text-plasma" aria-hidden="true" />
+              {["No external AI option", "Online Groq routes", "Cited answer stream"].map((item, index) => (
+                <p
+                  key={item}
+                  className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border-4 bg-[#0D0D1A]/86 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.16)]"
+                  style={{ borderColor: accentAt(index), color: index === 2 ? "#FFE600" : "#FFFFFF" }}
+                >
+                  <CheckCircle2 size={16} className="shrink-0" style={{ color: accentAt(index + 1) }} aria-hidden="true" />
                   <span>{item}</span>
                 </p>
               ))}
@@ -543,61 +582,69 @@ function Landing({
 
       <FeatureArtifacts />
 
-      <section id="signal" className="relative overflow-hidden bg-graphite px-4 py-28 text-ghost sm:px-8 lg:px-12">
-        <div
-          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(103,232,249,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(245,158,11,0.045)_1px,transparent_1px),radial-gradient(circle_at_18%_20%,rgba(245,158,11,0.18),transparent_28%),radial-gradient(circle_at_82%_76%,rgba(20,184,166,0.16),transparent_30%)] bg-[size:68px_68px,68px_68px,auto,auto]"
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 bg-graphite/72" aria-hidden="true" />
+      <section id="signal" className="relative overflow-hidden bg-[#FFE600] px-4 py-28 text-[#0D0D1A] sm:px-8 lg:px-12">
+        <div className="absolute inset-0 pattern-dots opacity-40" aria-hidden="true" />
+        <div className="absolute -right-20 top-10 h-52 w-52 rotate-12 border-4 border-[#0D0D1A] bg-[#FF3AF2] shadow-[12px_12px_0_#00F5D4]" aria-hidden="true" />
+        <div className="absolute -left-16 bottom-12 h-44 w-64 -rotate-6 border-4 border-[#0D0D1A] bg-[#7B2FFF] shadow-[12px_12px_0_#FF6B35]" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
-          <p className="mb-8 font-mono text-xs uppercase text-ghost/45">The manifesto</p>
-          <p className="max-w-5xl text-3xl font-bold leading-tight text-ghost/55 sm:text-5xl">
+          <p className="mb-8 inline-flex rounded-full border-4 border-[#0D0D1A] bg-white px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] shadow-[6px_6px_0_#FF3AF2]">The signal</p>
+          <p className="max-w-5xl font-heading text-3xl font-black leading-tight text-[#0D0D1A]/70 sm:text-5xl">
             Most document AI focuses on: quick summaries and vague chat bubbles.
           </p>
-          <p className="mt-10 max-w-6xl font-serif text-5xl italic leading-[0.95] text-ghost sm:text-7xl lg:text-8xl">
+          <p className="mt-10 max-w-6xl font-heading text-5xl font-black leading-[0.92] text-[#0D0D1A] sm:text-7xl lg:text-8xl">
             {splitWords("We focus on: cited conversation that stays locked to your PDF.")}
           </p>
         </div>
       </section>
 
-      <section id="protocol" className="relative overflow-hidden bg-deep-void px-4 py-24 text-ghost sm:px-8 lg:px-12">
-        <div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(245,158,11,0.18),transparent_30%),radial-gradient(circle_at_82%_72%,rgba(103,232,249,0.16),transparent_28%),linear-gradient(90deg,rgba(240,239,244,0.05)_1px,transparent_1px),linear-gradient(0deg,rgba(240,239,244,0.04)_1px,transparent_1px)] bg-[size:auto,auto,72px_72px,72px_72px]"
-          aria-hidden="true"
-        />
+      <section id="protocol" className="relative overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-8 lg:px-12">
+        <div className="absolute inset-0 pattern-mesh opacity-80" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[#0D0D1A]/74" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
-              <p className="font-mono text-xs uppercase text-plasma">Workflow</p>
-              <h2 className="mt-4 max-w-4xl text-4xl font-extrabold leading-none sm:text-6xl">The path from upload to answer stays visible.</h2>
+              <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Workflow</p>
+              <h2 className="max-subtitle mt-4 max-w-4xl text-4xl leading-none sm:text-6xl">Upload to answer stays visible.</h2>
             </div>
-            <p className="max-w-2xl text-base leading-8 text-ghost/62">
+            <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FF6B35] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#00F5D4]">
               Every stage stays visible as the PDF moves from ingestion to retrieval to a cited response, with the source trail carried through the whole workflow.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <div className="mt-12 grid gap-8 lg:grid-cols-3">
             {protocolSteps.map((step, index) => {
               const Icon = step.icon
+              const accent = accentAt(index + 2)
 
               return (
                 <article
                   key={step.number}
-                  className="protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] border border-ghost/12 bg-graphite/86 p-6 shadow-[0_34px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl"
+                  className={cn(
+                    "protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#0D0D1A]/94 p-6 text-white backdrop-blur-xl transition duration-300 hover:-translate-y-2",
+                    index === 1 && "lg:translate-y-10",
+                    index === 2 && "lg:-translate-y-4",
+                    maxCardAt(index + 2),
+                  )}
                 >
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(245,158,11,0.08))]" aria-hidden="true" />
+                  <div className="absolute inset-0 pattern-checker opacity-35" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,58,242,0.1))]" aria-hidden="true" />
                   <div className="relative z-10">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-mono text-sm text-plasma">STEP {step.number}</p>
-                      <span className="grid h-12 w-12 place-items-center rounded-[1.25rem] border border-plasma/35 bg-plasma/12 text-plasma">
+                      <p className="rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-sm font-black" style={{ color: accent }}>
+                        STEP {step.number}
+                      </p>
+                      <span
+                        className="grid h-12 w-12 place-items-center rounded-[1.25rem] border-4 bg-[#0D0D1A] shadow-[5px_5px_0_rgba(255,255,255,0.2)]"
+                        style={{ borderColor: accent, color: accent }}
+                      >
                         <Icon size={22} aria-hidden="true" />
                       </span>
                     </div>
-                    <h3 className="mt-8 text-3xl font-extrabold leading-none sm:text-4xl">{step.title}</h3>
-                    <p className="mt-5 text-sm leading-7 text-ghost/66">{step.description}</p>
+                    <h3 className="mt-8 font-heading text-3xl font-black leading-none sm:text-4xl">{step.title}</h3>
+                    <p className="mt-5 text-sm font-semibold leading-7 text-white/72">{step.description}</p>
                   </div>
                   <div className="relative z-10 mt-8 grid place-items-center">
-                    <ProtocolVisual index={index} />
+                    <ProtocolVisual index={index} accent={accent} />
                   </div>
                 </article>
               )
@@ -613,31 +660,31 @@ function Landing({
 
 function Footer() {
   return (
-    <footer className="rounded-t-[4rem] bg-deep-void px-4 py-12 text-ghost sm:px-8 lg:px-12">
+    <footer className="pattern-stripes rounded-t-[3rem] border-t-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-12 text-white shadow-[0_-18px_0_#7B2FFF] sm:px-8 lg:px-12">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_0.7fr_0.7fr_0.8fr]">
         <div>
-          <p className="text-2xl font-extrabold">AskMyPDF</p>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-ghost/58">Conversational PDF intelligence for documents that deserve precise answers.</p>
+          <p className="font-display text-2xl">AskMyPDF</p>
+          <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/68">Conversational PDF intelligence for documents that deserve precise answers.</p>
         </div>
         <div>
-          <p className="font-mono text-xs uppercase text-ghost/42">Navigate</p>
-          <div className="mt-4 grid gap-2 text-sm text-ghost/68">
-            <a href="#signal" className="transition hover:-translate-y-px hover:text-plasma">Signal</a>
-            <a href="#artifacts" className="transition hover:-translate-y-px hover:text-plasma">Artifacts</a>
-            <a href="#protocol" className="transition hover:-translate-y-px hover:text-plasma">Protocol</a>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#00F5D4]">Navigate</p>
+          <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
+            <a href="#signal" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Signal</a>
+            <a href="#artifacts" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Artifacts</a>
+            <a href="#protocol" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Protocol</a>
           </div>
         </div>
         <div>
-          <p className="font-mono text-xs uppercase text-ghost/42">Legal</p>
-          <div className="mt-4 grid gap-2 text-sm text-ghost/68">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#FF3AF2]">Legal</p>
+          <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
             <span>Privacy</span>
             <span>Terms</span>
             <span>Security</span>
           </div>
         </div>
-        <div className="self-start rounded-[2rem] border border-ghost/10 bg-graphite p-5">
-          <p className="flex items-center gap-2 font-mono text-xs uppercase text-ghost/70">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,0.9)] animate-pulse" />
+        <div className="self-start rounded-[2rem] border-4 border-[#00F5D4] bg-[#2D1B4E] p-5 shadow-[6px_6px_0_#FF3AF2]">
+          <p className="flex items-center gap-2 font-mono text-xs font-black uppercase tracking-widest text-white">
+            <span className="h-3 w-3 rounded-full bg-[#00F5D4] shadow-[0_0_18px_rgba(0,245,212,0.9)] animate-pulse" />
             System Operational
           </p>
         </div>
@@ -672,7 +719,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-deep-void text-ghost">
+      <div className="min-h-screen bg-[#0D0D1A] text-white">
         {isChat ? <Header uploadState={uploadState} onReset={handleReset} /> : null}
 
         <main>
@@ -686,7 +733,7 @@ export default function App() {
               onModelChange={setSelectedModel}
             />
           ) : (
-            <div className="flex h-[calc(100vh-56px)] flex-col overflow-hidden">
+            <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
               <ChatInterface
                 uploadState={uploadState}
                 messages={messages}

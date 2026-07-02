@@ -18,10 +18,10 @@ function formatTime(date: Date): string {
 function AiAvatar() {
   return (
     <span
-      className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600] text-[11px] font-black text-white"
       style={{
-        background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
-        boxShadow: "0 0 16px #14B8A655",
+        background: "linear-gradient(135deg, #FF3AF2, #7B2FFF, #00F5D4)",
+        boxShadow: "0 0 18px rgba(255,58,242,0.56), 4px 4px 0 #00F5D4",
       }}
       aria-hidden="true"
     >
@@ -42,17 +42,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className="flex max-w-full flex-col items-end gap-1 self-end"
       >
         <div
-          className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 shadow-[0_8px_32px_rgba(30,27,75,0.45)]"
+          className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm border-4 border-[#FFE600] px-4 py-3 shadow-[6px_6px_0_#FF3AF2,0_0_24px_rgba(255,230,0,0.28)]"
           style={{
-            background: "linear-gradient(135deg, #12312F 0%, #183C38 100%)",
-            border: "1px solid rgba(20,184,166,0.2)",
+            background: "linear-gradient(135deg, #2D1B4E 0%, #0D0D1A 100%)",
           }}
         >
-          <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-primary-light [overflow-wrap:anywhere]">
+          <p className="whitespace-pre-wrap break-words text-[15px] font-semibold leading-6 text-white [overflow-wrap:anywhere]">
             {message.content}
           </p>
         </div>
-        <p className="pr-1 font-mono text-[11px] text-secondary/50">{formatTime(message.timestamp)}</p>
+        <p className="pr-1 font-mono text-[11px] font-bold text-[#DCD7FF]/55">{formatTime(message.timestamp)}</p>
       </motion.div>
     )
   }
@@ -67,19 +66,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
       <div className="flex max-w-full items-start gap-2.5">
         <AiAvatar />
         <div
-          className="min-w-0 max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-3 backdrop-blur-sm"
+          className="min-w-0 max-w-[88%] rounded-2xl rounded-tl-sm border-4 border-[#00F5D4] px-4 py-3 backdrop-blur-sm"
           style={{
-            background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
-            border: "1px solid rgba(42,43,69,0.9)",
-            borderLeft: "2px solid #14B8A6",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            background: "linear-gradient(135deg, rgba(13,13,26,0.96) 0%, rgba(45,27,78,0.92) 100%)",
+            boxShadow: "6px 6px 0 #7B2FFF, 0 0 24px rgba(0,245,212,0.24)",
           }}
         >
-          <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-text [overflow-wrap:anywhere]">
+          <p className="whitespace-pre-wrap break-words text-[15px] font-semibold leading-6 text-white [overflow-wrap:anywhere]">
             {message.content}
           </p>
           {message.modelUsed ? (
-            <p className="mt-3 font-mono text-[11px] text-secondary/60">
+            <p className="mt-3 rounded-xl border-2 border-[#FFE600] bg-[#0D0D1A]/72 px-3 py-2 font-mono text-[11px] font-bold text-[#DCD7FF]">
               {message.modeUsed === "offline" ? "Answered without external AI using " : "Answered online with "}
               {message.modelUsed}
               {message.providerUsed ? ` via ${message.providerUsed}` : ""}
@@ -88,7 +85,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
         </div>
       </div>
-      <p className="pl-9 font-mono text-[11px] text-secondary/50">{formatTime(message.timestamp)}</p>
+      <p className="pl-10 font-mono text-[11px] font-bold text-[#DCD7FF]/55">{formatTime(message.timestamp)}</p>
     </motion.div>
   )
 }
