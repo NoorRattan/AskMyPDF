@@ -1,4 +1,11 @@
-import type { ModelPreference, SystemStatusResponse, UploadJobResponse, UploadStatusResponse } from "../types"
+import type {
+  ModelPreference,
+  SavedAnswer,
+  SavedAnswerRequest,
+  SystemStatusResponse,
+  UploadJobResponse,
+  UploadStatusResponse,
+} from "../types"
 
 const rawApiUrl = (import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? "/api") : "/api").replace(/\/+$/, "")
 const API_URL = rawApiUrl.endsWith("/api") ? rawApiUrl : `${rawApiUrl}/api`
@@ -108,4 +115,28 @@ export async function streamChat(
   }
 
   return res
+}
+
+export async function saveCitedAnswer(payload: SavedAnswerRequest): Promise<SavedAnswer> {
+  const res = await fetchWithTimeout(`${API_URL}/saved-answers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }, 15000)
+
+  if (!res.ok) {
+    throw await parseError(res)
+  }
+
+  return (await res.json()) as SavedAnswer
+}
+
+export async function listSavedAnswers(sessionId: string): Promise<SavedAnswer[]> {
+  const res = await fetchWithTimeout(`${API_URL}/sessions/${sessionId}/saved-answers`, { method: "GET" }, 15000)
+
+  if (!res.ok) {
+    throw await parseError(res)
+  }
+
+  return (await res.json()) as SavedAnswer[]
 }

@@ -306,3 +306,47 @@ def test_chat_invalid_model_preference(client):
     )
 
     assert response.status_code == 422
+
+
+def test_save_and_list_cited_answer(client, sample_pdf):
+    session_id = _upload(client, sample_pdf)
+    payload = {
+        "session_id": session_id,
+        "question": "What is this document about?",
+        "answer": "From the document: AskMyPDF retrieves cited PDF answers.",
+        "sources": [{"text": "AskMyPDF retrieves cited PDF answers.", "page_number": 1, "chunk_index": 0}],
+        "model_used": settings.offline_model,
+        "provider_used": "local",
+        "mode_used": "offline",
+    }
+
+    save_response = client.post("/api/saved-answers", json=payload)
+
+    assert save_response.status_code == 200
+    saved = save_response.json()
+    assert saved["saved_answer_id"]
+    assert saved["session_id"] == session_id
+    assert saved["question"] == payload["question"]
+    assert saved["sources"][0]["page_number"] == 1
+
+    list_response = client.get(f"/api/sessions/{session_id}/saved-answers")
+
+    assert list_response.status_code == 200
+    body = list_response.json()
+    assert len(body) == 1
+    assert body[0]["saved_answer_id"] == saved["saved_answer_id"]
+
+
+def test_save_cited_answer_unknown_session(client):
+    response = client.post(
+        "/api/saved-answers",
+        json={
+            "session_id": "abcdef1234567890",
+            "question": "What is this?",
+            "answer": "A cited answer.",
+            "sources": [],
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "session_not_found"

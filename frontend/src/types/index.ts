@@ -63,6 +63,28 @@ export interface Message {
   timestamp: Date
 }
 
+export interface SavedAnswerRequest {
+  session_id: string
+  question: string
+  answer: string
+  sources: SourceChunk[]
+  model_used?: string
+  provider_used?: string
+  mode_used?: "offline" | "online"
+}
+
+export interface SavedAnswer {
+  saved_answer_id: string
+  session_id: string
+  question: string
+  answer: string
+  sources: SourceChunk[]
+  model_used?: string | null
+  provider_used?: string | null
+  mode_used?: string | null
+  created_at: string
+}
+
 export type UploadStatus = "idle" | "uploading" | "processing" | "ready" | "error"
 
 export interface UploadState {

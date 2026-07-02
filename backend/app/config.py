@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     embedding_backend: str = "auto"
     embedding_dimensions: int = 256
     max_sessions: int = 20
+    max_saved_answers_per_session: int = 30
     offline_model: str = "askmypdf-offline-extractive-v1"
     fast_model: str = "llama-3.1-8b-instant"
     fast_model_provider: str = "groq"

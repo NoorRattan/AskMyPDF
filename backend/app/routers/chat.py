@@ -5,9 +5,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.config import settings
-from app.models.schemas import ChatRequest
+from app.models.schemas import ChatRequest, SavedAnswerRequest, SavedAnswerResponse
 from app.services.embedding_service import embed_texts
 from app.services.llm_service import model_is_available, resolve_model, stream_answer
+from app.services.saved_answer_service import list_saved_answers, save_answer
 from app.services.vector_service import query_chunks, session_exists
 
 router = APIRouter()
@@ -64,3 +65,40 @@ async def chat(req: ChatRequest) -> StreamingResponse:
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@router.post("/saved-answers", response_model=SavedAnswerResponse)
+def save_cited_answer(req: SavedAnswerRequest) -> SavedAnswerResponse:
+    if not session_exists(req.session_id):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "session_not_found",
+                "detail": "No PDF has been uploaded for this session. Please upload a PDF first.",
+            },
+        )
+
+    record = save_answer(
+        session_id=req.session_id,
+        question=req.question,
+        answer=req.answer,
+        sources=[source.model_dump() for source in req.sources],
+        model_used=req.model_used,
+        provider_used=req.provider_used,
+        mode_used=req.mode_used,
+    )
+    return SavedAnswerResponse(**record)
+
+
+@router.get("/sessions/{session_id}/saved-answers", response_model=list[SavedAnswerResponse])
+def get_saved_answers(session_id: str) -> list[SavedAnswerResponse]:
+    if not session_exists(session_id):
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "session_not_found",
+                "detail": "No PDF has been uploaded for this session. Please upload a PDF first.",
+            },
+        )
+
+    return [SavedAnswerResponse(**record) for record in list_saved_answers(session_id)]

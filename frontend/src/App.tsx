@@ -367,9 +367,9 @@ function SchedulerArtifact() {
           </button>
         ))}
       </div>
-      <button type="button" className="scheduler-save mt-4 w-full rounded-full border-4 border-[#FF3AF2] bg-[#00F5D4] px-4 py-3 text-sm font-black uppercase text-[#0D0D1A] shadow-[5px_5px_0_#FFE600] transition hover:-translate-y-1 hover:rotate-1">
-        Save cited answer
-      </button>
+      <span className="scheduler-save mt-4 block w-full rounded-full border-4 border-[#FF3AF2] bg-[#00F5D4] px-4 py-3 text-center text-sm font-black uppercase text-[#0D0D1A] shadow-[5px_5px_0_#FFE600]">
+        Saved citation trail
+      </span>
     </div>
   )
 }
@@ -625,7 +625,7 @@ function Landing({
 
           <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["No external AI option", "Online Groq routes", "Cited answer stream"].map((item, index) => (
+              {["No external AI option", "Online model routes", "Cited answer stream"].map((item, index) => (
                 <p
                   key={item}
                   className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border-4 bg-[#0D0D1A]/86 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.16)]"

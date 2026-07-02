@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { BarChart3, BookOpen, FileSearch, ListTree, Send, Sparkles } from "lucide-react"
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 
+import { saveCitedAnswer } from "../lib/api"
 import { accentAt } from "../lib/designSystem"
 import { cn } from "../lib/utils"
 import type { Message, ModelOption, ModelPreference, UploadState } from "../types"
@@ -42,6 +43,9 @@ export function ChatInterface({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState("")
   const [isInputFocused, setIsInputFocused] = useState(false)
+  const [savingMessageIds, setSavingMessageIds] = useState<Set<string>>(() => new Set())
+  const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(() => new Set())
+  const [saveError, setSaveError] = useState<string | null>(null)
   const shouldReduce = useReducedMotion()
 
   const hasStreamingMessage = messages.some((message) => message.isStreaming && message.content.length > 0)
@@ -67,6 +71,12 @@ export function ChatInterface({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, showThinking])
+
+  useEffect(() => {
+    setSavingMessageIds(new Set())
+    setSavedMessageIds(new Set())
+    setSaveError(null)
+  }, [uploadState.sessionId])
 
   function handleInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const el = event.target
@@ -98,6 +108,46 @@ export function ChatInterface({
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault()
       void handleSend()
+    }
+  }
+
+  function questionForAssistant(index: number): string {
+    for (let idx = index - 1; idx >= 0; idx -= 1) {
+      if (messages[idx]?.role === "user") {
+        return messages[idx].content
+      }
+    }
+
+    return "Saved cited answer"
+  }
+
+  async function handleSaveMessage(message: Message, index: number) {
+    if (!uploadState.sessionId || !message.sources?.length || savedMessageIds.has(message.id)) {
+      return
+    }
+
+    setSavingMessageIds((current) => new Set(current).add(message.id))
+    setSaveError(null)
+
+    try {
+      await saveCitedAnswer({
+        session_id: uploadState.sessionId,
+        question: questionForAssistant(index),
+        answer: message.content,
+        sources: message.sources,
+        model_used: message.modelUsed,
+        provider_used: message.providerUsed,
+        mode_used: message.modeUsed,
+      })
+      setSavedMessageIds((current) => new Set(current).add(message.id))
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save cited answer.")
+    } finally {
+      setSavingMessageIds((current) => {
+        const next = new Set(current)
+        next.delete(message.id)
+        return next
+      })
     }
   }
 
@@ -196,7 +246,7 @@ export function ChatInterface({
             </>
           ) : null}
 
-          {messages.map((message) => {
+          {messages.map((message, index) => {
             if (message.isStreaming && message.content.length > 0) {
               return <StreamingMessage key={message.id} content={message.content} isStreaming={message.isStreaming} />
             }
@@ -205,7 +255,15 @@ export function ChatInterface({
               return null
             }
 
-            return <ChatMessage key={message.id} message={message} />
+            return (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onSave={message.role === "assistant" ? () => void handleSaveMessage(message, index) : undefined}
+                isSaving={savingMessageIds.has(message.id)}
+                isSaved={savedMessageIds.has(message.id)}
+              />
+            )
           })}
 
           {showThinking || hasEmptyStreamingMessage ? (
@@ -227,6 +285,16 @@ export function ChatInterface({
               className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
             >
               {error}
+            </motion.p>
+          ) : null}
+
+          {saveError ? (
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
+            >
+              {saveError}
             </motion.p>
           ) : null}
 

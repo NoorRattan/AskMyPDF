@@ -29,7 +29,7 @@ app.add_middleware(
     allow_origin_regex=allowed_origin_regex,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Request-ID"],
 )
 
 app.include_router(upload.router, prefix="/api")

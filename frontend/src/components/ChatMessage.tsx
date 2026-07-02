@@ -1,10 +1,14 @@
 import { motion, useReducedMotion } from "framer-motion"
+import { CheckCircle2, Save } from "lucide-react"
 
 import type { Message } from "../types"
 import { SourceCitations } from "./SourceCitations"
 
 interface ChatMessageProps {
   message: Message
+  onSave?: () => void
+  isSaving?: boolean
+  isSaved?: boolean
 }
 
 function formatTime(date: Date): string {
@@ -30,7 +34,7 @@ function AiAvatar() {
   )
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onSave, isSaving = false, isSaved = false }: ChatMessageProps) {
   const shouldReduce = useReducedMotion()
 
   if (message.role === "user") {
@@ -81,6 +85,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
               {message.modelUsed}
               {message.providerUsed ? ` via ${message.providerUsed}` : ""}
             </p>
+          ) : null}
+          {message.sources && message.sources.length > 0 && onSave ? (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={isSaving || isSaved}
+              className="mt-3 inline-flex items-center gap-2 rounded-xl border-2 border-[#FFE600] bg-[#FF3AF2] px-3 py-2 font-mono text-[11px] font-black uppercase tracking-wide text-white shadow-[3px_3px_0_#00F5D4] transition hover:-translate-y-0.5 hover:rotate-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFE600] disabled:cursor-default disabled:border-[#00F5D4] disabled:bg-[#2D1B4E] disabled:text-[#A7FFF4] disabled:shadow-[3px_3px_0_#7B2FFF]"
+            >
+              {isSaved ? <CheckCircle2 size={13} aria-hidden="true" /> : <Save size={13} aria-hidden="true" />}
+              {isSaving ? "Saving" : isSaved ? "Saved cited answer" : "Save cited answer"}
+            </button>
           ) : null}
           {message.sources && message.sources.length > 0 ? <SourceCitations sources={message.sources} /> : null}
         </div>
