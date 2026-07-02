@@ -25,7 +25,19 @@ import { accentAt, maxCardAt } from "./lib/designSystem"
 import { cn } from "./lib/utils"
 import type { ModelPreference } from "./types"
 
-const navLinks = ["Signal", "Artifacts", "Protocol", "Upload"] as const
+type LandingView = "upload" | "signal" | "artifacts" | "protocol"
+
+const navLinks: Array<{ id: LandingView; label: string }> = [
+  { id: "upload", label: "Upload" },
+  { id: "signal", label: "Signal" },
+  { id: "artifacts", label: "Artifacts" },
+  { id: "protocol", label: "Protocol" },
+]
+
+function landingViewFromHash(): LandingView {
+  const hash = window.location.hash.replace("#", "")
+  return navLinks.some((link) => link.id === hash) ? (hash as LandingView) : "upload"
+}
 
 const valueProps = [
   {
@@ -168,33 +180,42 @@ function MagneticButton({
 
 function FloatingNav({
   onStart,
+  onNavigate,
+  activeView,
   navRef,
 }: {
   onStart: () => void
+  onNavigate: (view: LandingView) => void
+  activeView: LandingView
   navRef: RefObject<HTMLElement | null>
 }) {
   return (
     <nav
       ref={navRef}
-      className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 items-center justify-between rounded-full px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:px-4"
+      className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 flex-wrap items-center justify-between gap-2 rounded-[1.75rem] px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:rounded-full sm:px-4"
       aria-label="Landing navigation"
     >
-      <a href="#top" className="max-focus flex min-w-0 items-center gap-3 rounded-full">
+      <button type="button" onClick={() => onNavigate("upload")} className="max-focus flex min-w-0 items-center gap-3 rounded-full">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] text-[#00F5D4] shadow-[0_0_22px_rgba(0,245,212,0.65),4px_4px_0_#FF6B35]">
           <FileText size={17} aria-hidden="true" />
         </span>
         <span className="truncate font-display text-sm tracking-normal sm:text-base">AskMyPDF</span>
-      </a>
+      </button>
 
-      <div className="hidden items-center gap-1 md:flex">
+      <div className="order-3 flex w-full items-center justify-center gap-1 overflow-x-auto md:order-none md:w-auto md:justify-start">
         {navLinks.map((link) => (
-          <a
-            key={link}
-            href={link === "Upload" ? "#upload" : `#${link.toLowerCase()}`}
-            className="max-focus rounded-full px-3 py-2 text-sm font-black uppercase tracking-widest transition hover:-translate-y-1 hover:rotate-1 hover:bg-[#FFE600] hover:text-[#0D0D1A]"
+          <button
+            key={link.id}
+            type="button"
+            onClick={() => onNavigate(link.id)}
+            aria-current={activeView === link.id ? "page" : undefined}
+            className={cn(
+              "max-focus rounded-full px-3 py-2 text-sm font-black uppercase tracking-widest transition hover:-translate-y-1 hover:rotate-1 hover:bg-[#FFE600] hover:text-[#0D0D1A]",
+              activeView === link.id && "bg-[#FFE600] text-[#0D0D1A]",
+            )}
           >
-            {link}
-          </a>
+            {link.label}
+          </button>
         ))}
       </div>
 
@@ -428,21 +449,16 @@ function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
           </filter>
         </defs>
         <g className="protocol-spin-slow" filter="url(#protocol-glow-1)">
-          <animateTransform attributeName="transform" type="rotate" from="0 120 120" to="360 120 120" dur="8s" repeatCount="indefinite" />
           <circle cx="120" cy="120" r="76" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.34" strokeDasharray="22 10" />
           <path d="M72 74c44 18 52 74 96 92M168 74c-44 18-52 74-96 92" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
         </g>
         <g className="protocol-spin-reverse" opacity="0.82">
-          <animateTransform attributeName="transform" type="rotate" from="360 120 120" to="0 120 120" dur="5.5s" repeatCount="indefinite" />
           <circle cx="120" cy="120" r="44" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="14 8" />
           {[62, 88, 114, 140, 166].map((y) => (
             <line key={y} x1="82" x2="158" y1={y} y2={y} stroke="currentColor" strokeWidth="2.5" opacity="0.58" />
           ))}
         </g>
-        <circle className="protocol-pulse-dot" cx="120" cy="120" r="8" fill="currentColor">
-          <animate attributeName="r" values="5;11;5" dur="1.2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.55;1;0.55" dur="1.2s" repeatCount="indefinite" />
-        </circle>
+        <circle className="protocol-pulse-dot" cx="120" cy="120" r="8" fill="currentColor" />
       </svg>
     )
   }
@@ -457,19 +473,11 @@ function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
           const delay = (cell % 6) * 0.08 + row * 0.04
 
           return (
-            <circle key={cell} cx={48 + col * 29} cy={48 + row * 29} r="6" fill="white" opacity="0.18">
-              <animate attributeName="opacity" values="0.12;0.62;0.12" dur="1.8s" begin={`${delay}s`} repeatCount="indefinite" />
-            </circle>
+            <circle key={cell} className="scanner-node" cx={48 + col * 29} cy={48 + row * 29} r="6" fill="white" opacity="0.18" style={{ animationDelay: `${delay}s` }} />
           )
         })}
-        <line x1="18" x2="222" y1="44" y2="44" stroke="#FFE600" strokeWidth="5" strokeLinecap="round" className="scan-laser-svg">
-          <animate attributeName="y1" values="42;198;42" dur="2.15s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="42;198;42" dur="2.15s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.82;1" dur="2.15s" repeatCount="indefinite" />
-        </line>
-        <rect x="32" y="32" width="176" height="176" rx="22" fill="none" stroke="#FF6B35" strokeWidth="3" strokeDasharray="16 10">
-          <animate attributeName="stroke-dashoffset" values="0;-52" dur="1.6s" repeatCount="indefinite" />
-        </rect>
+        <line x1="18" x2="222" y1="44" y2="44" stroke="#FFE600" strokeWidth="5" strokeLinecap="round" className="scan-laser-svg scan-laser" />
+        <rect className="scanner-frame" x="32" y="32" width="176" height="176" rx="22" fill="none" stroke="#FF6B35" strokeWidth="3" strokeDasharray="16 10" />
       </svg>
     )
   }
@@ -504,19 +512,88 @@ function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
         strokeWidth="5"
         filter="url(#protocol-glow-3)"
         pathLength="520"
-      >
-        <animate attributeName="stroke-dashoffset" values="520;0;-520" dur="2.35s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.35;1;1;0.35" keyTimes="0;0.25;0.7;1" dur="2.35s" repeatCount="indefinite" />
-      </path>
-      <circle r="5.5" fill="#FFE600" filter="url(#protocol-glow-3)">
-        <animateMotion
-          dur="2.35s"
-          repeatCount="indefinite"
-          path="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
-        />
-        <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.82;1" dur="2.35s" repeatCount="indefinite" />
-      </circle>
+      />
+      <circle className="waveform-dot" r="5.5" cx="5" cy="82" fill="#FFE600" filter="url(#protocol-glow-3)" />
     </svg>
+  )
+}
+
+function SignalSection() {
+  return (
+    <section id="signal" className="relative min-h-[100dvh] overflow-hidden bg-[#FFE600] px-4 py-28 text-[#0D0D1A] sm:px-8 lg:px-12">
+      <div className="absolute inset-0 pattern-dots opacity-40" aria-hidden="true" />
+      <div className="absolute -right-20 top-10 h-52 w-52 rotate-12 border-4 border-[#0D0D1A] bg-[#FF3AF2] shadow-[12px_12px_0_#00F5D4]" aria-hidden="true" />
+      <div className="absolute -left-16 bottom-12 h-44 w-64 -rotate-6 border-4 border-[#0D0D1A] bg-[#7B2FFF] shadow-[12px_12px_0_#FF6B35]" aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl pt-16">
+        <p className="mb-8 inline-flex rounded-full border-4 border-[#0D0D1A] bg-white px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] shadow-[6px_6px_0_#FF3AF2]">The signal</p>
+        <p className="max-w-5xl font-heading text-3xl font-black leading-tight text-[#0D0D1A]/70 sm:text-5xl">
+          Most document AI focuses on: quick summaries and vague chat bubbles.
+        </p>
+        <p className="mt-10 max-w-6xl font-heading text-5xl font-black leading-[0.92] text-[#0D0D1A] sm:text-7xl lg:text-8xl">
+          {splitWords("We focus on: cited conversation that stays locked to your PDF.")}
+        </p>
+      </div>
+    </section>
+  )
+}
+
+function ProtocolSection() {
+  return (
+    <section id="protocol" className="relative min-h-[100dvh] overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-8 lg:px-12">
+      <div className="absolute inset-0 pattern-mesh opacity-80" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[#0D0D1A]/74" aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl pt-16">
+        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Workflow</p>
+            <h2 className="max-subtitle mt-4 max-w-4xl text-4xl leading-none sm:text-6xl">Upload to answer stays visible.</h2>
+          </div>
+          <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FF6B35] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#00F5D4]">
+            Every stage stays visible as the PDF moves from ingestion to retrieval to a cited response, with the source trail carried through the whole workflow.
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-8 lg:grid-cols-3">
+          {protocolSteps.map((step, index) => {
+            const Icon = step.icon
+            const accent = accentAt(index + 2)
+
+            return (
+              <article
+                key={step.number}
+                className={cn(
+                  "protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#0D0D1A]/94 p-6 text-white backdrop-blur-xl transition duration-300 hover:-translate-y-2",
+                  index === 1 && "lg:translate-y-10",
+                  index === 2 && "lg:-translate-y-4",
+                  maxCardAt(index + 2),
+                )}
+              >
+                <div className="absolute inset-0 pattern-checker opacity-35" aria-hidden="true" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,58,242,0.1))]" aria-hidden="true" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-sm font-black" style={{ color: accent }}>
+                      STEP {step.number}
+                    </p>
+                    <span
+                      className="grid h-12 w-12 place-items-center rounded-[1.25rem] border-4 bg-[#0D0D1A] shadow-[5px_5px_0_rgba(255,255,255,0.2)]"
+                      style={{ borderColor: accent, color: accent }}
+                    >
+                      <Icon size={22} aria-hidden="true" />
+                    </span>
+                  </div>
+                  <h3 className="mt-8 font-heading text-3xl font-black leading-none sm:text-4xl">{step.title}</h3>
+                  <p className="mt-5 text-sm font-semibold leading-7 text-white/72">{step.description}</p>
+                </div>
+                <div className="relative z-10 mt-8 grid place-items-center">
+                  <ProtocolVisual index={index} accent={accent} />
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -527,6 +604,8 @@ function Landing({
   systemStatus,
   selectedModel,
   onModelChange,
+  activeView,
+  onNavigate,
 }: {
   uploadState: ReturnType<typeof useUpload>["state"]
   uploadFile: ReturnType<typeof useUpload>["uploadFile"]
@@ -534,6 +613,8 @@ function Landing({
   systemStatus: ReturnType<typeof useSystemStatus>
   selectedModel: ModelPreference
   onModelChange: (model: ModelPreference) => void
+  activeView: LandingView
+  onNavigate: (view: LandingView) => void
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
@@ -569,17 +650,21 @@ function Landing({
     }, root)
 
     return () => ctx.revert()
-  }, [prefersReducedMotion])
+  }, [activeView, prefersReducedMotion])
 
   function scrollToUpload() {
-    uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    onNavigate("upload")
+    window.setTimeout(() => {
+      uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 0)
   }
 
   return (
     <div ref={rootRef} id="top" className="dopamine-shell relative min-h-screen overflow-hidden text-white">
       <FloatingShapes />
-      <FloatingNav onStart={scrollToUpload} navRef={navRef} />
+      <FloatingNav onStart={scrollToUpload} onNavigate={onNavigate} activeView={activeView} navRef={navRef} />
 
+      {activeView === "upload" ? (
       <section
         id="upload"
         ref={uploadRef}
@@ -641,86 +726,18 @@ function Landing({
           </div>
         </div>
       </section>
+      ) : null}
 
-      <FeatureArtifacts />
+      {activeView === "artifacts" ? <FeatureArtifacts /> : null}
+      {activeView === "signal" ? <SignalSection /> : null}
+      {activeView === "protocol" ? <ProtocolSection /> : null}
 
-      <section id="signal" className="relative overflow-hidden bg-[#FFE600] px-4 py-28 text-[#0D0D1A] sm:px-8 lg:px-12">
-        <div className="absolute inset-0 pattern-dots opacity-40" aria-hidden="true" />
-        <div className="absolute -right-20 top-10 h-52 w-52 rotate-12 border-4 border-[#0D0D1A] bg-[#FF3AF2] shadow-[12px_12px_0_#00F5D4]" aria-hidden="true" />
-        <div className="absolute -left-16 bottom-12 h-44 w-64 -rotate-6 border-4 border-[#0D0D1A] bg-[#7B2FFF] shadow-[12px_12px_0_#FF6B35]" aria-hidden="true" />
-        <div className="relative mx-auto max-w-7xl">
-          <p className="mb-8 inline-flex rounded-full border-4 border-[#0D0D1A] bg-white px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] shadow-[6px_6px_0_#FF3AF2]">The signal</p>
-          <p className="max-w-5xl font-heading text-3xl font-black leading-tight text-[#0D0D1A]/70 sm:text-5xl">
-            Most document AI focuses on: quick summaries and vague chat bubbles.
-          </p>
-          <p className="mt-10 max-w-6xl font-heading text-5xl font-black leading-[0.92] text-[#0D0D1A] sm:text-7xl lg:text-8xl">
-            {splitWords("We focus on: cited conversation that stays locked to your PDF.")}
-          </p>
-        </div>
-      </section>
-
-      <section id="protocol" className="relative overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-8 lg:px-12">
-        <div className="absolute inset-0 pattern-mesh opacity-80" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[#0D0D1A]/74" aria-hidden="true" />
-        <div className="relative mx-auto max-w-7xl">
-          <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Workflow</p>
-              <h2 className="max-subtitle mt-4 max-w-4xl text-4xl leading-none sm:text-6xl">Upload to answer stays visible.</h2>
-            </div>
-            <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FF6B35] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#00F5D4]">
-              Every stage stays visible as the PDF moves from ingestion to retrieval to a cited response, with the source trail carried through the whole workflow.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-8 lg:grid-cols-3">
-            {protocolSteps.map((step, index) => {
-              const Icon = step.icon
-              const accent = accentAt(index + 2)
-
-              return (
-                <article
-                  key={step.number}
-                  className={cn(
-                    "protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#0D0D1A]/94 p-6 text-white backdrop-blur-xl transition duration-300 hover:-translate-y-2",
-                    index === 1 && "lg:translate-y-10",
-                    index === 2 && "lg:-translate-y-4",
-                    maxCardAt(index + 2),
-                  )}
-                >
-                  <div className="absolute inset-0 pattern-checker opacity-35" aria-hidden="true" />
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,58,242,0.1))]" aria-hidden="true" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-sm font-black" style={{ color: accent }}>
-                        STEP {step.number}
-                      </p>
-                      <span
-                        className="grid h-12 w-12 place-items-center rounded-[1.25rem] border-4 bg-[#0D0D1A] shadow-[5px_5px_0_rgba(255,255,255,0.2)]"
-                        style={{ borderColor: accent, color: accent }}
-                      >
-                        <Icon size={22} aria-hidden="true" />
-                      </span>
-                    </div>
-                    <h3 className="mt-8 font-heading text-3xl font-black leading-none sm:text-4xl">{step.title}</h3>
-                    <p className="mt-5 text-sm font-semibold leading-7 text-white/72">{step.description}</p>
-                  </div>
-                  <div className="relative z-10 mt-8 grid place-items-center">
-                    <ProtocolVisual index={index} accent={accent} />
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <Footer />
+      <Footer onNavigate={onNavigate} />
     </div>
   )
 }
 
-function Footer() {
+function Footer({ onNavigate }: { onNavigate: (view: LandingView) => void }) {
   return (
     <footer className="pattern-stripes rounded-t-[3rem] border-t-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-12 text-white shadow-[0_-18px_0_#7B2FFF] sm:px-8 lg:px-12">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_0.7fr_0.7fr_0.8fr]">
@@ -731,9 +748,18 @@ function Footer() {
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#00F5D4]">Navigate</p>
           <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
-            <a href="#signal" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Signal</a>
-            <a href="#artifacts" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Artifacts</a>
-            <a href="#protocol" className="rounded transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]">Protocol</a>
+            {navLinks
+              .filter((link) => link.id !== "upload")
+              .map((link) => (
+                <button
+                  key={link.id}
+                  type="button"
+                  onClick={() => onNavigate(link.id)}
+                  className="rounded text-left transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]"
+                >
+                  {link.label}
+                </button>
+              ))}
           </div>
         </div>
         <div>
@@ -760,6 +786,7 @@ export default function App() {
   const { messages, isLoading, error, sendMessage, clearChat } = useChat(uploadState.sessionId)
   const systemStatus = useSystemStatus()
   const [selectedModel, setSelectedModel] = useState<ModelPreference>("offline")
+  const [activeView, setActiveView] = useState<LandingView>(() => landingViewFromHash())
   const isChat = uploadState.status === "ready"
 
   useEffect(() => {
@@ -774,9 +801,30 @@ export default function App() {
     }
   }, [selectedModel, systemStatus.details?.available_models])
 
+  useEffect(() => {
+    function syncHash() {
+      setActiveView(landingViewFromHash())
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+
+    window.addEventListener("hashchange", syncHash)
+    window.addEventListener("popstate", syncHash)
+    return () => {
+      window.removeEventListener("hashchange", syncHash)
+      window.removeEventListener("popstate", syncHash)
+    }
+  }, [])
+
+  function navigateLanding(view: LandingView) {
+    setActiveView(view)
+    window.history.pushState(null, "", `#${view}`)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   function handleReset() {
     reset()
     clearChat()
+    navigateLanding("upload")
   }
 
   return (
@@ -793,6 +841,8 @@ export default function App() {
               systemStatus={systemStatus}
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
+              activeView={activeView}
+              onNavigate={navigateLanding}
             />
           ) : (
             <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">

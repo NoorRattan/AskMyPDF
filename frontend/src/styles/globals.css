@@ -311,14 +311,27 @@ body::before {
 
 .protocol-pulse-dot {
   filter: drop-shadow(0 0 14px currentColor);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: protocol-pulse 1.2s ease-in-out infinite;
 }
 
 .protocol-scanner {
   box-shadow: 0 0 28px currentColor;
 }
 
+.scanner-node {
+  animation: scanner-node-pulse 1.8s ease-in-out infinite;
+}
+
+.scanner-frame {
+  animation: scanner-frame-flow 1.6s linear infinite;
+}
+
 .scan-laser-svg {
   filter: drop-shadow(0 0 14px #FFE600) drop-shadow(0 0 28px #FF3AF2);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .scan-laser {
@@ -330,6 +343,12 @@ body::before {
   stroke-dashoffset: 520;
   animation: waveform-draw 2.8s ease-in-out infinite;
   filter: drop-shadow(0 0 12px currentColor);
+}
+
+.waveform-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: waveform-dot 2.8s ease-in-out infinite;
 }
 
 .production-panel {
@@ -768,16 +787,37 @@ body::before {
   100% { transform: rotate(0deg); }
 }
 
+@keyframes protocol-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.68); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+@keyframes scanner-node-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.62; }
+}
+
+@keyframes scanner-frame-flow {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -52; }
+}
+
 @keyframes scan-laser {
-  0%, 100% { transform: translateY(0); opacity: 0; }
+  0%, 100% { transform: translateY(-2px); opacity: 0; }
   15%, 85% { opacity: 1; }
-  50% { transform: translateY(184px); }
+  50% { transform: translateY(154px); }
 }
 
 @keyframes waveform-draw {
   0% { stroke-dashoffset: 520; opacity: 0.35; }
   42%, 68% { stroke-dashoffset: 0; opacity: 1; }
   100% { stroke-dashoffset: -520; opacity: 0.35; }
+}
+
+@keyframes waveform-dot {
+  0% { opacity: 0; transform: translateX(0); }
+  15%, 82% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(240px); }
 }
 
 @keyframes production-aurora-a {
