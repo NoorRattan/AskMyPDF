@@ -7,7 +7,14 @@ interface StreamingMessageProps {
 
 function AiAvatar() {
   return (
-    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-light text-[11px] font-bold text-white shadow-[0_10px_22px_rgba(0,82,255,0.22)]" aria-hidden="true">
+    <span
+      className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600] text-[11px] font-black text-white"
+      style={{
+        background: "linear-gradient(135deg, #FF3AF2, #7B2FFF, #00F5D4)",
+        boxShadow: "0 0 18px rgba(255,58,242,0.56), 4px 4px 0 #00F5D4",
+      }}
+      aria-hidden="true"
+    >
       AI
     </span>
   )
@@ -24,13 +31,28 @@ export function StreamingMessage({ content, isStreaming }: StreamingMessageProps
       className="flex max-w-full items-start gap-2.5 self-start"
     >
       <AiAvatar />
-      <div className="min-w-0 max-w-[85%] rounded-2xl rounded-tl-sm border border-border bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.08)] sm:max-w-[90%]">
-        <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-foreground [overflow-wrap:anywhere]">
+      <div
+        className="min-w-0 max-w-[85%] rounded-2xl rounded-tl-sm border-4 border-[#00F5D4] px-4 py-3 backdrop-blur-sm sm:max-w-[90%]"
+        style={{
+          background: "linear-gradient(135deg, rgba(13,13,26,0.96) 0%, rgba(45,27,78,0.92) 100%)",
+          boxShadow: "6px 6px 0 #7B2FFF, 0 0 24px rgba(0,245,212,0.24)",
+        }}
+      >
+        <p className="whitespace-pre-wrap break-words text-[15px] font-semibold leading-6 text-white [overflow-wrap:anywhere]">
           {content}
           {isStreaming ? (
             <motion.span
               aria-hidden="true"
-              className="ml-1 inline-block h-[1em] w-0.5 translate-y-0.5 rounded bg-primary"
+              style={{
+                display: "inline-block",
+                width: "2px",
+                height: "1em",
+                background: "linear-gradient(180deg, #FFE600, #FF3AF2, #00F5D4)",
+                marginLeft: "3px",
+                verticalAlign: "middle",
+                borderRadius: "1px",
+                boxShadow: "0 0 8px rgba(255,230,0,0.88)",
+              }}
               animate={shouldReduce ? undefined : { opacity: [1, 0, 1] }}
               transition={{ repeat: Infinity, duration: 0.75, ease: "linear" }}
             />

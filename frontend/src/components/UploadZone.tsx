@@ -89,19 +89,30 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
+        style={isBusy ? { animation: "border-pulse 2s ease-in-out infinite" } : undefined}
         className={cn(
-          "upload-zone-modern relative flex min-h-[280px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[1.75rem] border bg-white p-6 text-center transition duration-300 sm:min-h-80 sm:p-10",
-          "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20",
-          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(0,82,255,0.10),transparent_38%),linear-gradient(135deg,rgba(0,82,255,0.08),transparent_42%,rgba(77,124,255,0.07))]",
-          "after:absolute after:inset-px after:rounded-[calc(1.75rem-1px)] after:border after:border-white/70",
-          isDragging && "scale-[1.01] border-primary bg-blue-50 shadow-[0_20px_60px_rgba(0,82,255,0.14)]",
-          !isDragging && !isBusy && !isError && "border-border shadow-[0_20px_60px_rgba(15,23,42,0.08)] hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_24px_80px_rgba(0,82,255,0.14)]",
-          isBusy && "processing-active pointer-events-none border-primary/40 shadow-[0_24px_80px_rgba(0,82,255,0.16)]",
-          isError && "border-error/60 bg-red-50 shadow-[0_20px_60px_rgba(239,68,68,0.12)]",
+          "upload-zone-modern group relative flex min-h-[260px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border-4 bg-[#0D0D1A]/95 p-6 text-center transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] sm:min-h-80 sm:p-10",
+          "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#FFE600] focus-visible:ring-offset-4 focus-visible:ring-offset-[#0D0D1A]",
+          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,58,242,0.34),transparent_34%),linear-gradient(135deg,rgba(0,245,212,0.2),transparent_38%,rgba(255,230,0,0.18))] before:opacity-90 before:transition-opacity",
+          "after:absolute after:inset-px after:rounded-[calc(2.5rem-2px)] after:border-2 after:border-white/12 after:bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03)_45%,rgba(0,0,0,0.24))]",
+          isDragging && "scale-[1.018] rotate-1 border-[#FFE600] bg-[#2D1B4E] shadow-[0_0_0_6px_rgba(255,58,242,0.32),inset_0_0_80px_rgba(255,230,0,0.18),10px_10px_0_#00F5D4,20px_20px_0_#FF3AF2] before:opacity-100",
+          !isDragging && !isBusy && !isError && "border-[#FFE600] shadow-[0_0_34px_rgba(255,230,0,0.42),10px_10px_0_#FF3AF2,20px_20px_0_#7B2FFF] hover:-translate-y-1 hover:rotate-[0.35deg] hover:border-[#00F5D4] hover:shadow-[0_0_46px_rgba(0,245,212,0.56),12px_12px_0_#FFE600,24px_24px_0_#FF3AF2]",
+          isBusy && "processing-active pointer-events-none border-solid border-[#00F5D4] shadow-[0_0_42px_rgba(0,245,212,0.42),10px_10px_0_#FFE600] before:opacity-100",
+          isError && "border-solid border-[#EF4444] shadow-[0_0_34px_rgba(239,68,68,0.38),10px_10px_0_#FF3AF2]",
         )}
       >
         <span className="upload-mesh" aria-hidden="true" />
         <span className="upload-scan-line" aria-hidden="true" />
+        {!isBusy ? (
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[2.5rem]"
+            aria-hidden="true"
+            style={{
+              background: "radial-gradient(ellipse at center, rgba(255,230,0,0.28) 0%, transparent 64%)",
+              animation: "glow-pulse 3s ease-in-out infinite",
+            }}
+          />
+        ) : null}
 
         {isBusy ? (
           <div role="status" aria-label="Processing" className="relative z-10 mb-6 flex flex-col items-center">
@@ -115,13 +126,13 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
                 <span className="processing-scan" />
               </span>
             </div>
-            <div className="mt-5 h-1.5 w-52 overflow-hidden rounded-full bg-slate-200">
+            <div className="mt-5 h-1.5 w-52 overflow-hidden rounded-full bg-border/70">
               <span
-                className="block h-full rounded-full bg-gradient-to-r from-primary to-primary-light transition-[width] duration-500"
+                className="block h-full rounded-full bg-gradient-to-r from-[#FF3AF2] via-[#FFE600] to-[#00F5D4] transition-[width] duration-500"
                 style={{ width: `${Math.max(2, Math.min(100, progress))}%` }}
               />
             </div>
-            <div className="mt-3 flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-widest text-primary">
+            <div className="mt-3 flex items-center gap-2 font-mono text-[11px] font-black uppercase tracking-widest text-[#00F5D4]">
               <span>{stageLabel}</span>
               <span className="opacity-35">/</span>
               <span>{Math.round(progress)}%</span>
@@ -138,19 +149,19 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
             </div>
             <div
               className={cn(
-                "absolute -bottom-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary-light text-white shadow-[0_14px_30px_rgba(0,82,255,0.28)] transition duration-300",
+                "upload-icon absolute -bottom-3 flex h-12 w-12 items-center justify-center rounded-[1.25rem] border-4 border-[#0D0D1A] bg-[#FF3AF2] text-white shadow-[5px_5px_0_#FFE600,0_0_28px_rgba(255,58,242,0.62)] transition-all duration-300",
                 isDragging && "upload-icon-dragging",
               )}
             >
-              <UploadCloud size={22} aria-hidden="true" />
+              <UploadCloud size={23} aria-hidden="true" />
             </div>
           </div>
         )}
 
-        <p className="relative z-10 mt-2 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
+        <p className="relative z-10 mt-2 font-heading text-3xl font-black leading-tight text-white sm:text-4xl">
           {isBusy ? (uploadState.message ?? "Turning pages into context...") : "Drop your PDF here"}
         </p>
-        <p className="relative z-10 mt-3 min-h-5 text-sm font-medium text-muted-foreground">
+        <p className="relative z-10 mt-2 min-h-5 text-sm font-bold text-[#DCD7FF]">
           {isBusy
             ? [
                 uploadState.pageCount ? `${uploadState.pageCount} pages` : null,
@@ -164,9 +175,9 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
           {["PDF only", "50MB max", "Private session"].map((item) => (
             <span
               key={item}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/80 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-widest text-slate-600"
+              className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#00F5D4] bg-[#2D1B4E]/85 px-3 py-1.5 font-mono text-[11px] font-black uppercase tracking-widest text-white shadow-[3px_3px_0_#FF3AF2]"
             >
-              <CheckCircle2 size={12} className="text-success" aria-hidden="true" />
+              <CheckCircle2 size={12} className="text-[#FFE600]" aria-hidden="true" />
               {item}
             </span>
           ))}
@@ -175,11 +186,11 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
 
       {isError ? (
         <div className="mt-4 text-center">
-          <p className="rounded-2xl border border-error/30 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>
+          <p className="rounded-[1rem] border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-3 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2]">{error}</p>
           <button
             type="button"
             onClick={handleTryAgain}
-            className="mt-3 rounded-xl bg-gradient-to-r from-primary to-primary-light px-5 py-2.5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(0,82,255,0.22)] transition hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20"
+            className="mt-3 cursor-pointer rounded-[1.25rem] border-4 border-[#FFE600] bg-[#FF3AF2] px-5 py-2.5 text-sm font-black uppercase tracking-widest text-white outline-none shadow-[5px_5px_0_#00F5D4] transition hover:-translate-y-1 hover:rotate-1 focus-visible:ring-4 focus-visible:ring-[#FFE600]"
           >
             Try again
           </button>

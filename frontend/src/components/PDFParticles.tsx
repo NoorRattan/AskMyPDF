@@ -29,7 +29,7 @@ export function PDFParticles({ onComplete }: PDFParticlesProps) {
           y: -(70 + Math.random() * 140),
           delay: Math.random() * 0.5,
           duration: 1.2 + Math.random() * 0.7,
-          color: ["#0052FF", "#4D7CFF", "#93C5FD", "#10B981", "#64748B"][idx % 5],
+          color: ["#FF3AF2", "#00F5D4", "#FFE600", "#FF6B35", "#7B2FFF"][idx % 5],
           opacity: 0.6 + Math.random() * 0.35,
         }
       }),
