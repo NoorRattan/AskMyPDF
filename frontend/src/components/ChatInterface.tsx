@@ -3,7 +3,6 @@ import { BarChart3, BookOpen, FileSearch, ListTree, Send, Sparkles } from "lucid
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import { saveCitedAnswer } from "../lib/api"
-import { accentAt } from "../lib/designSystem"
 import { cn } from "../lib/utils"
 import type { Message, ModelOption, ModelPreference, UploadState } from "../types"
 import { ChatMessage } from "./ChatMessage"
@@ -23,10 +22,10 @@ interface ChatInterfaceProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  { icon: Sparkles, text: "Summarize this document.", color: "#FF3AF2" },
-  { icon: FileSearch, text: "What are the key findings?", color: "#00F5D4" },
-  { icon: ListTree, text: "List the main topics covered.", color: "#FFE600" },
-  { icon: BarChart3, text: "Are there any numbers or statistics I should know?", color: "#FF6B35" },
+  { icon: Sparkles, text: "Summarize this document." },
+  { icon: FileSearch, text: "What are the key findings?" },
+  { icon: ListTree, text: "List the main topics covered." },
+  { icon: BarChart3, text: "Are there any numbers or statistics I should know?" },
 ] as const
 
 export function ChatInterface({
@@ -61,7 +60,7 @@ export function ChatInterface({
     () => ({
       id: "welcome-message",
       role: "assistant",
-      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Private Extractive"}. Ask me anything - I'll answer from the document.`,
+      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Private Extractive"}. Ask me anything and I will answer from the document with citations when sources are available.`,
       isStreaming: false,
       timestamp: new Date(),
     }),
@@ -166,24 +165,20 @@ export function ChatInterface({
       <motion.div
         initial={shouldReduce ? false : { opacity: 0, y: -8 }}
         animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 flex items-center justify-center gap-3 border-b-4 border-[#FF3AF2] bg-[#0D0D1A]/70 px-4 py-2 backdrop-blur-sm"
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 flex items-center justify-center gap-3 border-b border-border bg-white/76 px-4 py-2 backdrop-blur-sm"
       >
         <span className="flex min-w-0 items-center gap-1.5">
-          <BookOpen size={13} className="shrink-0 text-[#FFE600]" aria-hidden="true" />
-          <span className="min-w-0 truncate font-mono text-[11px] font-bold text-[#DCD7FF]">
-            <span className="text-white">{uploadState.filename}</span>
+          <BookOpen size={13} className="shrink-0 text-primary" aria-hidden="true" />
+          <span className="min-w-0 truncate font-mono text-[11px] text-muted-foreground">
+            <span className="font-bold text-foreground">{uploadState.filename}</span>
             <span className="mx-2 opacity-40">/</span>
-            <span className="text-[#00F5D4]">{uploadState.pageCount ?? 0} pages</span>
+            <span>{uploadState.pageCount ?? 0} pages</span>
             <span className="mx-2 opacity-40">/</span>
             <span>{uploadState.chunkCount ?? 0} chunks</span>
           </span>
         </span>
-        <span
-          className="h-2 w-2 shrink-0 rounded-full bg-[#00F5D4]"
-          style={{ animation: shouldReduce ? undefined : "success-ping 2s ease-out infinite" }}
-          aria-hidden="true"
-        />
+        <span className="h-2 w-2 shrink-0 rounded-full bg-success motion-safe:animate-[pulse-dot_2s_ease-in-out_infinite]" aria-hidden="true" />
       </motion.div>
 
       <div
@@ -200,45 +195,28 @@ export function ChatInterface({
               <motion.div
                 initial={shouldReduce ? false : { opacity: 0, y: 22 }}
                 animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.12, duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
                 className="flex flex-1 flex-col items-center justify-center gap-5 py-6"
               >
-                <p className="rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-2 font-mono text-[11px] font-black uppercase tracking-widest text-white shadow-[5px_5px_0_#FF3AF2]">Quick prompts</p>
+                <p className="rounded-full border border-border bg-white px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground shadow-sm">Quick prompts</p>
                 <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-                  {SUGGESTED_QUESTIONS.map(({ icon: Icon, text, color }, idx) => (
+                  {SUGGESTED_QUESTIONS.map(({ icon: Icon, text }, idx) => (
                     <motion.button
                       key={text}
                       type="button"
                       onClick={() => handleSuggestion(text)}
                       disabled={isLoading || !selectedModelAvailable}
-                      initial={shouldReduce ? false : { opacity: 0, y: 16, scale: 0.97 }}
+                      initial={shouldReduce ? false : { opacity: 0, y: 16, scale: 0.98 }}
                       animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 0.28 + idx * 0.08, duration: 0.3, ease: "easeOut" }}
-                      whileHover={
-                        shouldReduce || isLoading || !selectedModelAvailable
-                          ? undefined
-                          : {
-                              y: -5,
-                              scale: 1.02,
-                              boxShadow: `0 0 34px ${color}66, 7px 7px 0 ${accentAt(idx + 1)}`,
-                            }
-                      }
-                      whileTap={shouldReduce ? undefined : { scale: 0.97 }}
-                      className="suggestion-card group relative flex min-h-[86px] cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border-4 bg-[#0D0D1A]/88 px-4 py-3.5 text-left text-sm font-black text-white outline-none backdrop-blur-sm transition-colors duration-200 focus-visible:ring-4 focus-visible:ring-[#FFE600] disabled:cursor-not-allowed disabled:opacity-60"
-                      style={{ borderColor: color, boxShadow: `5px 5px 0 ${accentAt(idx + 1)}` }}
+                      transition={{ delay: 0.2 + idx * 0.06, duration: 0.28, ease: "easeOut" }}
+                      whileHover={shouldReduce || isLoading || !selectedModelAvailable ? undefined : { y: -3 }}
+                      whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                      className="group relative flex min-h-[86px] cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border border-border bg-white px-4 py-3.5 text-left text-sm font-semibold text-foreground shadow-[0_12px_30px_rgba(15,23,42,0.07)] outline-none transition hover:border-primary/30 hover:bg-blue-50 focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <span
-                        className="pointer-events-none absolute -left-3 -top-3 h-16 w-16 rounded-full opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-40"
-                        style={{ background: color }}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border-4 border-white bg-[#2D1B4E] transition-colors duration-200 group-hover:bg-[#0D0D1A]"
-                        style={{ color }}
-                      >
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-primary transition group-hover:bg-white">
                         <Icon size={18} aria-hidden="true" />
                       </span>
-                      <span className="relative leading-5">{text}</span>
+                      <span className="leading-5">{text}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -282,7 +260,7 @@ export function ChatInterface({
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
+              className="self-start rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700"
             >
               {error}
             </motion.p>
@@ -292,7 +270,7 @@ export function ChatInterface({
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
+              className="self-start rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700"
             >
               {saveError}
             </motion.p>
@@ -304,21 +282,11 @@ export function ChatInterface({
 
       <div className="relative z-10 px-4 py-4 sm:px-6">
         <div
-          className="mx-auto max-w-4xl overflow-hidden rounded-2xl border-4 border-[#00F5D4] bg-[#0D0D1A]/88 shadow-[0_0_34px_rgba(0,245,212,0.34),8px_8px_0_#FF3AF2] backdrop-blur-xl transition-all duration-300"
-          style={
-            isInputFocused
-              ? { borderColor: "#FFE600", boxShadow: "0 0 0 4px rgba(255,58,242,0.34), 10px 10px 0 #00F5D4, 0 -4px 64px rgba(255,230,0,0.2)" }
-              : undefined
-          }
+          className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-border bg-white/88 shadow-[0_18px_48px_rgba(15,23,42,0.1)] backdrop-blur-xl transition duration-300"
+          style={isInputFocused ? { borderColor: "rgba(0,82,255,0.38)", boxShadow: "0 0 0 4px rgba(0,82,255,0.08), 0 20px 58px rgba(0,82,255,0.12)" } : undefined}
         >
-          <div className="border-b-4 border-[#FF3AF2] px-3 py-3">
-            <ModelSelector
-              compact
-              value={modelPreference}
-              onChange={onModelPreferenceChange}
-              models={availableModels}
-              disabled={isLoading}
-            />
+          <div className="border-b border-border px-3 py-3">
+            <ModelSelector compact value={modelPreference} onChange={onModelPreferenceChange} models={availableModels} disabled={isLoading} />
           </div>
 
           <label htmlFor="chat-question" className="sr-only">
@@ -338,60 +306,45 @@ export function ChatInterface({
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             className={cn(
-              "w-full resize-none bg-transparent px-5 pb-3 pt-4 text-[15px] font-semibold leading-6 text-white",
-              "placeholder:text-[#DCD7FF]/52 outline-none",
+              "w-full resize-none bg-transparent px-5 pb-3 pt-4 text-[15px] leading-6 text-foreground",
+              "placeholder:text-muted-foreground/65 outline-none",
               isLoading && "cursor-not-allowed opacity-50",
             )}
           />
 
-          <div className="flex items-center justify-between border-t-4 border-[#2D1B4E] px-4 py-2.5">
+          <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-2 w-20 overflow-hidden rounded-full border border-white/20 bg-[#2D1B4E]">
+              <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-200">
                 <div
                   className="h-full rounded-full transition-all duration-200"
                   style={{
                     width: `${charPct}%`,
-                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #FF3AF2, #FFE600, #00F5D4)",
+                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #0052FF, #4D7CFF)",
                   }}
                 />
               </div>
-              <span
-                className={cn(
-                  "font-mono text-[11px] tabular-nums",
-                  value.length >= 950 ? "text-[#FCA5A5]" : "text-[#DCD7FF]/64",
-                )}
-              >
+              <span className={cn("font-mono text-[11px] tabular-nums", value.length >= 950 ? "text-red-600" : "text-muted-foreground")}>
                 {value.length}/1000
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <motion.button
-                type="button"
-                aria-label="Send message"
-                disabled={isLoading || !value.trim() || !selectedModelAvailable}
-                onClick={() => void handleSend()}
-                whileHover={
-                  shouldReduce
-                    ? undefined
-                    : {
-                        y: -2,
-                        scale: 1.08,
-                        boxShadow: "0 0 0 4px rgba(255,230,0,0.36), 5px 5px 0 #00F5D4",
-                      }
-                }
-                whileTap={shouldReduce ? undefined : { scale: 0.92 }}
-                transition={{ type: "spring", stiffness: 450, damping: 18 }}
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-4 outline-none transition-all duration-200 focus-visible:ring-4 focus-visible:ring-[#FFE600] disabled:cursor-not-allowed disabled:opacity-35",
-                  value.trim() && !isLoading && selectedModelAvailable
-                    ? "border-[#FFE600] bg-[#FF3AF2] text-white shadow-[4px_4px_0_#00F5D4]"
-                    : "border-white/16 bg-[#2D1B4E] text-[#DCD7FF]",
-                )}
-              >
-                <Send size={15} aria-hidden="true" />
-              </motion.button>
-            </div>
+            <motion.button
+              type="button"
+              aria-label="Send message"
+              disabled={isLoading || !value.trim() || !selectedModelAvailable}
+              onClick={() => void handleSend()}
+              whileHover={shouldReduce ? undefined : { y: -1, scale: 1.04 }}
+              whileTap={shouldReduce ? undefined : { scale: 0.94 }}
+              transition={{ type: "spring", stiffness: 450, damping: 18 }}
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl outline-none transition focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-35",
+                value.trim() && !isLoading && selectedModelAvailable
+                  ? "bg-gradient-to-br from-primary to-primary-light text-white shadow-[0_10px_24px_rgba(0,82,255,0.24)]"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              <Send size={15} aria-hidden="true" />
+            </motion.button>
           </div>
         </div>
       </div>
