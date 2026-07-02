@@ -33,12 +33,12 @@ Response `200`:
   "available_models": [
     {
       "id": "offline",
-      "label": "Offline Local",
+      "label": "Private Extractive",
       "mode": "offline",
       "provider": "local",
       "model": "askmypdf-offline-extractive-v1",
       "available": true,
-      "description": "Runs inside the backend using retrieved PDF chunks only. No external LLM request is made."
+      "description": "Runs inside the backend using retrieved PDF chunks only. No Groq, Anthropic, or external AI request is made."
     }
   ]
 }
@@ -185,7 +185,7 @@ Request:
 
 `model_preference` may be `"offline"`, `"fast"`, or `"thinking"` and defaults to `"offline"`.
 
-- Offline mode uses `askmypdf-offline-extractive-v1` locally and does not call Groq or Anthropic.
+- Private Extractive uses `model_preference: "offline"` and does not call Groq, Anthropic, or another external AI provider.
 - Fast mode always uses Groq with `llama-3.1-8b-instant`.
 - Deep Online uses `model_preference: "thinking"` and routes to Groq `llama-3.3-70b-versatile` by default.
 - If `ANTHROPIC_API_KEY` is configured, Deep Online upgrades to Anthropic with `claude-sonnet-4-6`.
@@ -264,7 +264,7 @@ Model unavailable `503`:
 ```json
 {
   "error": "model_unavailable",
-  "detail": "The selected online model is not configured. Choose Offline Local or configure the required API key."
+  "detail": "The selected online model is not configured. Choose Private Extractive or configure the required API key."
 }
 ```
 

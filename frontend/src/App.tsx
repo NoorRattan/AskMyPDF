@@ -1,18 +1,14 @@
 import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
 import {
   ArrowDown,
   CalendarDays,
   CheckCircle2,
-  ChevronRight,
   CircuitBoard,
   FileText,
   MousePointer2,
   ScanLine,
   TerminalSquare,
-  UploadCloud,
   Waves,
-  Zap,
 } from "lucide-react"
 import { type ReactNode, type RefObject, useEffect, useRef, useState } from "react"
 
@@ -26,15 +22,6 @@ import { useChat } from "./hooks/useChat"
 import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
 import type { ModelPreference } from "./types"
-
-gsap.registerPlugin(ScrollTrigger)
-
-const heroImage =
-  "https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=2400&q=88"
-const textureImage =
-  "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1800&q=80"
-const protocolImage =
-  "https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1800&q=82"
 
 const navLinks = ["Signal", "Artifacts", "Protocol", "Upload"] as const
 
@@ -454,7 +441,7 @@ function Landing({
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
-  const uploadRef = useRef<HTMLDivElement>(null)
+  const uploadRef = useRef<HTMLElement>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
@@ -483,95 +470,72 @@ function Landing({
         stagger: 0.08,
         ease: "power3.out",
       })
-
-      gsap.from(".artifact-card", {
-        scrollTrigger: {
-          trigger: "#artifacts",
-          start: "top 68%",
-        },
-        y: 44,
-        opacity: 0,
-        duration: 0.9,
-        stagger: 0.15,
-        ease: "power3.out",
-      })
-
-      gsap.from(".manifesto-word", {
-        scrollTrigger: {
-          trigger: "#signal",
-          start: "top 65%",
-        },
-        y: 28,
-        opacity: 0,
-        duration: 0.68,
-        stagger: 0.04,
-        ease: "power3.out",
-      })
-
-      const cards = gsap.utils.toArray<HTMLElement>(".protocol-card")
-      gsap.set(cards, { yPercent: (index) => (index === 0 ? 0 : 110), opacity: (index) => (index === 0 ? 1 : 0) })
-      gsap.set(cards[0], { filter: "blur(0px)", scale: 1 })
-
-      const protocolTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: ".protocol-stage",
-          start: "top top",
-          end: "+=2200",
-          scrub: 0.85,
-          pin: true,
-        },
-        defaults: { ease: "power2.inOut" },
-      })
-
-      protocolTimeline
-        .to(cards[0], { scale: 0.9, filter: "blur(20px)", opacity: 0.5, duration: 1 })
-        .to(cards[1], { yPercent: 0, opacity: 1, duration: 1 }, "<")
-        .to(cards[1], { scale: 0.9, filter: "blur(20px)", opacity: 0.5, duration: 1 })
-        .to(cards[2], { yPercent: 0, opacity: 1, duration: 1 }, "<")
-
     }, root)
 
     return () => ctx.revert()
   }, [prefersReducedMotion])
 
   function scrollToUpload() {
-    uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   return (
     <div ref={rootRef} id="top" className="relative min-h-screen overflow-hidden bg-deep-void text-ghost">
       <FloatingNav onStart={scrollToUpload} navRef={navRef} />
 
-      <section className="hero-section relative flex min-h-[100dvh] items-end overflow-hidden px-4 pb-16 pt-28 sm:px-8 lg:px-12">
-        <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-deep-void via-deep-void/78 to-deep-void/30" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_82%,rgba(245,158,11,0.45),transparent_34%),radial-gradient(circle_at_78%_28%,rgba(103,232,249,0.18),transparent_28%)]" aria-hidden="true" />
+      <section
+        id="upload"
+        ref={uploadRef}
+        className="relative min-h-[100dvh] overflow-hidden bg-ghost px-4 pb-12 pt-24 text-deep-void sm:px-8 lg:px-12"
+      >
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(245,158,11,0.18),transparent_28%),radial-gradient(circle_at_84%_22%,rgba(103,232,249,0.24),transparent_26%),linear-gradient(135deg,#F8F8FF_0%,#FFFFFF_48%,#EFF7F6_100%)]"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-deep-void/20 to-transparent" aria-hidden="true" />
 
-        <div className="relative z-10 w-full max-w-7xl">
-          <div className="max-w-5xl">
-            <p className="hero-reveal mb-5 inline-flex items-center gap-2 rounded-[2rem] border border-ghost/15 bg-ghost/8 px-4 py-2 font-mono text-xs uppercase tracking-normal text-cyan-100 backdrop-blur-xl">
-              <Zap size={14} aria-hidden="true" />
-              Conversational PDF intelligence
+        <div className="relative mx-auto grid min-h-[calc(100dvh-8rem)] max-w-7xl gap-7 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+          <div className="hero-reveal min-w-0">
+            <p className="inline-flex items-center gap-2 rounded-full border border-deep-void/10 bg-white/70 px-4 py-2 font-mono text-xs uppercase text-plasma shadow-[0_16px_50px_rgba(10,10,20,0.08)] backdrop-blur">
+              <TerminalSquare size={14} aria-hidden="true" />
+              AskMyPDF workspace
             </p>
-            <h1 className="hero-reveal text-[clamp(3.1rem,14vw,12rem)] font-extrabold leading-[0.82] tracking-normal">
-              Documents beyond
-              <span className="mt-2 block font-serif text-[clamp(4.6rem,18vw,20rem)] font-normal italic leading-[0.72] text-plasma drop-shadow-[0_0_34px_rgba(245,158,11,0.42)]">
-                silence.
-              </span>
+            <h1 className="mt-5 max-w-3xl text-[clamp(2.8rem,4.8vw,4.7rem)] font-extrabold leading-[0.94] tracking-normal text-deep-void">
+              Upload. Choose. Ask.
             </h1>
-            <p className="hero-reveal mt-8 max-w-2xl text-lg leading-8 text-ghost/78 sm:text-xl">
-              Upload a PDF and ask direct questions. AskMyPDF turns static pages into grounded, cited answers that stream back with the source trail attached.
+            <p className="mt-5 max-w-2xl text-base leading-7 text-graphite/72 sm:text-lg">
+              The document flow starts here. Pick the answer route before uploading, then AskMyPDF indexes the PDF and opens the chat workspace with citations attached.
             </p>
-            <div className="hero-reveal mt-9 flex flex-col gap-3 sm:flex-row">
-              <MagneticButton onClick={scrollToUpload} className="bg-plasma px-6 py-4 font-bold text-white shadow-[0_18px_46px_rgba(245,158,11,0.38)]">
-                Upload a PDF <UploadCloud size={18} aria-hidden="true" />
-              </MagneticButton>
-              <MagneticButton href="#artifacts" className="border border-ghost/18 bg-ghost/8 px-6 py-4 font-semibold text-ghost backdrop-blur-xl">
-                See the system <ChevronRight size={18} aria-hidden="true" />
-              </MagneticButton>
+
+            <div className="mt-6 rounded-[1.75rem] border border-deep-void/10 bg-deep-void p-4 text-ghost shadow-[0_26px_90px_rgba(10,10,20,0.18)]">
+              <ModelSelector
+                compact
+                value={selectedModel}
+                onChange={onModelChange}
+                models={systemStatus.details?.available_models}
+                disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+              />
+            </div>
+
+          </div>
+
+          <div className="hero-reveal relative min-w-0 lg:pt-12">
+            <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(20,184,166,0.22),rgba(245,158,11,0.18),rgba(103,232,249,0.2))] blur-2xl" aria-hidden="true" />
+            <div className="relative">
+              <UploadZone uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
             </div>
           </div>
-          <div className="hero-reveal mt-10 max-w-4xl">
+
+          <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              {["No external AI option", "Online Groq routes", "Cited answer stream"].map((item) => (
+                <p key={item} className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border border-deep-void/10 bg-white/72 px-4 py-3 text-sm font-semibold text-graphite shadow-[0_16px_42px_rgba(10,10,20,0.06)]">
+                  <CheckCircle2 size={16} className="shrink-0 text-plasma" aria-hidden="true" />
+                  <span>{item}</span>
+                </p>
+              ))}
+            </div>
+
             <ProductionStatusPanel {...systemStatus} />
           </div>
         </div>
@@ -580,8 +544,11 @@ function Landing({
       <FeatureArtifacts />
 
       <section id="signal" className="relative overflow-hidden bg-graphite px-4 py-28 text-ghost sm:px-8 lg:px-12">
-        <img src={textureImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-screen" />
-        <div className="absolute inset-0 bg-graphite/78" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(103,232,249,0.06)_1px,transparent_1px),linear-gradient(0deg,rgba(245,158,11,0.045)_1px,transparent_1px),radial-gradient(circle_at_18%_20%,rgba(245,158,11,0.18),transparent_28%),radial-gradient(circle_at_82%_76%,rgba(20,184,166,0.16),transparent_30%)] bg-[size:68px_68px,68px_68px,auto,auto]"
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 bg-graphite/72" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
           <p className="mb-8 font-mono text-xs uppercase text-ghost/45">The manifesto</p>
           <p className="max-w-5xl text-3xl font-bold leading-tight text-ghost/55 sm:text-5xl">
@@ -593,75 +560,48 @@ function Landing({
         </div>
       </section>
 
-      <section id="protocol" className="relative bg-deep-void">
-        <div className="px-4 py-20 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-7xl">
-            <p className="font-mono text-xs uppercase text-plasma">Sticky stacking archive</p>
-            <h2 className="mt-4 max-w-4xl text-4xl font-extrabold leading-none sm:text-6xl">The path from upload to answer has weight.</h2>
+      <section id="protocol" className="relative overflow-hidden bg-deep-void px-4 py-24 text-ghost sm:px-8 lg:px-12">
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(245,158,11,0.18),transparent_30%),radial-gradient(circle_at_82%_72%,rgba(103,232,249,0.16),transparent_28%),linear-gradient(90deg,rgba(240,239,244,0.05)_1px,transparent_1px),linear-gradient(0deg,rgba(240,239,244,0.04)_1px,transparent_1px)] bg-[size:auto,auto,72px_72px,72px_72px]"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto max-w-7xl">
+          <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div>
+              <p className="font-mono text-xs uppercase text-plasma">Workflow</p>
+              <h2 className="mt-4 max-w-4xl text-4xl font-extrabold leading-none sm:text-6xl">The path from upload to answer stays visible.</h2>
+            </div>
+            <p className="max-w-2xl text-base leading-8 text-ghost/62">
+              Every stage stays visible as the PDF moves from ingestion to retrieval to a cited response, with the source trail carried through the whole workflow.
+            </p>
           </div>
-        </div>
 
-        <div className="protocol-stage relative h-[100dvh] overflow-hidden px-4 py-6 sm:px-8 lg:px-12">
-          <img src={protocolImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-[0.18]" />
-          <div className="absolute inset-0 bg-deep-void/82" aria-hidden="true" />
-          <div className="relative mx-auto h-full max-w-7xl">
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {protocolSteps.map((step, index) => {
               const Icon = step.icon
 
               return (
                 <article
                   key={step.number}
-                  className="protocol-card absolute inset-0 grid place-items-center rounded-[3rem] border border-ghost/12 bg-graphite/90 p-6 shadow-[0_40px_120px_rgba(0,0,0,0.44)] backdrop-blur-xl lg:grid-cols-[0.9fr_1.1fr] lg:gap-8 lg:p-12"
+                  className="protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] border border-ghost/12 bg-graphite/86 p-6 shadow-[0_34px_110px_rgba(0,0,0,0.34)] backdrop-blur-xl"
                 >
-                  <div className="flex h-full w-full flex-col justify-between">
-                    <p className="font-mono text-sm text-plasma">STEP {step.number}</p>
-                    <div>
-                      <div className="mb-6 grid h-14 w-14 place-items-center rounded-[1.5rem] border border-plasma/35 bg-plasma/12 text-plasma">
-                        <Icon size={25} aria-hidden="true" />
-                      </div>
-                      <h3 className="max-w-2xl text-4xl font-extrabold leading-none sm:text-6xl">{step.title}</h3>
-                      <p className="mt-6 max-w-xl text-base leading-8 text-ghost/66">{step.description}</p>
+                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(245,158,11,0.08))]" aria-hidden="true" />
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-mono text-sm text-plasma">STEP {step.number}</p>
+                      <span className="grid h-12 w-12 place-items-center rounded-[1.25rem] border border-plasma/35 bg-plasma/12 text-plasma">
+                        <Icon size={22} aria-hidden="true" />
+                      </span>
                     </div>
+                    <h3 className="mt-8 text-3xl font-extrabold leading-none sm:text-4xl">{step.title}</h3>
+                    <p className="mt-5 text-sm leading-7 text-ghost/66">{step.description}</p>
                   </div>
-                  <div className="mt-10 grid place-items-center lg:mt-0">
+                  <div className="relative z-10 mt-8 grid place-items-center">
                     <ProtocolVisual index={index} />
                   </div>
                 </article>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      <section id="upload" className="relative bg-ghost px-4 py-24 text-deep-void sm:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-8 rounded-[3rem] border border-deep-void/10 bg-white p-5 shadow-[0_34px_120px_rgba(10,10,20,0.14)] sm:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:p-10">
-          <div className="flex flex-col justify-between">
-            <div>
-              <p className="font-mono text-xs uppercase text-plasma">Get started</p>
-              <h2 className="mt-4 text-4xl font-extrabold leading-none sm:text-6xl">Turn the next long PDF into a conversation.</h2>
-              <p className="mt-6 max-w-xl text-base leading-8 text-graphite/68">
-                Drop the document, let the index form, then ask the question you actually need answered.
-              </p>
-              <div className="mt-7 rounded-[1.6rem] border border-deep-void/10 bg-deep-void px-4 py-4 text-ghost shadow-[0_22px_70px_rgba(10,10,20,0.16)]">
-                <ModelSelector
-                  value={selectedModel}
-                  onChange={onModelChange}
-                  models={systemStatus.details?.available_models}
-                  disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
-                />
-              </div>
-            </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["Private session", "Model choice locked in", "Live response stream"].map((item) => (
-                <p key={item} className="flex items-center gap-2 rounded-[1.25rem] border border-deep-void/10 bg-deep-void/[0.03] px-4 py-3 text-sm font-semibold">
-                  <CheckCircle2 size={16} className="text-plasma" aria-hidden="true" />
-                  {item}
-                </p>
-              ))}
-            </div>
-          </div>
-          <div ref={uploadRef}>
-            <UploadZone uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
           </div>
         </div>
       </section>

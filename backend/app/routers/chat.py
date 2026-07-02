@@ -40,7 +40,7 @@ async def chat(req: ChatRequest) -> StreamingResponse:
             status_code=503,
             detail={
                 "error": "model_unavailable",
-                "detail": "The selected online model is not configured. Choose Offline Local or configure the required API key.",
+                "detail": "The selected online model is not configured. Choose Private Extractive or configure the required API key.",
             },
         )
 

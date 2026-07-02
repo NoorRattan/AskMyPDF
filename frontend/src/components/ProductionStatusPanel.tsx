@@ -77,7 +77,7 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
       <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CompactMetric label="Retrieval" value={details?.embedding_model ?? "checking"} />
         <CompactMetric label="Memory" value={details?.memory_profile ?? "checking"} />
-        <CompactMetric label="Offline route" value={details ? `${details.offline_model} / ${details.offline_provider}` : "checking"} />
+        <CompactMetric label="Private route" value={details ? `${details.offline_model} / ${details.offline_provider}` : "checking"} />
         <CompactMetric label="Models ready" value={details ? `${availableCount}/${totalModels} available` : "checking"} />
       </div>
 

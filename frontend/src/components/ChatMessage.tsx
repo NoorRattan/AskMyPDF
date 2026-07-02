@@ -80,7 +80,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </p>
           {message.modelUsed ? (
             <p className="mt-3 font-mono text-[11px] text-secondary/60">
-              {message.modeUsed === "offline" ? "Answered offline with " : "Answered online with "}
+              {message.modeUsed === "offline" ? "Answered without external AI using " : "Answered online with "}
               {message.modelUsed}
               {message.providerUsed ? ` via ${message.providerUsed}` : ""}
             </p>

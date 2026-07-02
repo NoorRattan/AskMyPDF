@@ -7,12 +7,12 @@ import type { ModelOption, ModelPreference } from "../types"
 export const fallbackModels: ModelOption[] = [
   {
     id: "offline",
-    label: "Offline Local",
+    label: "Private Extractive",
     mode: "offline",
     provider: "local",
     model: "askmypdf-offline-extractive-v1",
     available: true,
-    description: "Private extractive answers from retrieved PDF chunks. No external LLM call.",
+    description: "Server-local extractive answers from retrieved PDF chunks. No Groq, Anthropic, or external AI request.",
   },
   {
     id: "fast",
@@ -49,7 +49,16 @@ interface ModelSelectorProps {
 }
 
 export function normalizeModels(models?: ModelOption[] | null): ModelOption[] {
-  return models?.length ? models : fallbackModels
+  const source = models?.length ? models : fallbackModels
+  return source.map((model) =>
+    model.id === "offline"
+      ? {
+          ...model,
+          label: "Private Extractive",
+          description: "Server-local extractive answers from retrieved PDF chunks. No Groq, Anthropic, or external AI request.",
+        }
+      : model,
+  )
 }
 
 export function ModelSelector({ value, onChange, models, disabled = false, compact = false }: ModelSelectorProps) {
@@ -62,7 +71,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-secondary/70">Model route</p>
           {!compact ? (
-            <p className="mt-1 text-sm leading-6 text-secondary">Choose offline privacy or online reasoning before you ask.</p>
+            <p className="mt-1 text-sm leading-6 text-secondary">Choose no external AI or an online reasoning model before you ask.</p>
           ) : null}
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border/70 bg-surface-raised/70 px-2.5 py-1 font-mono text-[10px] uppercase text-secondary">
@@ -71,7 +80,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
         </span>
       </div>
 
-      <div className={cn("grid gap-2", compact ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1")}>
+      <div className={cn("grid gap-2", compact ? "grid-cols-3" : "grid-cols-1")}>
         {options.map((option, index) => {
           const Icon = modelIcons[option.id]
           const selected = value === option.id
@@ -91,7 +100,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
               whileTap={shouldReduce || unavailable ? undefined : { scale: 0.98 }}
               className={cn(
                 "group relative overflow-hidden rounded-2xl border px-3.5 py-3 text-left outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary",
-                compact ? "min-h-[92px]" : "min-h-[104px]",
+                compact ? "min-h-[86px] px-2.5 py-2.5" : "min-h-[104px]",
                 selected
                   ? "border-primary/70 bg-primary/12 shadow-[0_18px_50px_rgba(20,184,166,0.14)]"
                   : "border-border/80 bg-surface/55 hover:border-primary/45 hover:bg-surface-raised/70",
@@ -105,30 +114,32 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
                 )}
                 aria-hidden="true"
               />
-              <span className="relative flex items-start gap-3">
+              <span className={cn("relative flex items-start gap-3", compact && "gap-2")}>
                 <span
                   className={cn(
-                    "grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition",
+                    "grid shrink-0 place-items-center rounded-xl border transition",
+                    compact ? "h-8 w-8" : "h-10 w-10",
                     selected ? "border-primary/45 bg-primary text-white" : "border-border/70 bg-bg/65 text-primary-light",
                   )}
                 >
-                  <Icon size={18} aria-hidden="true" />
+                  <Icon size={compact ? 15 : 18} aria-hidden="true" />
                 </span>
                 <span className="min-w-0">
                   <span className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="font-bold text-text">{option.label}</span>
+                    <span className={cn("font-bold text-text", compact && "text-xs leading-tight")}>{option.label}</span>
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] uppercase",
+                        compact && "hidden sm:inline-flex",
                         option.mode === "offline" ? "bg-success/12 text-emerald-200" : "bg-amber-400/12 text-amber-200",
                       )}
                     >
                       {option.mode === "online" ? <Wifi size={10} aria-hidden="true" /> : <Laptop size={10} aria-hidden="true" />}
-                      {option.mode}
+                      {option.mode === "online" ? "online" : "no ai api"}
                     </span>
                   </span>
                   <span className="mt-1 block truncate font-mono text-[11px] text-secondary/75" title={`${option.model} / ${option.provider}`}>
-                    {option.model} / {option.provider}
+                    {compact ? option.provider : `${option.model} / ${option.provider}`}
                   </span>
                   {!compact ? <span className="mt-2 block text-xs leading-5 text-secondary/85">{option.description}</span> : null}
                   {!option.available ? <span className="mt-1 block text-xs text-error">API key not configured</span> : null}

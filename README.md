@@ -28,7 +28,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 7. Chunks and embeddings are stored in a bounded in-memory session store.
 8. Questions are embedded with the same semantic model and ranked by cosine similarity.
 9. The frontend lets the user choose a model route before upload and again before each question.
-10. Offline Local streams an extractive answer from retrieved PDF chunks without calling an external LLM.
+10. Private Extractive streams an answer from retrieved PDF chunks without calling an external LLM.
 11. Fast Online streams from Groq using `llama-3.1-8b-instant`.
 12. Deep Online streams from Groq using `llama-3.3-70b-versatile` by default, or from Claude Sonnet 4.6 when an Anthropic key is configured.
 13. Every final SSE response includes source chunks plus the actual `model_used`, `provider_used`, and `mode_used`.
@@ -42,7 +42,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 | Backend | FastAPI, Python 3.11 |
 | PDF parsing | PyMuPDF optional, `pypdf`, `pdfplumber` fallback |
 | Retrieval | Configurable normalized embeddings: `all-MiniLM-L6-v2` locally, lightweight hashing on the free Render demo |
-| LLM | Offline local extractive model, Groq fast mode, Groq deep mode by default, optional Anthropic Claude Sonnet 4.6 upgrade |
+| LLM | Private extractive local route, Groq fast mode, Groq deep mode by default, optional Anthropic Claude Sonnet 4.6 upgrade |
 | Backend deploy | Render |
 | Frontend deploy | Vercel |
 
@@ -67,7 +67,7 @@ npm run dev
 
 ## Model Modes
 
-Offline Local is the default route. It runs inside the FastAPI backend, uses the retrieved PDF chunks, and streams a cited extractive answer without sending document text to Groq or Anthropic. It is designed for privacy, no-secret local development, and low memory use.
+Private Extractive is the default route. It runs inside the FastAPI backend, uses the retrieved PDF chunks, and streams a cited extractive answer without sending document text to Groq or Anthropic. It is not browser-offline mode; it is the no-external-AI model route for privacy, no-secret local development, and low memory use.
 
 Fast Online is optimized for low-latency factual lookups and uses Groq `llama-3.1-8b-instant`. It is available when `GROQ_API_KEY` is configured.
 
@@ -79,7 +79,7 @@ The backend runs on Render, and free-tier instances can still be CPU constrained
 
 The live demo is configured with `EMBEDDING_BACKEND=hash` and the Docker image installs `backend/requirements-prod.txt`, which deliberately excludes Torch, sentence-transformers, NumPy, PyMuPDF, and test-only packages. Set `EMBEDDING_BACKEND=sentence-transformers` and install `backend/requirements.txt` on a larger backend if you want the highest retrieval quality.
 
-The frontend also checks `/api/health` at runtime and shows the active embedding backend, offline model, and how many model routes are available. A live `memory_profile` of `render-512-safe` means the deployed backend is on the lightweight path.
+The frontend also checks `/api/health` at runtime and shows the active embedding backend, private extractive model, and how many model routes are available. A live `memory_profile` of `render-512-safe` means the deployed backend is on the lightweight path.
 
 ## Known Limitations
 

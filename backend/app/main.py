@@ -97,7 +97,7 @@ def warm_up_services() -> None:
     elif settings.groq_api_key:
         logger.info("Deep Online: %s via Groq (no Anthropic key set)", settings.thinking_model_groq)
     else:
-        logger.info("Online LLM keys are not configured; Offline Local remains available.")
+        logger.info("Online LLM keys are not configured; Private Extractive remains available.")
     get_model()
     get_client()
     logger.info("Embedding model and vector store loaded.")
