@@ -1,10 +1,11 @@
 import { motion, useReducedMotion } from "framer-motion"
-import { BarChart3, BookOpen, Brain, FileSearch, ListTree, Send, Sparkles, Zap } from "lucide-react"
+import { BarChart3, BookOpen, FileSearch, ListTree, Send, Sparkles } from "lucide-react"
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
-import type { Message, ModelPreference, UploadState } from "../types"
+import type { Message, ModelOption, ModelPreference, UploadState } from "../types"
 import { ChatMessage } from "./ChatMessage"
+import { ModelSelector, normalizeModels } from "./ModelSelector"
 import { StreamingMessage } from "./StreamingMessage"
 import { ThinkingIndicator } from "./ThinkingIndicator"
 
@@ -13,37 +14,53 @@ interface ChatInterfaceProps {
   messages: Message[]
   isLoading: boolean
   error: string | null
+  modelPreference: ModelPreference
+  onModelPreferenceChange: (modelPreference: ModelPreference) => void
+  availableModels?: ModelOption[] | null
   onSend: (question: string, modelPreference: ModelPreference) => Promise<void>
 }
 
 const SUGGESTED_QUESTIONS = [
-  { icon: Sparkles, text: "Summarize this document.", color: "#7C3AED" },
-  { icon: FileSearch, text: "What are the key findings?", color: "#6366F1" },
-  { icon: ListTree, text: "List the main topics covered.", color: "#8B5CF6" },
-  { icon: BarChart3, text: "Are there any numbers or statistics I should know?", color: "#A78BFA" },
+  { icon: Sparkles, text: "Summarize this document.", color: "#14B8A6" },
+  { icon: FileSearch, text: "What are the key findings?", color: "#0EA5E9" },
+  { icon: ListTree, text: "List the main topics covered.", color: "#F59E0B" },
+  { icon: BarChart3, text: "Are there any numbers or statistics I should know?", color: "#67E8F9" },
 ] as const
 
-export function ChatInterface({ uploadState, messages, isLoading, error, onSend }: ChatInterfaceProps) {
+export function ChatInterface({
+  uploadState,
+  messages,
+  isLoading,
+  error,
+  modelPreference,
+  onModelPreferenceChange,
+  availableModels,
+  onSend,
+}: ChatInterfaceProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState("")
-  const [modelPreference, setModelPreference] = useState<ModelPreference>("fast")
   const [isInputFocused, setIsInputFocused] = useState(false)
   const shouldReduce = useReducedMotion()
 
   const hasStreamingMessage = messages.some((message) => message.isStreaming && message.content.length > 0)
   const hasEmptyStreamingMessage = messages.some((message) => message.isStreaming && message.content.length === 0)
   const showThinking = isLoading && !hasStreamingMessage
+  const activeModel = useMemo(
+    () => normalizeModels(availableModels).find((model) => model.id === modelPreference),
+    [availableModels, modelPreference],
+  )
+  const selectedModelAvailable = activeModel?.available ?? true
 
   const welcomeMessage = useMemo<Message>(
     () => ({
       id: "welcome-message",
       role: "assistant",
-      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nAsk me anything - I'll answer from the document.`,
+      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Offline Local"}. Ask me anything - I'll answer from the document.`,
       isStreaming: false,
       timestamp: new Date(),
     }),
-    [uploadState.chunkCount, uploadState.pageCount],
+    [activeModel?.label, uploadState.chunkCount, uploadState.pageCount],
   )
 
   useEffect(() => {
@@ -59,7 +76,7 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
 
   async function handleSend(nextValue = value) {
     const question = nextValue.trim()
-    if (!question || isLoading) {
+    if (!question || isLoading || !selectedModelAvailable) {
       return
     }
 
@@ -142,12 +159,12 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
                       key={text}
                       type="button"
                       onClick={() => handleSuggestion(text)}
-                      disabled={isLoading}
+                      disabled={isLoading || !selectedModelAvailable}
                       initial={shouldReduce ? false : { opacity: 0, y: 16, scale: 0.97 }}
                       animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
                       transition={{ delay: 0.28 + idx * 0.08, duration: 0.3, ease: "easeOut" }}
                       whileHover={
-                        shouldReduce || isLoading
+                        shouldReduce || isLoading || !selectedModelAvailable
                           ? undefined
                           : {
                               y: -5,
@@ -191,7 +208,13 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
 
           {showThinking || hasEmptyStreamingMessage ? (
             <ThinkingIndicator
-              label={modelPreference === "thinking" ? "Thinking more carefully..." : "Finding cited answer..."}
+              label={
+                modelPreference === "offline"
+                  ? "Composing offline cited answer..."
+                  : modelPreference === "thinking"
+                    ? "Thinking more carefully..."
+                    : "Finding cited answer..."
+              }
             />
           ) : null}
 
@@ -214,10 +237,20 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
           className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/80 bg-bg/60 shadow-[0_-4px_40px_rgba(0,0,0,0.4)] backdrop-blur-xl transition-all duration-300"
           style={
             isInputFocused
-              ? { borderColor: "#7C3AED66", boxShadow: "0 0 0 1px #7C3AED44, 0 -4px 60px rgba(124,58,237,0.18)" }
+              ? { borderColor: "#14B8A666", boxShadow: "0 0 0 1px #14B8A644, 0 -4px 60px rgba(20,184,166,0.16)" }
               : undefined
           }
         >
+          <div className="border-b border-border/45 px-3 py-3">
+            <ModelSelector
+              compact
+              value={modelPreference}
+              onChange={onModelPreferenceChange}
+              models={availableModels}
+              disabled={isLoading}
+            />
+          </div>
+
           <label htmlFor="chat-question" className="sr-only">
             Ask a question about your PDF
           </label>
@@ -243,38 +276,12 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
 
           <div className="flex items-center justify-between border-t border-border/40 px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-3">
-              <div
-                className="grid grid-cols-2 rounded-xl border border-border/70 bg-surface-raised/70 p-0.5"
-                aria-label="Model preference"
-              >
-                {[
-                  { value: "fast", label: "Fast", icon: Zap },
-                  { value: "thinking", label: "Thinking", icon: Brain },
-                ].map(({ value: option, label, icon: Icon }) => (
-                  <button
-                    key={option}
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() => setModelPreference(option as ModelPreference)}
-                    className={cn(
-                      "inline-flex h-8 min-w-[82px] items-center justify-center gap-1.5 rounded-[0.65rem] px-2 text-xs font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60",
-                      modelPreference === option
-                        ? "bg-primary text-white shadow-[0_0_18px_rgba(124,58,237,0.35)]"
-                        : "text-secondary hover:text-text",
-                    )}
-                    aria-pressed={modelPreference === option}
-                  >
-                    <Icon size={13} aria-hidden="true" />
-                    {label}
-                  </button>
-                ))}
-              </div>
               <div className="h-1 w-20 overflow-hidden rounded-full bg-surface-raised">
                 <div
                   className="h-full rounded-full transition-all duration-200"
                   style={{
                     width: `${charPct}%`,
-                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #7C3AED, #A78BFA)",
+                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #14B8A6, #F59E0B)",
                   }}
                 />
               </div>
@@ -295,7 +302,7 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
               <motion.button
                 type="button"
                 aria-label="Send message"
-                disabled={isLoading || !value.trim()}
+                disabled={isLoading || !value.trim() || !selectedModelAvailable}
                 onClick={() => void handleSend()}
                 whileHover={
                   shouldReduce
@@ -303,15 +310,15 @@ export function ChatInterface({ uploadState, messages, isLoading, error, onSend 
                     : {
                         y: -2,
                         scale: 1.08,
-                        boxShadow: "0 0 0 3px #7C3AED44, 0 8px 24px rgba(124,58,237,0.4)",
+                        boxShadow: "0 0 0 3px #14B8A644, 0 8px 24px rgba(20,184,166,0.35)",
                       }
                 }
                 whileTap={shouldReduce ? undefined : { scale: 0.92 }}
                 transition={{ type: "spring", stiffness: 450, damping: 18 }}
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-35",
-                  value.trim() && !isLoading
-                    ? "border-primary/30 bg-primary text-white shadow-[0_4px_20px_rgba(124,58,237,0.45)]"
+                  value.trim() && !isLoading && selectedModelAvailable
+                    ? "border-primary/30 bg-primary text-white shadow-[0_4px_20px_rgba(20,184,166,0.35)]"
                     : "border-border bg-surface-raised text-secondary",
                 )}
               >

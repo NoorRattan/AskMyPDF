@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 UploadJobStatus = Literal["queued", "extracting", "chunking", "embedding", "ready", "error"]
-ModelPreference = Literal["fast", "thinking"]
+ModelPreference = Literal["offline", "fast", "thinking"]
 
 
 class UploadResponse(BaseModel):
@@ -38,7 +38,7 @@ class ChatRequest(BaseModel):
 
     session_id: str = Field(..., min_length=16, max_length=16, pattern=r"^[a-f0-9]+$")
     question: str = Field(..., min_length=1, max_length=1000)
-    model_preference: ModelPreference = "fast"
+    model_preference: ModelPreference = "offline"
 
 
 class SourceChunk(BaseModel):
@@ -55,6 +55,7 @@ class ChatResponse(BaseModel):
     session_id: str
     model_used: str | None = None
     provider_used: str | None = None
+    mode_used: str | None = None
 
 
 class ErrorResponse(BaseModel):

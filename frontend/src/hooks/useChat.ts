@@ -17,9 +17,15 @@ function appendToken(id: string, token: string) {
   return (msg: Message): Message => (msg.id === id ? { ...msg, content: msg.content + token } : msg)
 }
 
-function finishMessage(id: string, sources: SourceChunk[], modelUsed?: string, providerUsed?: string) {
+function finishMessage(
+  id: string,
+  sources: SourceChunk[],
+  modelUsed?: string,
+  providerUsed?: string,
+  modeUsed?: Message["modeUsed"],
+) {
   return (msg: Message): Message =>
-    msg.id === id ? { ...msg, isStreaming: false, sources, modelUsed, providerUsed } : msg
+    msg.id === id ? { ...msg, isStreaming: false, sources, modelUsed, providerUsed, modeUsed } : msg
 }
 
 function failMessage(id: string, content: string) {
@@ -50,7 +56,7 @@ export function useChat(sessionId: string | null): {
   const [error, setError] = useState<string | null>(null)
 
   const sendMessage = useCallback(
-    async (question: string, modelPreference: ModelPreference = "fast") => {
+    async (question: string, modelPreference: ModelPreference = "offline") => {
       if (!sessionId || isLoading) {
         return
       }
@@ -94,7 +100,9 @@ export function useChat(sessionId: string | null): {
               setMessages((current) => current.map(appendToken(assistantMessage.id, msg.token)))
             } else if (msg.done) {
               setMessages((current) =>
-                current.map(finishMessage(assistantMessage.id, msg.sources, msg.model_used, msg.provider_used)),
+                current.map(
+                  finishMessage(assistantMessage.id, msg.sources, msg.model_used, msg.provider_used, msg.mode_used),
+                ),
               )
             }
           }

@@ -19,11 +19,13 @@ import { type ReactNode, type RefObject, useEffect, useRef, useState } from "rea
 import { ChatInterface } from "./components/ChatInterface"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { Header } from "./components/Header"
+import { ModelSelector } from "./components/ModelSelector"
 import { ProductionStatusPanel } from "./components/ProductionStatusPanel"
 import { UploadZone } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
 import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
+import type { ModelPreference } from "./types"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -165,7 +167,7 @@ function FloatingNav({
       aria-label="Landing navigation"
     >
       <a href="#top" className="flex min-w-0 items-center gap-3 rounded-[1.5rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plasma">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[1.25rem] bg-plasma text-white shadow-[0_0_32px_rgba(123,97,255,0.45)]">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[1.25rem] bg-plasma text-white shadow-[0_0_32px_rgba(245,158,11,0.45)]">
           <FileText size={17} aria-hidden="true" />
         </span>
         <span className="truncate text-sm font-extrabold tracking-normal sm:text-base">AskMyPDF</span>
@@ -183,7 +185,7 @@ function FloatingNav({
         ))}
       </div>
 
-      <MagneticButton onClick={onStart} className="bg-plasma px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(123,97,255,0.32)]">
+      <MagneticButton onClick={onStart} className="bg-plasma px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.32)]">
         Upload <ArrowDown size={15} aria-hidden="true" />
       </MagneticButton>
     </nav>
@@ -344,7 +346,7 @@ function SchedulerArtifact() {
             onClick={() => setActiveDay(index)}
             className={`aspect-square rounded-[1rem] border font-mono text-xs transition ${
               activeDay === index
-                ? "border-plasma bg-plasma text-white shadow-[0_0_28px_rgba(123,97,255,0.38)]"
+                ? "border-plasma bg-plasma text-white shadow-[0_0_28px_rgba(245,158,11,0.38)]"
                 : "border-white/10 bg-white/[0.04] text-ghost/60"
             }`}
           >
@@ -440,11 +442,15 @@ function Landing({
   uploadFile,
   reset,
   systemStatus,
+  selectedModel,
+  onModelChange,
 }: {
   uploadState: ReturnType<typeof useUpload>["state"]
   uploadFile: ReturnType<typeof useUpload>["uploadFile"]
   reset: ReturnType<typeof useUpload>["reset"]
   systemStatus: ReturnType<typeof useSystemStatus>
+  selectedModel: ModelPreference
+  onModelChange: (model: ModelPreference) => void
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
@@ -539,7 +545,7 @@ function Landing({
       <section className="hero-section relative flex min-h-[100dvh] items-end overflow-hidden px-4 pb-16 pt-28 sm:px-8 lg:px-12">
         <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-deep-void via-deep-void/78 to-deep-void/30" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_82%,rgba(123,97,255,0.45),transparent_34%),radial-gradient(circle_at_78%_28%,rgba(103,232,249,0.18),transparent_28%)]" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_82%,rgba(245,158,11,0.45),transparent_34%),radial-gradient(circle_at_78%_28%,rgba(103,232,249,0.18),transparent_28%)]" aria-hidden="true" />
 
         <div className="relative z-10 w-full max-w-7xl">
           <div className="max-w-5xl">
@@ -549,7 +555,7 @@ function Landing({
             </p>
             <h1 className="hero-reveal text-[clamp(3.1rem,14vw,12rem)] font-extrabold leading-[0.82] tracking-normal">
               Documents beyond
-              <span className="mt-2 block font-serif text-[clamp(4.6rem,18vw,20rem)] font-normal italic leading-[0.72] text-plasma drop-shadow-[0_0_34px_rgba(123,97,255,0.42)]">
+              <span className="mt-2 block font-serif text-[clamp(4.6rem,18vw,20rem)] font-normal italic leading-[0.72] text-plasma drop-shadow-[0_0_34px_rgba(245,158,11,0.42)]">
                 silence.
               </span>
             </h1>
@@ -557,7 +563,7 @@ function Landing({
               Upload a PDF and ask direct questions. AskMyPDF turns static pages into grounded, cited answers that stream back with the source trail attached.
             </p>
             <div className="hero-reveal mt-9 flex flex-col gap-3 sm:flex-row">
-              <MagneticButton onClick={scrollToUpload} className="bg-plasma px-6 py-4 font-bold text-white shadow-[0_18px_46px_rgba(123,97,255,0.38)]">
+              <MagneticButton onClick={scrollToUpload} className="bg-plasma px-6 py-4 font-bold text-white shadow-[0_18px_46px_rgba(245,158,11,0.38)]">
                 Upload a PDF <UploadCloud size={18} aria-hidden="true" />
               </MagneticButton>
               <MagneticButton href="#artifacts" className="border border-ghost/18 bg-ghost/8 px-6 py-4 font-semibold text-ghost backdrop-blur-xl">
@@ -636,9 +642,17 @@ function Landing({
               <p className="mt-6 max-w-xl text-base leading-8 text-graphite/68">
                 Drop the document, let the index form, then ask the question you actually need answered.
               </p>
+              <div className="mt-7 rounded-[1.6rem] border border-deep-void/10 bg-deep-void px-4 py-4 text-ghost shadow-[0_22px_70px_rgba(10,10,20,0.16)]">
+                <ModelSelector
+                  value={selectedModel}
+                  onChange={onModelChange}
+                  models={systemStatus.details?.available_models}
+                  disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                />
+              </div>
             </div>
             <div className="mt-8 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["Private session", "Page-aware answers", "Live response stream"].map((item) => (
+              {["Private session", "Model choice locked in", "Live response stream"].map((item) => (
                 <p key={item} className="flex items-center gap-2 rounded-[1.25rem] border border-deep-void/10 bg-deep-void/[0.03] px-4 py-3 text-sm font-semibold">
                   <CheckCircle2 size={16} className="text-plasma" aria-hidden="true" />
                   {item}
@@ -696,7 +710,20 @@ export default function App() {
   const { state: uploadState, uploadFile, reset } = useUpload()
   const { messages, isLoading, error, sendMessage, clearChat } = useChat(uploadState.sessionId)
   const systemStatus = useSystemStatus()
+  const [selectedModel, setSelectedModel] = useState<ModelPreference>("offline")
   const isChat = uploadState.status === "ready"
+
+  useEffect(() => {
+    const models = systemStatus.details?.available_models
+    if (!models?.length) {
+      return
+    }
+
+    const active = models.find((model) => model.id === selectedModel)
+    if (active && !active.available) {
+      setSelectedModel("offline")
+    }
+  }, [selectedModel, systemStatus.details?.available_models])
 
   function handleReset() {
     reset()
@@ -710,7 +737,14 @@ export default function App() {
 
         <main>
           {!isChat ? (
-            <Landing uploadState={uploadState} uploadFile={uploadFile} reset={reset} systemStatus={systemStatus} />
+            <Landing
+              uploadState={uploadState}
+              uploadFile={uploadFile}
+              reset={reset}
+              systemStatus={systemStatus}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
           ) : (
             <div className="flex h-[calc(100vh-56px)] flex-col overflow-hidden">
               <ChatInterface
@@ -718,6 +752,9 @@ export default function App() {
                 messages={messages}
                 isLoading={isLoading}
                 error={error}
+                modelPreference={selectedModel}
+                onModelPreferenceChange={setSelectedModel}
+                availableModels={systemStatus.details?.available_models}
                 onSend={sendMessage}
               />
             </div>

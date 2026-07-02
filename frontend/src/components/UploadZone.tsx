@@ -93,11 +93,11 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
         className={cn(
           "upload-zone-modern group relative flex min-h-[260px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[2.5rem] border bg-graphite/95 p-6 text-center transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] sm:min-h-80 sm:p-10",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plasma",
-          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(123,97,255,0.28),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.12),transparent_38%,rgba(123,97,255,0.14))] before:opacity-80 before:transition-opacity",
+          "before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.28),transparent_34%),linear-gradient(135deg,rgba(103,232,249,0.12),transparent_38%,rgba(245,158,11,0.14))] before:opacity-80 before:transition-opacity",
           "after:absolute after:inset-px after:rounded-[calc(2.5rem-2px)] after:border after:border-white/10 after:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_45%,rgba(0,0,0,0.2))]",
-          isDragging && "scale-[1.012] border-plasma bg-plasma/5 shadow-[0_0_0_4px_#7B61FF33,inset_0_0_70px_#7B61FF26,0_32px_90px_#7B61FF28] before:opacity-100",
-          !isDragging && !isBusy && !isError && "border-white/14 shadow-[0_34px_95px_rgba(10,10,20,0.32)] hover:scale-[1.004] hover:border-plasma/60 hover:shadow-[0_34px_110px_rgba(123,97,255,0.18)]",
-          isBusy && "processing-active pointer-events-none border-solid border-plasma shadow-[0_0_42px_#7B61FF24] before:opacity-100",
+          isDragging && "scale-[1.012] border-plasma bg-plasma/5 shadow-[0_0_0_4px_#F59E0B33,inset_0_0_70px_#F59E0B26,0_32px_90px_#F59E0B28] before:opacity-100",
+          !isDragging && !isBusy && !isError && "border-white/14 shadow-[0_34px_95px_rgba(10,10,20,0.32)] hover:scale-[1.004] hover:border-plasma/60 hover:shadow-[0_34px_110px_rgba(245,158,11,0.18)]",
+          isBusy && "processing-active pointer-events-none border-solid border-plasma shadow-[0_0_42px_#F59E0B24] before:opacity-100",
           isError && "border-solid border-error",
         )}
       >
@@ -108,7 +108,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
             className="pointer-events-none absolute inset-0 rounded-[2.5rem]"
             aria-hidden="true"
             style={{
-              background: "radial-gradient(ellipse at center, #7B61FF2E 0%, transparent 64%)",
+              background: "radial-gradient(ellipse at center, #F59E0B2E 0%, transparent 64%)",
               animation: "glow-pulse 3s ease-in-out infinite",
             }}
           />
@@ -149,7 +149,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
             </div>
             <div
               className={cn(
-                "upload-icon absolute -bottom-3 flex h-12 w-12 items-center justify-center rounded-[1.25rem] border border-cyan-200/20 bg-plasma text-white shadow-[0_18px_46px_rgba(123,97,255,0.42)] transition-all duration-300",
+                "upload-icon absolute -bottom-3 flex h-12 w-12 items-center justify-center rounded-[1.25rem] border border-cyan-200/20 bg-plasma text-white shadow-[0_18px_46px_rgba(245,158,11,0.42)] transition-all duration-300",
                 isDragging && "upload-icon-dragging",
               )}
             >
@@ -190,7 +190,7 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
           <button
             type="button"
             onClick={handleTryAgain}
-            className="mt-3 cursor-pointer rounded-[1.25rem] border border-deep-void/12 bg-white px-5 py-2.5 text-sm font-medium text-plasma outline-none transition hover:-translate-y-px hover:border-plasma hover:shadow-[0_0_0_1px_#7B61FF,0_4px_16px_rgba(123,97,255,0.15)] focus-visible:ring-2 focus-visible:ring-plasma"
+            className="mt-3 cursor-pointer rounded-[1.25rem] border border-deep-void/12 bg-white px-5 py-2.5 text-sm font-medium text-plasma outline-none transition hover:-translate-y-px hover:border-plasma hover:shadow-[0_0_0_1px_#F59E0B,0_4px_16px_rgba(245,158,11,0.15)] focus-visible:ring-2 focus-visible:ring-plasma"
           >
             Try again
           </button>

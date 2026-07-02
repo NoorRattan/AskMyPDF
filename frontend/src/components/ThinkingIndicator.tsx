@@ -17,8 +17,8 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
       <span
         className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
         style={{
-          background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-          boxShadow: "0 0 16px #7C3AED55",
+          background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
+          boxShadow: "0 0 16px #14B8A655",
         }}
         aria-label="AI thinking"
       >
@@ -30,7 +30,7 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
         style={{
           background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
           border: "1px solid rgba(42,43,69,0.9)",
-          borderLeft: "2px solid #7C3AED",
+          borderLeft: "2px solid #14B8A6",
           boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
         }}
       >
@@ -54,8 +54,8 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
             }}
             className="h-2 w-2 rounded-full"
             style={{
-              background: idx === 1 ? "#A78BFA" : "#7C3AED",
-              boxShadow: idx === 1 ? "0 0 8px #A78BFA88" : "0 0 6px #7C3AED66",
+              background: idx === 1 ? "#67E8F9" : "#14B8A6",
+              boxShadow: idx === 1 ? "0 0 8px #67E8F988" : "0 0 6px #14B8A666",
             }}
           />
         ))}

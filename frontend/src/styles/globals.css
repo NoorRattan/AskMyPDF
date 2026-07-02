@@ -7,8 +7,8 @@
   --color-surface:        #12131F;
   --color-surface-raised: #1A1B2E;
   --color-border:         #2A2B45;
-  --color-primary:        #7C3AED;
-  --color-primary-light:  #A78BFA;
+  --color-primary:        #14B8A6;
+  --color-primary-light:  #67E8F9;
   --color-text:           #F8F8FF;
   --color-text-secondary: #9B9BC4;
   --color-success:        #10B981;
@@ -54,7 +54,7 @@ body::before {
 }
 
 .landing-nav-scrolled {
-  border-color: rgba(123, 97, 255, 0.22);
+  border-color: rgba(245, 158, 11, 0.22);
   background: rgba(240, 239, 244, 0.72);
   color: #0A0A14;
   box-shadow: 0 22px 80px rgba(10, 10, 20, 0.18);
@@ -79,7 +79,7 @@ body::before {
 }
 
 .magnetic-button:focus-visible {
-  outline: 2px solid #7B61FF;
+  outline: 2px solid #F59E0B;
   outline-offset: 3px;
 }
 
@@ -166,7 +166,7 @@ body::before {
 .production-orbit-ring-b {
   inset: 10px;
   border-right-color: rgba(245, 158, 11, 0.76);
-  border-bottom-color: rgba(123, 97, 255, 0.72);
+  border-bottom-color: rgba(245, 158, 11, 0.72);
   animation: process-spin 2.35s linear infinite reverse;
 }
 
@@ -181,8 +181,8 @@ body::before {
 
 .upload-icon:hover {
   transform: translateY(-4px) scale(1.08);
-  background: linear-gradient(135deg, rgba(123, 97, 255, 0.18), rgba(103, 232, 249, 0.08));
-  box-shadow: 0 8px 24px rgba(123, 97, 255, 0.34);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(103, 232, 249, 0.08));
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.34);
 }
 
 .upload-zone-modern {
@@ -221,7 +221,7 @@ body::before {
   z-index: 2;
   height: 1px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.86), rgba(123, 97, 255, 0.9), transparent);
+  background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.86), rgba(245, 158, 11, 0.9), transparent);
   box-shadow: 0 0 24px rgba(103, 232, 249, 0.56);
   animation: upload-panel-scan 3.6s ease-in-out infinite;
 }
@@ -239,7 +239,7 @@ body::before {
   border-radius: 20px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 28%),
-    linear-gradient(145deg, rgba(240, 239, 244, 0.14), rgba(123, 97, 255, 0.13));
+    linear-gradient(145deg, rgba(240, 239, 244, 0.14), rgba(245, 158, 11, 0.13));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     0 22px 58px rgba(0, 0, 0, 0.32);
@@ -302,9 +302,9 @@ body::before {
 
 .control-room {
   background:
-    linear-gradient(90deg, rgba(167, 139, 250, 0.07) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(167, 139, 250, 0.055) 1px, transparent 1px),
-    radial-gradient(circle at 50% 8%, rgba(124, 58, 237, 0.18), transparent 34%),
+    linear-gradient(90deg, rgba(103, 232, 249, 0.07) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(103, 232, 249, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 50% 8%, rgba(20, 184, 166, 0.18), transparent 34%),
     linear-gradient(180deg, rgba(10, 11, 20, 0), var(--color-bg) 92%);
   background-size: 64px 64px, 64px 64px, auto, auto;
 }
@@ -313,7 +313,7 @@ body::before {
   position: absolute;
   inset: 0;
   content: "";
-  background: linear-gradient(180deg, transparent, rgba(167, 139, 250, 0.08), transparent);
+  background: linear-gradient(180deg, transparent, rgba(103, 232, 249, 0.08), transparent);
   animation: scan-sweep 9s linear infinite;
   opacity: 0.42;
 }
@@ -321,7 +321,7 @@ body::before {
 .chat-workspace {
   background:
     linear-gradient(180deg, rgba(18, 19, 31, 0.48), rgba(10, 11, 20, 0.96) 62%),
-    radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.16), transparent 42%),
+    radial-gradient(circle at 50% 0%, rgba(20, 184, 166, 0.16), transparent 42%),
     var(--color-bg);
 }
 
@@ -334,8 +334,8 @@ body::before {
 
 .chat-grid {
   background:
-    linear-gradient(90deg, rgba(167, 139, 250, 0.055) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(167, 139, 250, 0.045) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(103, 232, 249, 0.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(103, 232, 249, 0.045) 1px, transparent 1px);
   background-position: 0 0;
   background-size: 72px 72px;
   opacity: 0.46;
@@ -343,7 +343,7 @@ body::before {
 }
 
 .chat-scanline {
-  background: linear-gradient(180deg, transparent 0%, rgba(124, 58, 237, 0.1) 48%, rgba(16, 185, 129, 0.07) 50%, transparent 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.1) 48%, rgba(16, 185, 129, 0.07) 50%, transparent 100%);
   height: 34%;
   opacity: 0.58;
   animation: chat-scanline 8s ease-in-out infinite;
@@ -355,7 +355,7 @@ body::before {
 }
 
 .chat-energy-a {
-  background: linear-gradient(110deg, transparent 12%, rgba(124, 58, 237, 0.14) 34%, transparent 58%);
+  background: linear-gradient(110deg, transparent 12%, rgba(20, 184, 166, 0.14) 34%, transparent 58%);
   transform: translateX(-32%);
   animation: chat-energy-a 11s ease-in-out infinite;
 }
@@ -366,7 +366,7 @@ body::before {
   animation: chat-energy-b 13s ease-in-out infinite;
 }
 
-/* violet radial pulse - used by upload zone idle state */
+/* warm radial pulse - used by upload zone idle state */
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.35; transform: scale(0.85); }
   50% { opacity: 0.7; transform: scale(1.15); }
@@ -381,8 +381,8 @@ body::before {
 
 /* logo icon heartbeat glow */
 @keyframes icon-breathe {
-  0%, 100% { box-shadow: 0 0 14px #7C3AED33; }
-  50% { box-shadow: 0 0 32px #7C3AED55, 0 0 60px #7C3AED22; }
+  0%, 100% { box-shadow: 0 0 14px #14B8A633; }
+  50% { box-shadow: 0 0 32px #14B8A655, 0 0 60px #14B8A622; }
 }
 
 /* success dot ping */
@@ -402,8 +402,8 @@ body::before {
 
 /* processing zone border pulse */
 @keyframes border-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px #7C3AED33, 0 0 40px #7C3AED22; }
-  50% { box-shadow: 0 0 0 5px #7C3AED55, 0 0 70px #7C3AED33; }
+  0%, 100% { box-shadow: 0 0 0 3px #14B8A633, 0 0 40px #14B8A622; }
+  50% { box-shadow: 0 0 0 5px #14B8A655, 0 0 70px #14B8A633; }
 }
 
 .processing-orb {
@@ -424,20 +424,20 @@ body::before {
 .processing-ring {
   inset: 0;
   border-radius: 9999px;
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  box-shadow: inset 0 0 24px rgba(124, 58, 237, 0.18);
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  box-shadow: inset 0 0 24px rgba(20, 184, 166, 0.18);
 }
 
 .processing-ring-a {
-  border-top-color: rgba(167, 139, 250, 0.95);
-  border-left-color: rgba(124, 58, 237, 0.64);
+  border-top-color: rgba(103, 232, 249, 0.95);
+  border-left-color: rgba(20, 184, 166, 0.64);
   animation: process-spin 1.2s linear infinite;
 }
 
 .processing-ring-b {
   inset: 12px;
   border-right-color: rgba(16, 185, 129, 0.75);
-  border-bottom-color: rgba(124, 58, 237, 0.78);
+  border-bottom-color: rgba(20, 184, 166, 0.78);
   animation: process-spin 1.8s linear infinite reverse;
 }
 
@@ -446,7 +446,7 @@ body::before {
   height: 8px;
   border-radius: 9999px;
   background: var(--color-primary-light);
-  box-shadow: 0 0 18px rgba(167, 139, 250, 0.8);
+  box-shadow: 0 0 18px rgba(103, 232, 249, 0.8);
 }
 
 .processing-dot-a {
@@ -468,11 +468,11 @@ body::before {
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid rgba(167, 139, 250, 0.38);
+  border: 1px solid rgba(103, 232, 249, 0.38);
   border-radius: 18px;
   background: linear-gradient(145deg, rgba(26, 27, 46, 0.96), rgba(18, 19, 31, 0.94));
   color: var(--color-primary-light);
-  box-shadow: 0 16px 48px rgba(124, 58, 237, 0.24);
+  box-shadow: 0 16px 48px rgba(20, 184, 166, 0.24);
   animation: process-document 1.7s ease-in-out infinite;
 }
 
@@ -489,7 +489,7 @@ body::before {
 .processing-progress {
   width: 36%;
   background: linear-gradient(90deg, transparent, var(--color-primary-light), var(--color-success), transparent);
-  box-shadow: 0 0 18px rgba(124, 58, 237, 0.7);
+  box-shadow: 0 0 18px rgba(20, 184, 166, 0.7);
   animation: process-progress 0.95s ease-in-out infinite;
 }
 
@@ -499,8 +499,8 @@ body::before {
 }
 
 @keyframes process-orb-glow {
-  0%, 100% { filter: drop-shadow(0 0 14px rgba(124, 58, 237, 0.28)); }
-  50% { filter: drop-shadow(0 0 28px rgba(124, 58, 237, 0.55)); }
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(20, 184, 166, 0.28)); }
+  50% { filter: drop-shadow(0 0 28px rgba(20, 184, 166, 0.55)); }
 }
 
 @keyframes process-orbit-a {

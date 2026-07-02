@@ -42,6 +42,8 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
   const shouldReduce = useReducedMotion()
   const copy = statusCopy[status]
   const isOnline = status === "online"
+  const availableCount = details?.available_models?.filter((model) => model.available).length ?? 0
+  const totalModels = details?.available_models?.length ?? 0
 
   return (
     <motion.aside
@@ -75,8 +77,8 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
       <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CompactMetric label="Retrieval" value={details?.embedding_model ?? "checking"} />
         <CompactMetric label="Memory" value={details?.memory_profile ?? "checking"} />
-        <CompactMetric label="Fast route" value={details ? `${details.fast_model} / ${details.fast_provider}` : "checking"} />
-        <CompactMetric label="Thinking route" value={details ? `${details.thinking_model} / ${details.thinking_provider}` : "checking"} />
+        <CompactMetric label="Offline route" value={details ? `${details.offline_model} / ${details.offline_provider}` : "checking"} />
+        <CompactMetric label="Models ready" value={details ? `${availableCount}/${totalModels} available` : "checking"} />
       </div>
 
       <div className="relative z-10 mt-4 grid grid-cols-3 gap-2 text-ghost/70">

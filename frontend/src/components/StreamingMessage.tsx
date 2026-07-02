@@ -10,8 +10,8 @@ function AiAvatar() {
     <span
       className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
       style={{
-        background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-        boxShadow: "0 0 16px #7C3AED55",
+        background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
+        boxShadow: "0 0 16px #14B8A655",
       }}
       aria-hidden="true"
     >
@@ -36,7 +36,7 @@ export function StreamingMessage({ content, isStreaming }: StreamingMessageProps
         style={{
           background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
           border: "1px solid rgba(42,43,69,0.9)",
-          borderLeft: "2px solid #7C3AED",
+          borderLeft: "2px solid #14B8A6",
           boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
         }}
       >
@@ -49,11 +49,11 @@ export function StreamingMessage({ content, isStreaming }: StreamingMessageProps
                 display: "inline-block",
                 width: "2px",
                 height: "1em",
-                background: "linear-gradient(180deg, #A78BFA, #7C3AED)",
+                background: "linear-gradient(180deg, #67E8F9, #14B8A6)",
                 marginLeft: "3px",
                 verticalAlign: "middle",
                 borderRadius: "1px",
-                boxShadow: "0 0 8px #A78BFA88",
+                boxShadow: "0 0 8px #67E8F988",
               }}
               animate={shouldReduce ? undefined : { opacity: [1, 0, 1] }}
               transition={{ repeat: Infinity, duration: 0.75, ease: "linear" }}

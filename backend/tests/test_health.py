@@ -8,10 +8,14 @@ def test_health_contract(client):
     assert body["embedding_model"]
     assert body["embedding_backend"]
     assert body["memory_profile"] in {"render-512-safe", "semantic-full"}
+    assert body["offline_model"] == "askmypdf-offline-extractive-v1"
+    assert body["offline_provider"] == "local"
     assert body["fast_model"]
     assert body["fast_provider"] == "groq"
     assert body["thinking_model"]
     assert body["thinking_provider"] in {"groq", "anthropic"}
+    assert {model["id"] for model in body["available_models"]} == {"offline", "fast", "thinking"}
+    assert next(model for model in body["available_models"] if model["id"] == "offline")["available"] is True
     assert response.headers["x-request-id"]
 
 

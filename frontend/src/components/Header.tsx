@@ -14,13 +14,13 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
   const shouldReduce = useReducedMotion()
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/80 bg-bg/88 px-5 shadow-[0_1px_0_0_rgba(124,58,237,0.12),0_14px_44px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:px-6">
+    <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-border/80 bg-bg/88 px-5 shadow-[0_1px_0_0_rgba(20,184,166,0.12),0_14px_44px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         <div
           className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
           style={{
-            background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-            boxShadow: "0 0 16px #7C3AED44, inset 0 1px 0 rgba(255,255,255,0.22)",
+            background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
+            boxShadow: "0 0 16px #14B8A644, inset 0 1px 0 rgba(255,255,255,0.22)",
             animation: shouldReduce ? undefined : "icon-breathe 2.5s ease-in-out infinite",
           }}
           aria-hidden="true"
@@ -51,8 +51,8 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
                 ? undefined
                 : {
                     y: -1,
-                    borderColor: "#7C3AED",
-                    boxShadow: "0 10px 28px rgba(124,58,237,0.16)",
+                    borderColor: "#14B8A6",
+                    boxShadow: "0 10px 28px rgba(20,184,166,0.16)",
                   }
             }
             whileTap={shouldReduce ? undefined : { scale: 0.97 }}
@@ -86,8 +86,8 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
                 ? undefined
                 : {
                     y: -1,
-                    borderColor: "#7C3AED",
-                    boxShadow: "0 0 0 1px #7C3AED, 0 4px 16px rgba(124,58,237,0.15)",
+                    borderColor: "#14B8A6",
+                    boxShadow: "0 0 0 1px #14B8A6, 0 4px 16px rgba(20,184,166,0.15)",
                   }
             }
             whileTap={shouldReduce ? undefined : { scale: 0.97 }}
@@ -102,7 +102,7 @@ export function Header({ uploadState, onReset, onStart }: HeaderProps) {
         <div
           className="h-full w-1/3"
           style={{
-            background: "linear-gradient(90deg, transparent, #7C3AED, #A78BFA, transparent)",
+            background: "linear-gradient(90deg, transparent, #14B8A6, #67E8F9, transparent)",
             animation: shouldReduce ? undefined : "shimmer-x 3.5s ease-in-out infinite",
           }}
         />

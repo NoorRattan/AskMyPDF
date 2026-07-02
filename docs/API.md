@@ -24,10 +24,23 @@ Response `200`:
   "embedding_model": "all-MiniLM-L6-v2",
   "embedding_backend": "sentence-transformers",
   "memory_profile": "semantic-full",
+  "offline_model": "askmypdf-offline-extractive-v1",
+  "offline_provider": "local",
   "fast_model": "llama-3.1-8b-instant",
   "fast_provider": "groq",
   "thinking_model": "llama-3.3-70b-versatile",
-  "thinking_provider": "groq"
+  "thinking_provider": "groq",
+  "available_models": [
+    {
+      "id": "offline",
+      "label": "Offline Local",
+      "mode": "offline",
+      "provider": "local",
+      "model": "askmypdf-offline-extractive-v1",
+      "available": true,
+      "description": "Runs inside the backend using retrieved PDF chunks only. No external LLM request is made."
+    }
+  ]
 }
 ```
 
@@ -166,23 +179,25 @@ Request:
 {
   "session_id": "b4f0c6d9a1e2478a",
   "question": "What were the main findings of this study?",
-  "model_preference": "fast"
+  "model_preference": "offline"
 }
 ```
 
-`model_preference` may be `"fast"` or `"thinking"` and defaults to `"fast"`.
+`model_preference` may be `"offline"`, `"fast"`, or `"thinking"` and defaults to `"offline"`.
 
+- Offline mode uses `askmypdf-offline-extractive-v1` locally and does not call Groq or Anthropic.
 - Fast mode always uses Groq with `llama-3.1-8b-instant`.
-- Thinking mode uses Groq with `llama-3.3-70b-versatile` by default.
-- If `ANTHROPIC_API_KEY` is configured, Thinking mode upgrades to Anthropic with `claude-sonnet-4-6`.
-- The final SSE `done` message reports the dynamic per-request `model_used` and `provider_used`.
+- Deep Online uses `model_preference: "thinking"` and routes to Groq `llama-3.3-70b-versatile` by default.
+- If `ANTHROPIC_API_KEY` is configured, Deep Online upgrades to Anthropic with `claude-sonnet-4-6`.
+- The final SSE `done` message reports the dynamic per-request `model_used`, `provider_used`, and `mode_used`.
+- If an online route is selected without the required API key, the API returns `503 model_unavailable` before the SSE stream starts.
 
 cURL:
 
 ```bash
 curl -N -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id": "b4f0c6d9a1e2478a", "question": "What is the main argument?", "model_preference": "fast"}'
+  -d '{"session_id": "b4f0c6d9a1e2478a", "question": "What is the main argument?", "model_preference": "offline"}'
 ```
 
 Response headers:
@@ -197,7 +212,7 @@ SSE wire format:
 ```text
 data: {"token": "The"}\n\n
 data: {"token": " main"}\n\n
-data: {"done": true, "sources": [...], "model_used": "llama-3.1-8b-instant", "provider_used": "groq"}\n\n
+data: {"done": true, "sources": [...], "model_used": "askmypdf-offline-extractive-v1", "provider_used": "local", "mode_used": "offline"}\n\n
 ```
 
 Final done message shape:
@@ -212,8 +227,9 @@ Final done message shape:
       "chunk_index": 42
     }
   ],
-  "model_used": "llama-3.1-8b-instant",
-  "provider_used": "groq"
+  "model_used": "askmypdf-offline-extractive-v1",
+  "provider_used": "local",
+  "mode_used": "offline"
 }
 ```
 
@@ -241,7 +257,16 @@ Validation error `422`:
 }
 ```
 
-Validation also returns `422` when `question` is empty, longer than 1000 characters, or `model_preference` is not `"fast"` or `"thinking"`.
+Validation also returns `422` when `question` is empty, longer than 1000 characters, or `model_preference` is not `"offline"`, `"fast"`, or `"thinking"`.
+
+Model unavailable `503`:
+
+```json
+{
+  "error": "model_unavailable",
+  "detail": "The selected online model is not configured. Choose Offline Local or configure the required API key."
+}
+```
 
 ## DELETE /api/session/{session_id}
 

@@ -20,8 +20,8 @@ function AiAvatar() {
     <span
       className="grid h-7 w-7 shrink-0 place-items-center rounded-xl text-[11px] font-bold text-white"
       style={{
-        background: "linear-gradient(135deg, #7C3AED, #A78BFA)",
-        boxShadow: "0 0 16px #7C3AED55",
+        background: "linear-gradient(135deg, #14B8A6, #67E8F9)",
+        boxShadow: "0 0 16px #14B8A655",
       }}
       aria-hidden="true"
     >
@@ -44,8 +44,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         <div
           className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm px-4 py-3 shadow-[0_8px_32px_rgba(30,27,75,0.45)]"
           style={{
-            background: "linear-gradient(135deg, #1E1B4B 0%, #2D2A60 100%)",
-            border: "1px solid rgba(124,58,237,0.2)",
+            background: "linear-gradient(135deg, #12312F 0%, #183C38 100%)",
+            border: "1px solid rgba(20,184,166,0.2)",
           }}
         >
           <p className="whitespace-pre-wrap break-words text-[15px] leading-6 text-primary-light [overflow-wrap:anywhere]">
@@ -71,7 +71,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           style={{
             background: "linear-gradient(135deg, rgba(26,27,46,0.95) 0%, rgba(18,19,31,0.9) 100%)",
             border: "1px solid rgba(42,43,69,0.9)",
-            borderLeft: "2px solid #7C3AED",
+            borderLeft: "2px solid #14B8A6",
             boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
           }}
         >
@@ -80,7 +80,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </p>
           {message.modelUsed ? (
             <p className="mt-3 font-mono text-[11px] text-secondary/60">
-              Answered with {message.modelUsed}
+              {message.modeUsed === "offline" ? "Answered offline with " : "Answered online with "}
+              {message.modelUsed}
               {message.providerUsed ? ` via ${message.providerUsed}` : ""}
             </p>
           ) : null}

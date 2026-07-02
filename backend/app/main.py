@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.routers import chat, upload
 from app.services.embedding_service import get_embedding_backend, get_embedding_model_name, get_model
+from app.services.llm_service import get_model_catalog
 from app.services.vector_service import get_client
 
 logger = logging.getLogger("uvicorn.error")
@@ -92,9 +93,11 @@ async def http_exception_handler(req: Request, exc: HTTPException) -> JSONRespon
 def warm_up_services() -> None:
     tune_optional_runtime_threads()
     if settings.anthropic_api_key:
-        logger.info("Thinking mode: Claude Sonnet 4.6 (Anthropic key detected)")
+        logger.info("Deep Online: Claude via Anthropic (Anthropic key detected)")
+    elif settings.groq_api_key:
+        logger.info("Deep Online: %s via Groq (no Anthropic key set)", settings.thinking_model_groq)
     else:
-        logger.info("Thinking mode: Llama 3.3 70B via Groq (no Anthropic key set)")
+        logger.info("Online LLM keys are not configured; Offline Local remains available.")
     get_model()
     get_client()
     logger.info("Embedding model and vector store loaded.")
@@ -102,10 +105,10 @@ def warm_up_services() -> None:
 
 @app.get("/health")
 def health() -> dict:
-    fast_model, fast_provider = settings.fast_model, "groq"
     embedding_backend = get_embedding_backend()
-    thinking_model = settings.thinking_model_anthropic if settings.anthropic_api_key else settings.thinking_model_groq
-    thinking_provider = "anthropic" if settings.anthropic_api_key else "groq"
+    models = get_model_catalog()
+    fast_model = next(model for model in models if model["id"] == "fast")
+    thinking_model = next(model for model in models if model["id"] == "thinking")
     memory_profile = "render-512-safe" if embedding_backend == "hash" else "semantic-full"
 
     return {
@@ -114,10 +117,13 @@ def health() -> dict:
         "embedding_model": get_embedding_model_name(),
         "embedding_backend": embedding_backend,
         "memory_profile": memory_profile,
-        "fast_model": fast_model,
-        "fast_provider": fast_provider,
-        "thinking_model": thinking_model,
-        "thinking_provider": thinking_provider,
+        "offline_model": settings.offline_model,
+        "offline_provider": "local",
+        "fast_model": fast_model["model"],
+        "fast_provider": fast_model["provider"],
+        "thinking_model": thinking_model["model"],
+        "thinking_provider": thinking_model["provider"],
+        "available_models": models,
     }
 
 

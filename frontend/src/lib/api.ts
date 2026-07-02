@@ -95,7 +95,7 @@ export async function getUploadStatus(jobId: string): Promise<UploadStatusRespon
 export async function streamChat(
   sessionId: string,
   question: string,
-  modelPreference: ModelPreference = "fast",
+  modelPreference: ModelPreference = "offline",
 ): Promise<Response> {
   const res = await fetchWithTimeout(`${API_URL}/chat`, {
     method: "POST",

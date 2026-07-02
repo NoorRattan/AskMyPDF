@@ -7,8 +7,8 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 1. GitHub account with `NoorRattan/AskMyPDF` pushed to `main`.
 2. Render account at [render.com](https://render.com). The free tier is enough.
 3. Vercel account at [vercel.com](https://vercel.com). The free tier is enough.
-4. Groq API key.
-5. Anthropic API key only if you want Thinking mode to upgrade to Claude.
+4. Groq API key if you want Fast Online or Groq-backed Deep Online.
+5. Anthropic API key only if you want Deep Online to upgrade to Claude.
 
 ## 2. Deploy Backend To Render
 
@@ -19,8 +19,9 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `GROQ_API_KEY` | your Groq key |
-   | `ANTHROPIC_API_KEY` | optional; omit to run Thinking mode on Groq 70B |
+   | `GROQ_API_KEY` | optional for online modes; omit to keep only Offline Local available |
+   | `ANTHROPIC_API_KEY` | optional; omit to run Deep Online on Groq 70B when Groq is configured |
+   | `OFFLINE_MODEL` | `askmypdf-offline-extractive-v1` |
    | `FAST_MODEL` | `llama-3.1-8b-instant` |
    | `FAST_MODEL_PROVIDER` | `groq` |
    | `THINKING_MODEL_GROQ` | `llama-3.3-70b-versatile` |
@@ -37,7 +38,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
 
-   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000. On a Groq-only deployment, Render startup logs should include `Thinking mode: Llama 3.3 70B via Groq (no Anthropic key set)`.
+   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000. On a Groq-only deployment, Render startup logs should include `Deep Online: llama-3.3-70b-versatile via Groq (no Anthropic key set)`. Without online keys, logs should state that Offline Local remains available.
 
 5. Click Deploy. Watch the logs. The deploy is ready when you see:
 
@@ -55,7 +56,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","memory_profile":"render-512-safe","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq"}
+   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","memory_profile":"render-512-safe","offline_model":"askmypdf-offline-extractive-v1","offline_provider":"local","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq","available_models":[{"id":"offline","label":"Offline Local","mode":"offline","provider":"local","model":"askmypdf-offline-extractive-v1","available":true,"description":"Runs inside the backend using retrieved PDF chunks only. No external LLM request is made."}]}
    ```
 
    If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2` and `memory_profile` is `semantic-full`. In that case, use the full `requirements.txt` dependency set or a custom image that includes sentence-transformers and Torch.
@@ -95,9 +96,10 @@ Once you have the final Vercel URL:
 
 1. Visit your Vercel URL.
 2. Upload a PDF and confirm the upload panel shows progress through extraction and embedding.
-3. Ask a question in Fast mode.
-4. Ask a question in Thinking mode.
-5. Confirm tokens stream and completed messages show the model/provider that answered.
+3. Select Offline Local and ask a question.
+4. If `GROQ_API_KEY` is configured, select Fast Online and ask a question.
+5. If an Anthropic or Groq online route is configured, select Deep Online and ask a question.
+6. Confirm tokens stream and completed messages show the model/provider/mode that answered.
 
 ## 6. Local Development
 

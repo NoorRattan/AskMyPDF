@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import heapq
+from array import array
 from collections import OrderedDict
+from collections.abc import Sequence
 
 from app.config import settings
 
@@ -33,7 +36,7 @@ def add_chunks(session_id: str, chunks: list[dict], embeddings: list[list[float]
                 "chunk_index": chunk["chunk_index"],
                 "char_start": chunk["char_start"],
                 "char_end": chunk["char_end"],
-                "embedding": embedding,
+                "embedding": array("f", embedding),
             }
         )
 
@@ -42,7 +45,7 @@ def add_chunks(session_id: str, chunks: list[dict], embeddings: list[list[float]
     _trim_sessions()
 
 
-def _score(left: list[float], right: list[float]) -> float:
+def _score(left: Sequence[float], right: Sequence[float]) -> float:
     return sum(left_value * right_value for left_value, right_value in zip(left, right))
 
 
@@ -52,10 +55,10 @@ def query_chunks(session_id: str, query_embedding: list[float], top_k: int) -> l
         return []
 
     _sessions.move_to_end(session_id)
-    ranked = sorted(
+    ranked = heapq.nlargest(
+        min(top_k, len(chunks)),
         chunks,
         key=lambda chunk: _score(query_embedding, chunk["embedding"]),  # type: ignore[arg-type]
-        reverse=True,
     )
 
     return [

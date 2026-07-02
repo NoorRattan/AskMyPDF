@@ -10,6 +10,8 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false
+      - key: OFFLINE_MODEL
+        value: askmypdf-offline-extractive-v1
       - key: FAST_MODEL
         value: llama-3.1-8b-instant
       - key: FAST_MODEL_PROVIDER

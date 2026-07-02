@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    groq_api_key: str
+    groq_api_key: str = ""
     anthropic_api_key: str | None = None
     allowed_origins: str = "*"
     allowed_origin_regex: str | None = None
@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     embedding_backend: str = "auto"
     embedding_dimensions: int = 256
     max_sessions: int = 20
+    offline_model: str = "askmypdf-offline-extractive-v1"
     fast_model: str = "llama-3.1-8b-instant"
     fast_model_provider: str = "groq"
     thinking_model_groq: str = "llama-3.3-70b-versatile"

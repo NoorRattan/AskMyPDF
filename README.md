@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-ask--my--pdf--weld.vercel.app-7C3AED)](https://ask-my-pdf-weld.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ask--my--pdf--weld.vercel.app-14B8A6)](https://ask-my-pdf-weld.vercel.app)
 
 AskMyPDF is a full-stack PDF chat app: upload a PDF, ask questions, and get streamed answers grounded in the document.
 
@@ -27,9 +27,11 @@ I built this because I wanted to understand RAG from first principles, not just 
 6. Each chunk is embedded and normalized. Local/full deployments use `sentence-transformers` with `all-MiniLM-L6-v2`; the free Render demo uses a lightweight hashing backend and a lean production dependency set to stay within memory limits.
 7. Chunks and embeddings are stored in a bounded in-memory session store.
 8. Questions are embedded with the same semantic model and ranked by cosine similarity.
-9. Fast mode streams from Groq using `llama-3.1-8b-instant`.
-10. Thinking mode streams from Groq using `llama-3.3-70b-versatile` by default, or from Claude Sonnet 4.6 when an Anthropic key is configured.
-11. Every final SSE response includes source chunks plus the actual `model_used` and `provider_used`.
+9. The frontend lets the user choose a model route before upload and again before each question.
+10. Offline Local streams an extractive answer from retrieved PDF chunks without calling an external LLM.
+11. Fast Online streams from Groq using `llama-3.1-8b-instant`.
+12. Deep Online streams from Groq using `llama-3.3-70b-versatile` by default, or from Claude Sonnet 4.6 when an Anthropic key is configured.
+13. Every final SSE response includes source chunks plus the actual `model_used`, `provider_used`, and `mode_used`.
 
 ## Tech Stack
 
@@ -40,7 +42,7 @@ I built this because I wanted to understand RAG from first principles, not just 
 | Backend | FastAPI, Python 3.11 |
 | PDF parsing | PyMuPDF optional, `pypdf`, `pdfplumber` fallback |
 | Retrieval | Configurable normalized embeddings: `all-MiniLM-L6-v2` locally, lightweight hashing on the free Render demo |
-| LLM | Groq fast mode + Groq thinking mode by default; optional Anthropic Claude Sonnet 4.6 upgrade |
+| LLM | Offline local extractive model, Groq fast mode, Groq deep mode by default, optional Anthropic Claude Sonnet 4.6 upgrade |
 | Backend deploy | Render |
 | Frontend deploy | Vercel |
 
@@ -53,7 +55,7 @@ cd AskMyPDF/backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# then set GROQ_API_KEY; ANTHROPIC_API_KEY is optional
+# GROQ_API_KEY enables online modes; ANTHROPIC_API_KEY is optional for Deep Online
 uvicorn app.main:app --port 8000
 
 # Frontend (separate terminal)
@@ -65,9 +67,11 @@ npm run dev
 
 ## Model Modes
 
-Fast mode is optimized for low-latency factual lookups and always uses Groq `llama-3.1-8b-instant`. `GROQ_API_KEY` is the one required LLM secret.
+Offline Local is the default route. It runs inside the FastAPI backend, uses the retrieved PDF chunks, and streams a cited extractive answer without sending document text to Groq or Anthropic. It is designed for privacy, no-secret local development, and low memory use.
 
-Thinking mode is the quality-oriented path for synthesis, comparison, and multi-part questions. The live deployed demo runs Groq-only by design: Thinking mode uses Groq `llama-3.3-70b-versatile`, keeping the app reliable and cost-conscious while preserving a provider-agnostic LLM layer. If `ANTHROPIC_API_KEY` is configured later, the same code path automatically upgrades Thinking mode to Claude Sonnet 4.6 and reports that in `provider_used`.
+Fast Online is optimized for low-latency factual lookups and uses Groq `llama-3.1-8b-instant`. It is available when `GROQ_API_KEY` is configured.
+
+Deep Online is the quality-oriented path for synthesis, comparison, and multi-part questions. It uses Groq `llama-3.3-70b-versatile` by default, or upgrades to Claude Sonnet 4.6 when `ANTHROPIC_API_KEY` is configured. The API reports the actual route in `model_used`, `provider_used`, and `mode_used`.
 
 ## Fair Warning
 
@@ -75,7 +79,7 @@ The backend runs on Render, and free-tier instances can still be CPU constrained
 
 The live demo is configured with `EMBEDDING_BACKEND=hash` and the Docker image installs `backend/requirements-prod.txt`, which deliberately excludes Torch, sentence-transformers, NumPy, PyMuPDF, and test-only packages. Set `EMBEDDING_BACKEND=sentence-transformers` and install `backend/requirements.txt` on a larger backend if you want the highest retrieval quality.
 
-The frontend also checks `/api/health` at runtime and shows the active embedding backend plus fast/thinking model routes in the live status panel. A live `memory_profile` of `render-512-safe` means the deployed backend is on the lightweight path.
+The frontend also checks `/api/health` at runtime and shows the active embedding backend, offline model, and how many model routes are available. A live `memory_profile` of `render-512-safe` means the deployed backend is on the lightweight path.
 
 ## Known Limitations
 

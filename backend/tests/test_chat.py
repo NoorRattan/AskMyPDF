@@ -38,7 +38,7 @@ def test_chat_happy_path(client, sample_pdf, mock_llm):
     with client.stream(
         "POST",
         "/api/chat",
-        json={"session_id": session_id, "question": "What is this document about?"},
+        json={"session_id": session_id, "question": "What is this document about?", "model_preference": "fast"},
     ) as response:
         body = response.read().decode()
 
@@ -51,6 +51,7 @@ def test_chat_happy_path(client, sample_pdf, mock_llm):
     assert done["sources"]
     assert done["model_used"] == settings.fast_model
     assert done["provider_used"] == settings.fast_model_provider
+    assert done["mode_used"] == "online"
 
 
 def test_chat_thinking_model(client, sample_pdf, monkeypatch):
@@ -79,6 +80,63 @@ def test_chat_thinking_model(client, sample_pdf, monkeypatch):
     assert seen["model_preference"] == "thinking"
     assert done["model_used"] == settings.thinking_model_groq
     assert done["provider_used"] == "groq"
+    assert done["mode_used"] == "online"
+
+
+def test_chat_offline_model_uses_local_answer(client, sample_pdf, monkeypatch):
+    async def forbidden_groq(prompt: str, model: str):
+        raise AssertionError("Offline model must not call Groq")
+        yield ""
+
+    async def forbidden_anthropic(prompt: str, model: str):
+        raise AssertionError("Offline model must not call Anthropic")
+        yield ""
+
+    monkeypatch.setattr("app.services.llm_service._stream_groq", forbidden_groq)
+    monkeypatch.setattr("app.services.llm_service._stream_anthropic", forbidden_anthropic)
+    session_id = _upload(client, sample_pdf)
+
+    with client.stream(
+        "POST",
+        "/api/chat",
+        json={
+            "session_id": session_id,
+            "question": "What is this document about?",
+            "model_preference": "offline",
+        },
+    ) as response:
+        body = response.read().decode()
+
+    assert response.status_code == 200
+    streamed_answer = "".join(message["token"] for message in _sse_messages(body) if "token" in message)
+    assert "From the document:" in streamed_answer
+    assert "AskMyPDF" in streamed_answer
+    done = _done_message(body)
+    assert done["model_used"] == settings.offline_model
+    assert done["provider_used"] == "local"
+    assert done["mode_used"] == "offline"
+
+
+def test_chat_defaults_to_offline_model(client, sample_pdf, monkeypatch):
+    async def forbidden_groq(prompt: str, model: str):
+        raise AssertionError("Default model must not call Groq")
+        yield ""
+
+    monkeypatch.setattr("app.services.llm_service._stream_groq", forbidden_groq)
+    session_id = _upload(client, sample_pdf)
+
+    with client.stream(
+        "POST",
+        "/api/chat",
+        json={"session_id": session_id, "question": "What is this document about?"},
+    ) as response:
+        body = response.read().decode()
+
+    assert response.status_code == 200
+    done = _done_message(body)
+    assert done["model_used"] == settings.offline_model
+    assert done["provider_used"] == "local"
+    assert done["mode_used"] == "offline"
 
 
 def test_thinking_mode_without_anthropic_key_uses_groq(client, monkeypatch, sample_pdf, set_anthropic_key):
@@ -115,6 +173,7 @@ def test_thinking_mode_without_anthropic_key_uses_groq(client, monkeypatch, samp
     done = _done_message(body)
     assert done["model_used"] == settings.thinking_model_groq
     assert done["provider_used"] == "groq"
+    assert done["mode_used"] == "online"
 
 
 def test_thinking_mode_with_anthropic_key_uses_claude(client, monkeypatch, sample_pdf, set_anthropic_key):
@@ -150,6 +209,7 @@ def test_thinking_mode_with_anthropic_key_uses_claude(client, monkeypatch, sampl
     done = _done_message(body)
     assert done["model_used"] == settings.thinking_model_anthropic
     assert done["provider_used"] == "anthropic"
+    assert done["mode_used"] == "online"
 
 
 def test_fast_mode_always_uses_groq(client, monkeypatch, sample_pdf, set_anthropic_key):
@@ -186,6 +246,25 @@ def test_fast_mode_always_uses_groq(client, monkeypatch, sample_pdf, set_anthrop
     done = _done_message(body)
     assert done["model_used"] == settings.fast_model
     assert done["provider_used"] == "groq"
+    assert done["mode_used"] == "online"
+
+
+def test_online_model_without_api_key_is_rejected_before_stream(client, monkeypatch, sample_pdf, set_anthropic_key):
+    monkeypatch.setattr(settings, "groq_api_key", "")
+    set_anthropic_key(None)
+    session_id = _upload(client, sample_pdf)
+
+    response = client.post(
+        "/api/chat",
+        json={
+            "session_id": session_id,
+            "question": "What is this document about?",
+            "model_preference": "fast",
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["error"] == "model_unavailable"
 
 
 def test_chat_unknown_session_id(client):

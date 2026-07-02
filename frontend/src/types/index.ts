@@ -5,7 +5,17 @@ export interface SourceChunk {
 }
 
 export type UploadJobStatus = "queued" | "extracting" | "chunking" | "embedding" | "ready" | "error"
-export type ModelPreference = "fast" | "thinking"
+export type ModelPreference = "offline" | "fast" | "thinking"
+
+export interface ModelOption {
+  id: ModelPreference
+  label: string
+  mode: "offline" | "online"
+  provider: string
+  model: string
+  available: boolean
+  description: string
+}
 
 export interface UploadJobResponse {
   job_id: string
@@ -32,10 +42,13 @@ export interface SystemStatusResponse {
   embedding_model: string
   embedding_backend: string
   memory_profile: string
+  offline_model: string
+  offline_provider: string
   fast_model: string
   fast_provider: string
   thinking_model: string
   thinking_provider: string
+  available_models: ModelOption[]
 }
 
 export interface Message {
@@ -45,6 +58,7 @@ export interface Message {
   sources?: SourceChunk[]
   modelUsed?: string
   providerUsed?: string
+  modeUsed?: "offline" | "online"
   isStreaming: boolean
   timestamp: Date
 }
@@ -73,6 +87,7 @@ export interface SSEDoneMessage {
   sources: SourceChunk[]
   model_used: string
   provider_used: string
+  mode_used: "offline" | "online"
 }
 
 export type SSEMessage = SSETokenMessage | SSEDoneMessage
