@@ -25,7 +25,7 @@ import { accentAt, maxCardAt } from "./lib/designSystem"
 import { cn } from "./lib/utils"
 import type { ModelPreference } from "./types"
 
-type LandingView = "upload" | "signal" | "artifacts" | "protocol"
+type LandingView = "upload" | "signal" | "artifacts" | "protocol" | "privacy" | "terms" | "security"
 
 const navLinks: Array<{ id: LandingView; label: string }> = [
   { id: "upload", label: "Upload" },
@@ -34,9 +34,17 @@ const navLinks: Array<{ id: LandingView; label: string }> = [
   { id: "protocol", label: "Protocol" },
 ]
 
+const legalLinks: Array<{ id: LandingView; label: string }> = [
+  { id: "privacy", label: "Privacy" },
+  { id: "terms", label: "Terms" },
+  { id: "security", label: "Security" },
+]
+
+const landingLinks = [...navLinks, ...legalLinks] as const
+
 function landingViewFromHash(): LandingView {
   const hash = window.location.hash.replace("#", "")
-  return navLinks.some((link) => link.id === hash) ? (hash as LandingView) : "upload"
+  return landingLinks.some((link) => link.id === hash) ? (hash as LandingView) : "upload"
 }
 
 const valueProps = [
@@ -97,9 +105,29 @@ const protocolSteps = [
 const floatingShapes = [
   { label: "PDF", className: "left-[3%] top-[14%] h-16 w-16 -rotate-6 animate-[float_6s_ease-in-out_infinite]", color: "#FFE600" },
   { label: "AI", className: "right-[7%] top-[18%] h-20 w-20 rotate-6 animate-[float-reverse_5s_ease-in-out_infinite]", color: "#00F5D4" },
-  { label: "ASK", className: "bottom-[12%] left-[8%] h-14 w-24 rotate-3 animate-[wiggle_1.8s_ease-in-out_infinite]", color: "#FF6B35" },
   { label: "GO", className: "bottom-[18%] right-[11%] h-16 w-16 -rotate-3 animate-[float_7s_ease-in-out_infinite]", color: "#FF3AF2" },
 ] as const
+
+const legalContent = {
+  privacy: {
+    eyebrow: "Privacy",
+    title: "Private sessions stay scoped to the PDF you upload.",
+    body: "AskMyPDF processes each document for the active session, keeps answers tied to retrieved chunks, and exposes a private server route that does not call Groq, Anthropic, or another external LLM provider.",
+    points: ["PDF-scoped context", "No public document browsing", "Session cleanup ready through the backend contract"],
+  },
+  terms: {
+    eyebrow: "Terms",
+    title: "Use AskMyPDF for document-grounded answers.",
+    body: "The app is built for asking questions about PDFs you are allowed to upload. Answers are generated from retrieved document context and should be checked against the cited source pages for important decisions.",
+    points: ["Upload only permitted files", "Review cited pages", "Online routes require configured provider keys"],
+  },
+  security: {
+    eyebrow: "Security",
+    title: "The project separates private and online model routes.",
+    body: "The Private Server route runs on the backend with local extractive answering. Online routes are explicit choices and report their provider/model in completed chat messages.",
+    points: ["Model route chosen before upload", "Citations remain visible", "Backend health reports available model routes"],
+  },
+} as const
 
 function FloatingShapes() {
   return (
@@ -107,7 +135,7 @@ function FloatingShapes() {
       {floatingShapes.map((shape) => (
         <span
           key={shape.label}
-          className={`floating-shape hidden rounded-[1.5rem] lg:grid ${shape.className}`}
+          className={`floating-shape z-0 hidden rounded-[1.5rem] opacity-70 lg:grid ${shape.className}`}
           style={{ color: shape.color }}
           aria-hidden="true"
         >
@@ -598,6 +626,40 @@ function ProtocolSection() {
   )
 }
 
+function LegalSection({ view }: { view: "privacy" | "terms" | "security" }) {
+  const content = legalContent[view]
+
+  return (
+    <section id={view} className="relative min-h-[100dvh] overflow-hidden bg-[#0D0D1A] px-4 py-28 text-white sm:px-8 lg:px-12">
+      <div className="absolute inset-0 pattern-checker opacity-55" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[#0D0D1A]/78" aria-hidden="true" />
+      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 pt-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+        <div>
+          <p className="inline-flex rounded-full border-4 border-[#00F5D4] bg-[#0D0D1A] px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] text-[#FFE600] shadow-[6px_6px_0_#FF3AF2]">
+            {content.eyebrow}
+          </p>
+          <h1 className="max-subtitle mt-6 text-4xl leading-none sm:text-6xl">{content.title}</h1>
+        </div>
+        <div className="max-card max-card-cyan rounded-[2rem] p-5 text-white sm:p-7">
+          <p className="text-base font-bold leading-8 text-[#DCD7FF] sm:text-lg">{content.body}</p>
+          <div className="mt-7 grid gap-3">
+            {content.points.map((point, index) => (
+              <p
+                key={point}
+                className="flex min-h-12 items-center gap-3 rounded-[1.25rem] border-4 bg-[#0D0D1A]/82 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.12)]"
+                style={{ borderColor: accentAt(index), color: index === 1 ? "#FFE600" : "#FFFFFF" }}
+              >
+                <CheckCircle2 size={16} className="shrink-0" style={{ color: accentAt(index + 1) }} aria-hidden="true" />
+                <span>{point}</span>
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Landing({
   uploadState,
   uploadFile,
@@ -698,22 +760,21 @@ function Landing({
               The document flow starts here. Pick the answer route before uploading, then AskMyPDF indexes the PDF and opens the chat workspace with citations attached.
             </p>
 
-            <div className="max-card max-card-cyan mt-7 rounded-[2rem] p-4 text-white">
-              <ModelSelector
-                compact
-                value={selectedModel}
-                onChange={onModelChange}
-                models={systemStatus.details?.available_models}
-                disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
-              />
-            </div>
-
           </div>
 
           <div className="hero-reveal relative min-w-0">
             <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(255,58,242,0.28),rgba(255,230,0,0.22),rgba(0,245,212,0.24))] blur-2xl" aria-hidden="true" />
-            <div className="relative">
+            <div className="relative space-y-6">
               <UploadZone ref={uploadZoneRef} uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
+              <div className="max-card max-card-cyan rounded-[2rem] p-4 text-white">
+                <ModelSelector
+                  compact
+                  value={selectedModel}
+                  onChange={onModelChange}
+                  models={systemStatus.details?.available_models}
+                  disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+                />
+              </div>
             </div>
           </div>
 
@@ -740,6 +801,7 @@ function Landing({
       {activeView === "artifacts" ? <FeatureArtifacts /> : null}
       {activeView === "signal" ? <SignalSection /> : null}
       {activeView === "protocol" ? <ProtocolSection /> : null}
+      {activeView === "privacy" || activeView === "terms" || activeView === "security" ? <LegalSection view={activeView} /> : null}
 
       <Footer onNavigate={onNavigate} />
     </div>
@@ -748,9 +810,9 @@ function Landing({
 
 function Footer({ onNavigate }: { onNavigate: (view: LandingView) => void }) {
   return (
-    <footer className="pattern-stripes rounded-t-[3rem] border-t-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-12 text-white shadow-[0_-18px_0_#7B2FFF] sm:px-8 lg:px-12">
+    <footer className="pattern-stripes relative z-10 rounded-t-[3rem] border-t-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-12 text-white shadow-[0_-18px_0_#7B2FFF] sm:px-8 lg:px-12">
       <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_0.7fr_0.7fr_0.8fr]">
-        <div>
+        <div className="relative z-10">
           <p className="font-display text-2xl">AskMyPDF</p>
           <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/68">Conversational PDF intelligence for documents that deserve precise answers.</p>
         </div>
@@ -774,9 +836,16 @@ function Footer({ onNavigate }: { onNavigate: (view: LandingView) => void }) {
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#FF3AF2]">Legal</p>
           <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Security</span>
+            {legalLinks.map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => onNavigate(link.id)}
+                className="rounded text-left transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]"
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
         </div>
         <div className="self-start rounded-[2rem] border-4 border-[#00F5D4] bg-[#2D1B4E] p-5 shadow-[6px_6px_0_#FF3AF2]">
