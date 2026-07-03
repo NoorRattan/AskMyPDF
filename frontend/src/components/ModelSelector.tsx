@@ -8,12 +8,12 @@ import type { ModelOption, ModelPreference } from "../types"
 export const fallbackModels: ModelOption[] = [
   {
     id: "offline",
-    label: "Private Server",
+    label: "Backend Only",
     mode: "offline",
     provider: "local",
     model: "askmypdf-offline-extractive-v1",
     available: true,
-    description: "Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request.",
+    description: "Uses retrieved PDF chunks on the backend without an external LLM request.",
   },
   {
     id: "fast",
@@ -51,15 +51,29 @@ interface ModelSelectorProps {
 
 export function normalizeModels(models?: ModelOption[] | null): ModelOption[] {
   const source = models?.length ? models : fallbackModels
-  return source.map((model) =>
+  const normalized = source.map((model) =>
     model.id === "offline"
       ? {
           ...model,
-          label: "Private Server",
-          description: "Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request.",
+          label: "Backend Only",
+          description: "Uses retrieved PDF chunks on the backend without an external LLM request.",
         }
       : model,
   )
+  const hasAvailableOnlineRoute = normalized.some((model) => model.mode === "online" && model.available)
+
+  return hasAvailableOnlineRoute ? normalized.filter((model) => model.mode === "online") : normalized
+}
+
+export function selectPreferredModel(current: ModelPreference, models?: ModelOption[] | null): ModelPreference {
+  const options = normalizeModels(models)
+  const active = options.find((model) => model.id === current)
+
+  if (active?.available) {
+    return current
+  }
+
+  return options.find((model) => model.id === "fast" && model.available)?.id ?? options.find((model) => model.available)?.id ?? current
 }
 
 export function ModelSelector({ value, onChange, models, disabled = false, compact = false }: ModelSelectorProps) {
@@ -72,7 +86,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
         <div>
           <p className="font-mono text-[10px] font-black uppercase tracking-[0.22em] text-[#00F5D4]">Model route</p>
           {!compact ? (
-            <p className="mt-1 text-sm font-semibold leading-6 text-[#DCD7FF]">Choose the private server route or an online reasoning model before you ask.</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-[#DCD7FF]">Choose an online reasoning model before you ask.</p>
           ) : null}
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#FFE600] bg-[#0D0D1A] px-2.5 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-white shadow-[3px_3px_0_#FF3AF2]">
@@ -140,7 +154,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
                       )}
                     >
                       {option.mode === "online" ? <Wifi size={10} aria-hidden="true" /> : <Laptop size={10} aria-hidden="true" />}
-                      {option.mode === "online" ? "online" : "private"}
+                      {option.mode === "online" ? "online" : "backend"}
                     </span>
                   </span>
                   <span className="mt-1 block truncate font-mono text-[11px] text-[#DCD7FF]/80" title={`${option.model} / ${option.provider}`}>

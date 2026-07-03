@@ -53,12 +53,12 @@ def get_model_catalog() -> list[dict[str, object]]:
     return [
         {
             "id": "offline",
-            "label": "Private Server",
+            "label": "Backend Only",
             "mode": "offline",
             "provider": "local",
             "model": settings.offline_model,
             "available": True,
-            "description": "Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request is made.",
+            "description": "Uses retrieved PDF chunks on the backend without an external LLM request.",
         },
         {
             "id": "fast",

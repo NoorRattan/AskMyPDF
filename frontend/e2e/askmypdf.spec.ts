@@ -43,7 +43,7 @@ function makePdf(lines: string[]) {
   return Buffer.from(body)
 }
 
-test("uploads a PDF and receives a cited private-server answer", async ({ page }) => {
+test("uploads a PDF and receives a cited backend-only answer when online keys are absent", async ({ page }) => {
   await page.goto("/#upload")
 
   await page.locator('input[type="file"]').setInputFiles({
@@ -61,6 +61,6 @@ test("uploads a PDF and receives a cited private-server answer", async ({ page }
   await page.getByRole("button", { name: "Send message" }).click()
 
   await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("From the document:", { timeout: 30_000 })
-  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("Answered by the private server route")
+  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("Answered by the backend-only route")
   await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("source")
 })

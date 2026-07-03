@@ -19,7 +19,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
 
    | Variable | Value |
    |---|---|
-   | `GROQ_API_KEY` | optional for online modes; omit to keep only Private Server available |
+   | `GROQ_API_KEY` | optional for online modes; omit to keep only Backend Only available |
    | `ANTHROPIC_API_KEY` | optional; omit to run Deep Online on Groq 70B when Groq is configured |
    | `OFFLINE_MODEL` | `askmypdf-offline-extractive-v1` |
    | `FAST_MODEL` | `llama-3.1-8b-instant` |
@@ -43,7 +43,7 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | `MAX_SESSIONS` | `20` |
    | `PORT` | `8000` |
 
-   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000. On a Groq-only deployment, Render startup logs should include `Deep Online: llama-3.3-70b-versatile via Groq (no Anthropic key set)`. Without online keys, logs should state that Private Server remains available.
+   `PORT=8000` matches the Dockerfile command, which starts Uvicorn on port 8000. On a Groq-only deployment, Render startup logs should include `Deep Online: llama-3.3-70b-versatile via Groq (no Anthropic key set)`. Without online keys, logs should state that Backend Only remains available.
 
 5. Click Deploy. Watch the logs. The deploy is ready when you see:
 
@@ -110,7 +110,7 @@ Once you have the final Vercel URL:
 
 1. Visit your Vercel URL.
 2. Upload a PDF and confirm the upload panel shows progress through extraction and embedding.
-3. Select Private Server and ask a question.
+3. If no online key is configured, select Backend Only and ask a question.
 4. If `GROQ_API_KEY` is configured, select Fast Online and ask a question.
 5. If an Anthropic or Groq online route is configured, select Deep Online and ask a question.
 6. Confirm tokens stream and completed messages show the model/provider/mode that answered.

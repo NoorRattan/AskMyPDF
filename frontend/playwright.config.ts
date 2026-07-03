@@ -23,7 +23,6 @@ export default defineConfig({
         RATE_LIMIT_ENABLED: "false",
         ENABLE_API_DOCS: "false",
         UPLOAD_DIR: "./data/e2e_uploads",
-        GROQ_API_KEY: "test_api_key",
       },
     },
     {

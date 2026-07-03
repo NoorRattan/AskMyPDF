@@ -178,7 +178,7 @@ export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function
             : "Drag a file in or click to open your browser"}
         </p>
         <div className="relative z-10 mt-6 flex flex-wrap justify-center gap-2">
-          {["PDF only", "50MB max", "Private session"].map((item) => (
+          {["PDF only", "50MB max", "PDF scoped"].map((item) => (
             <span
               key={item}
               className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#00F5D4] bg-[#2D1B4E]/85 px-3 py-1.5 font-mono text-[11px] font-black uppercase tracking-widest text-white shadow-[3px_3px_0_#FF3AF2]"

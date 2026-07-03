@@ -61,7 +61,7 @@ export function ChatInterface({
     () => ({
       id: "welcome-message",
       role: "assistant",
-      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Private Server"}. Ask me anything - I'll answer from the document.`,
+      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Fast Online"}. Ask me anything - I'll answer from the document.`,
       isStreaming: false,
       timestamp: new Date(),
     }),
@@ -270,7 +270,7 @@ export function ChatInterface({
             <ThinkingIndicator
               label={
                 modelPreference === "offline"
-                  ? "Composing through the private server route..."
+                  ? "Composing through the backend-only route..."
                   : modelPreference === "thinking"
                     ? "Thinking more carefully..."
                     : "Finding cited answer..."

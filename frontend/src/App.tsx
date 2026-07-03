@@ -15,7 +15,7 @@ import { type ReactNode, type RefObject, useEffect, useRef, useState } from "rea
 import { ChatInterface } from "./components/ChatInterface"
 import { ErrorBoundary } from "./components/ErrorBoundary"
 import { Header } from "./components/Header"
-import { ModelSelector } from "./components/ModelSelector"
+import { ModelSelector, selectPreferredModel } from "./components/ModelSelector"
 import { ProductionStatusPanel } from "./components/ProductionStatusPanel"
 import { UploadZone, type UploadZoneHandle } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
@@ -67,7 +67,7 @@ const shufflerLabels = ["Parse pages", "Embed passages", "Rank context"] as cons
 const telemetryLines = [
   "question.receive('summarize the risk')",
   "retriever.match(page: 04, confidence: 0.91)",
-  "context.lock(session: private)",
+  "context.lock(session: scoped)",
   "answer.stream(tokens: cited)",
 ] as const
 
@@ -85,7 +85,7 @@ const protocolSteps = [
   {
     number: "01",
     title: "Ingest the document field",
-    description: "A dense PDF enters a private session, then resolves into pages, chunks, and document structure.",
+    description: "A dense PDF enters a scoped session, then resolves into pages, chunks, and document structure.",
     icon: CircuitBoard,
   },
   {
@@ -111,8 +111,8 @@ const floatingShapes = [
 const legalContent = {
   privacy: {
     eyebrow: "Privacy",
-    title: "Private sessions stay scoped to the PDF you upload.",
-    body: "AskMyPDF processes each document for the active session, keeps answers tied to retrieved chunks, and exposes a private server route that does not call Groq, Anthropic, or another external LLM provider.",
+    title: "PDF sessions stay scoped to the document you upload.",
+    body: "AskMyPDF processes each document for the active session, keeps answers tied to retrieved chunks, and sends only the retrieved excerpts needed by the selected online model route.",
     points: ["PDF-scoped context", "No public document browsing", "Session cleanup ready through the backend contract"],
   },
   terms: {
@@ -123,9 +123,9 @@ const legalContent = {
   },
   security: {
     eyebrow: "Security",
-    title: "The project separates private and online model routes.",
-    body: "The Private Server route runs on the backend with local extractive answering. Online routes are explicit choices and report their provider/model in completed chat messages.",
-    points: ["Model route chosen before upload", "Citations remain visible", "Backend health reports available model routes"],
+    title: "The project exposes explicit online model routes.",
+    body: "Fast Online and Deep Online are deliberate choices backed by the production API. Completed messages report the provider and model that answered.",
+    points: ["Model route chosen before upload", "Citations remain visible", "Backend health reports online model routes"],
   },
 } as const
 
@@ -776,14 +776,14 @@ function Landing({
                 />
               </div>
               <p className="rounded-[1.25rem] border-4 border-[#FFE600] bg-[#0D0D1A]/88 px-4 py-3 text-xs font-bold leading-5 text-[#DCD7FF] shadow-[5px_5px_0_#FF3AF2]">
-                PDFs are processed temporarily for this session. Online routes send retrieved PDF excerpts to Groq or Anthropic; Private Server answers on the backend without an external LLM.
+                PDFs are processed temporarily for this session. Online routes send retrieved PDF excerpts to Groq or Anthropic and completed answers report the provider used.
               </p>
             </div>
           </div>
 
           <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["Private server route", "Online model routes", "Cited answer stream"].map((item, index) => (
+              {["Backend-scoped retrieval", "Online model routes", "Cited answer stream"].map((item, index) => (
                 <p
                   key={item}
                   className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border-4 bg-[#0D0D1A]/86 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.16)]"
@@ -866,7 +866,7 @@ export default function App() {
   const { state: uploadState, uploadFile, reset } = useUpload()
   const { messages, isLoading, error, sendMessage, clearChat } = useChat(uploadState.sessionId)
   const systemStatus = useSystemStatus()
-  const [selectedModel, setSelectedModel] = useState<ModelPreference>("offline")
+  const [selectedModel, setSelectedModel] = useState<ModelPreference>("fast")
   const [activeView, setActiveView] = useState<LandingView>(() => landingViewFromHash())
   const isChat = uploadState.status === "ready"
 
@@ -876,9 +876,9 @@ export default function App() {
       return
     }
 
-    const active = models.find((model) => model.id === selectedModel)
-    if (active && !active.available) {
-      setSelectedModel("offline")
+    const preferredModel = selectPreferredModel(selectedModel, models)
+    if (preferredModel !== selectedModel) {
+      setSelectedModel(preferredModel)
     }
   }, [selectedModel, systemStatus.details?.available_models])
 
