@@ -308,6 +308,26 @@ def test_chat_invalid_model_preference(client):
     assert response.status_code == 422
 
 
+def test_chat_rate_limit_returns_429(client, monkeypatch):
+    from app.services.rate_limiter import reset_rate_limits
+
+    monkeypatch.setattr(settings, "rate_limit_enabled", True)
+    monkeypatch.setattr(settings, "chat_rate_limit_per_minute", 2)
+    reset_rate_limits()
+    headers = {"x-forwarded-for": "203.0.113.20"}
+    payload = {"session_id": "abcdef1234567890", "question": "What is this?"}
+
+    for _ in range(2):
+        response = client.post("/api/chat", json=payload, headers=headers)
+        assert response.status_code == 404
+
+    response = client.post("/api/chat", json=payload, headers=headers)
+
+    assert response.status_code == 429
+    assert response.json()["error"] == "rate_limited"
+    assert response.headers["retry-after"]
+
+
 def test_save_and_list_cited_answer(client, sample_pdf):
     session_id = _upload(client, sample_pdf)
     payload = {
@@ -347,6 +367,37 @@ def test_save_cited_answer_unknown_session(client):
             "sources": [],
         },
     )
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "session_not_found"
+
+
+def test_delete_session_removes_chat_and_saved_answers(client, sample_pdf):
+    session_id = _upload(client, sample_pdf)
+    payload = {
+        "session_id": session_id,
+        "question": "What is this document about?",
+        "answer": "From the document: AskMyPDF retrieves cited PDF answers.",
+        "sources": [{"text": "AskMyPDF retrieves cited PDF answers.", "page_number": 1, "chunk_index": 0}],
+    }
+    save_response = client.post("/api/saved-answers", json=payload)
+    assert save_response.status_code == 200
+
+    response = client.delete(f"/api/session/{session_id}")
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Session deleted."
+    missing_chat = client.post(
+        "/api/chat",
+        json={"session_id": session_id, "question": "What is this document about?"},
+    )
+    assert missing_chat.status_code == 404
+    missing_answers = client.get(f"/api/sessions/{session_id}/saved-answers")
+    assert missing_answers.status_code == 404
+
+
+def test_delete_unknown_session_returns_404(client):
+    response = client.delete("/api/session/abcdef1234567890")
 
     assert response.status_code == 404
     assert response.json()["error"] == "session_not_found"

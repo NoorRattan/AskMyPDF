@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 
 os.environ.setdefault("GROQ_API_KEY", "test_api_key")
 os.environ.setdefault("UPLOAD_DIR", "./data/test_uploads")
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 import app.main as main_mod
 from app.main import app
@@ -25,6 +26,9 @@ class InMemoryStore:
 
     def query_chunks(self, session_id: str, query_embedding: list[float], top_k: int) -> list[dict]:
         return self.sessions.get(session_id, [])[:top_k]
+
+    def delete_session(self, session_id: str) -> bool:
+        return self.sessions.pop(session_id, None) is not None
 
 
 @pytest.fixture(scope="session")
@@ -52,6 +56,9 @@ def client() -> TestClient:
 
 @pytest.fixture(autouse=True)
 def fake_pipeline(monkeypatch):
+    from app.services.rate_limiter import reset_rate_limits
+
+    reset_rate_limits()
     store = InMemoryStore()
 
     def fake_embed_texts(texts: list[str]) -> list[list[float]]:
@@ -62,6 +69,7 @@ def fake_pipeline(monkeypatch):
     monkeypatch.setattr(chat, "embed_texts", fake_embed_texts)
     monkeypatch.setattr(chat, "session_exists", store.session_exists)
     monkeypatch.setattr(chat, "query_chunks", store.query_chunks)
+    monkeypatch.setattr(chat, "delete_session", store.delete_session)
     return store
 
 

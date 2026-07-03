@@ -32,6 +32,16 @@ services:
         value: 0
       - key: UPLOAD_EMBEDDING_BATCH_SIZE
         value: 256
+      - key: UPLOAD_JOB_TTL_SECONDS
+        value: 3600
+      - key: RATE_LIMIT_ENABLED
+        value: true
+      - key: UPLOAD_RATE_LIMIT_PER_MINUTE
+        value: 5
+      - key: CHAT_RATE_LIMIT_PER_MINUTE
+        value: 10
+      - key: ENABLE_API_DOCS
+        value: false
       - key: EMBEDDING_BACKEND
         value: hash
       - key: EMBEDDING_DIMENSIONS

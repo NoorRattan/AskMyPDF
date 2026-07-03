@@ -59,6 +59,12 @@ def cleanup_jobs() -> None:
             _remove_file(job.file_path)
 
 
+def job_count() -> int:
+    cleanup_jobs()
+    with _lock:
+        return len(_jobs)
+
+
 def create_job(job_id: str, filename: str, file_path: str) -> UploadJob:
     cleanup_jobs()
     now = _now()
@@ -77,6 +83,7 @@ def create_job(job_id: str, filename: str, file_path: str) -> UploadJob:
 
 
 def get_job(job_id: str) -> UploadJob | None:
+    cleanup_jobs()
     with _lock:
         return _jobs.get(job_id)
 

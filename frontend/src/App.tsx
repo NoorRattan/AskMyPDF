@@ -775,6 +775,9 @@ function Landing({
                   disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
                 />
               </div>
+              <p className="rounded-[1.25rem] border-4 border-[#FFE600] bg-[#0D0D1A]/88 px-4 py-3 text-xs font-bold leading-5 text-[#DCD7FF] shadow-[5px_5px_0_#FF3AF2]">
+                PDFs are processed temporarily for this session. Online routes send retrieved PDF excerpts to Groq or Anthropic; Private Server answers on the backend without an external LLM.
+              </p>
             </div>
           </div>
 

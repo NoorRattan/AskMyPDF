@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     chunk_overlap: int = 0
     upload_embedding_batch_size: int = 256
     upload_job_ttl_seconds: int = 3600
+    rate_limit_enabled: bool = True
+    upload_rate_limit_per_minute: int = 5
+    chat_rate_limit_per_minute: int = 10
+    enable_api_docs: bool = False
     top_k_results: int = 5
     embedding_backend: str = "auto"
     embedding_dimensions: int = 256

@@ -2,6 +2,7 @@ from collections.abc import Callable
 
 import pdfplumber
 from pypdf import PdfReader
+from pypdf.errors import FileNotDecryptedError, PdfReadError
 
 try:
     import fitz
@@ -30,7 +31,8 @@ def _extract_with_pymupdf(file_path: str, progress_callback: ProgressCallback = 
     with fitz.open(file_path) as doc:
         page_count = doc.page_count
         if getattr(doc, "needs_pass", False):
-            doc.authenticate("")
+            if not doc.authenticate(""):
+                raise ValueError("PDF is encrypted or password-protected.")
 
         for idx in range(page_count):
             text = doc.load_page(idx).get_text("text")
@@ -48,11 +50,15 @@ def _extract_with_pypdf(file_path: str, progress_callback: ProgressCallback = No
     reader = PdfReader(file_path)
 
     if reader.is_encrypted:
-        reader.decrypt("")
+        if reader.decrypt("") == 0:
+            raise ValueError("PDF is encrypted or password-protected.")
 
     page_count = len(reader.pages)
     for idx, page in enumerate(reader.pages, start=1):
-        stripped = _normalize_page_text(page.extract_text())
+        try:
+            stripped = _normalize_page_text(page.extract_text())
+        except (FileNotDecryptedError, PdfReadError) as exc:
+            raise ValueError("PDF is encrypted or password-protected.") from exc
         if not stripped:
             if progress_callback:
                 progress_callback(idx, page_count)

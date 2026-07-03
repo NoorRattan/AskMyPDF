@@ -1,5 +1,6 @@
 import re
 
+from pypdf import PdfWriter
 from reportlab.pdfgen import canvas
 
 
@@ -97,6 +98,24 @@ def test_upload_scanned_pdf_job_fails(client, tmp_path):
     assert status["error"]
 
 
+def test_upload_password_protected_pdf_job_fails(client, tmp_path):
+    path = tmp_path / "protected.pdf"
+    writer = PdfWriter()
+    writer.add_blank_page(width=200, height=200)
+    writer.encrypt("secret")
+
+    with path.open("wb") as file:
+        writer.write(file)
+
+    response = _post_pdf(client, path, "protected.pdf")
+
+    assert response.status_code == 200
+    status = _status(client, response.json()["job_id"])
+    assert status["status"] == "error"
+    assert "encrypted" in status["message"]
+    assert "password" in status["error"].lower() or "encrypted" in status["error"].lower()
+
+
 def test_upload_status_unknown_job(client):
     response = client.get("/api/upload/status/abcdef1234567890")
 
@@ -134,3 +153,67 @@ def test_upload_empty_file(client):
 
     assert response.status_code == 400
     assert response.json()["error"] == "empty_file"
+
+
+def test_upload_rate_limit_returns_429(client, monkeypatch):
+    from app.config import settings
+    from app.services.rate_limiter import reset_rate_limits
+
+    monkeypatch.setattr(settings, "rate_limit_enabled", True)
+    monkeypatch.setattr(settings, "upload_rate_limit_per_minute", 2)
+    reset_rate_limits()
+    headers = {"x-forwarded-for": "203.0.113.10"}
+
+    for _ in range(2):
+        response = client.post(
+            "/api/upload",
+            files={"file": ("bad.txt", b"not a pdf", "text/plain")},
+            headers=headers,
+        )
+        assert response.status_code == 400
+
+    response = client.post(
+        "/api/upload",
+        files={"file": ("bad.txt", b"not a pdf", "text/plain")},
+        headers=headers,
+    )
+
+    assert response.status_code == 429
+    assert response.json()["error"] == "rate_limited"
+    assert response.headers["retry-after"]
+
+
+def test_completed_upload_jobs_expire_and_remove_files(tmp_path, monkeypatch):
+    import app.services.upload_jobs as upload_jobs
+
+    now = 1000.0
+    file_path = tmp_path / "stale.pdf"
+    file_path.write_bytes(b"%PDF stale")
+    monkeypatch.setattr(upload_jobs.settings, "upload_job_ttl_seconds", 5)
+    monkeypatch.setattr(upload_jobs, "_now", lambda: now)
+
+    job = upload_jobs.create_job("a" * 16, "stale.pdf", str(file_path))
+    upload_jobs.update_job(job.job_id, status="ready")
+
+    monkeypatch.setattr(upload_jobs, "_now", lambda: now + 6)
+
+    assert upload_jobs.get_job(job.job_id) is None
+    assert not file_path.exists()
+
+
+def test_failed_upload_jobs_expire_and_remove_files(tmp_path, monkeypatch):
+    import app.services.upload_jobs as upload_jobs
+
+    now = 2000.0
+    file_path = tmp_path / "failed.pdf"
+    file_path.write_bytes(b"%PDF failed")
+    monkeypatch.setattr(upload_jobs.settings, "upload_job_ttl_seconds", 5)
+    monkeypatch.setattr(upload_jobs, "_now", lambda: now)
+
+    job = upload_jobs.create_job("b" * 16, "failed.pdf", str(file_path))
+    upload_jobs.update_job(job.job_id, status="error")
+
+    monkeypatch.setattr(upload_jobs, "_now", lambda: now + 6)
+
+    assert upload_jobs.get_job(job.job_id) is None
+    assert not file_path.exists()

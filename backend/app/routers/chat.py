@@ -8,8 +8,8 @@ from app.config import settings
 from app.models.schemas import ChatRequest, SavedAnswerRequest, SavedAnswerResponse
 from app.services.embedding_service import embed_texts
 from app.services.llm_service import model_is_available, resolve_model, stream_answer
-from app.services.saved_answer_service import list_saved_answers, save_answer
-from app.services.vector_service import query_chunks, session_exists
+from app.services.saved_answer_service import delete_saved_answers, list_saved_answers, save_answer
+from app.services.vector_service import delete_session, query_chunks, session_exists
 
 router = APIRouter()
 
@@ -102,3 +102,17 @@ def get_saved_answers(session_id: str) -> list[SavedAnswerResponse]:
         )
 
     return [SavedAnswerResponse(**record) for record in list_saved_answers(session_id)]
+
+
+@router.delete("/session/{session_id}")
+def delete_pdf_session(session_id: str) -> dict[str, str]:
+    removed_session = delete_session(session_id)
+    removed_answers = delete_saved_answers(session_id)
+
+    if not removed_session and not removed_answers:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": "session_not_found", "detail": "No PDF has been uploaded for this session."},
+        )
+
+    return {"message": "Session deleted."}

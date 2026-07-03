@@ -6,12 +6,30 @@ Base URL in production: `https://askmypdf-gxwp.onrender.com`
 
 All application endpoints except health are prefixed with `/api`.
 
-## GET /health and /api/health
+## GET /health
 
 Checks whether the backend is ready.
 
 ```bash
 curl http://localhost:8000/health
+```
+
+Response `200`:
+
+```json
+{
+  "status": "ok",
+  "model_loaded": true
+}
+```
+
+`/health` intentionally returns only minimal readiness information for production health checks.
+
+## GET /api/health
+
+Returns the browser-facing runtime contract used by the frontend model selector and status panel.
+
+```bash
 curl http://localhost:8000/api/health
 ```
 
@@ -47,6 +65,8 @@ Response `200`:
 The deployed free-tier backend may report `hashing-vectorizer-256d` with `memory_profile` set to `render-512-safe` when configured for the lightweight embedding backend.
 
 The frontend calls `/api/health` through Vercel's rewrite so the browser can display live production status without reaching around the deployed frontend origin.
+
+FastAPI's generated `/docs`, `/redoc`, and `/openapi.json` routes are disabled unless `ENABLE_API_DOCS=true`.
 
 ## POST /api/upload
 
@@ -105,9 +125,21 @@ File too large `413`:
 
 Malformed multipart requests return FastAPI's standard `422` validation response.
 
+Rate limit `429`:
+
+```json
+{
+  "error": "rate_limited",
+  "detail": "Too many requests. Try again in 42 seconds."
+}
+```
+
+The default upload limit is 5 requests per minute per client IP.
+
 ## GET /api/upload/status/{job_id}
 
 Returns upload processing progress. Poll this endpoint until `status` is `ready` or `error`.
+Completed and failed jobs are kept only for `UPLOAD_JOB_TTL_SECONDS` and then removed from the in-memory job store. Uploaded temp files are deleted after processing and are also removed during TTL cleanup if a stale path remains.
 
 Success response `200`:
 
@@ -191,6 +223,7 @@ Request:
 - If `ANTHROPIC_API_KEY` is configured, Deep Online upgrades to Anthropic with `claude-sonnet-4-6`.
 - The final SSE `done` message reports the dynamic per-request `model_used`, `provider_used`, and `mode_used`.
 - If an online route is selected without the required API key, the API returns `503 model_unavailable` before the SSE stream starts.
+- The default chat limit is 10 requests per minute per client IP.
 
 cURL:
 
@@ -268,9 +301,18 @@ Model unavailable `503`:
 }
 ```
 
+Rate limit `429`:
+
+```json
+{
+  "error": "rate_limited",
+  "detail": "Too many requests. Try again in 42 seconds."
+}
+```
+
 ## DELETE /api/session/{session_id}
 
-Deletes an in-memory session. This is the intended cleanup endpoint contract. The current codebase has the vector service helper for this action, but the route is not mounted yet.
+Deletes an in-memory session and any saved answers for that session.
 
 cURL:
 

@@ -32,6 +32,11 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    | `CHUNK_SIZE` | `1200` |
    | `CHUNK_OVERLAP` | `0` |
    | `UPLOAD_EMBEDDING_BATCH_SIZE` | `256` |
+   | `UPLOAD_JOB_TTL_SECONDS` | `3600` |
+   | `RATE_LIMIT_ENABLED` | `true` |
+   | `UPLOAD_RATE_LIMIT_PER_MINUTE` | `5` |
+   | `CHAT_RATE_LIMIT_PER_MINUTE` | `10` |
+   | `ENABLE_API_DOCS` | `false` |
    | `EMBEDDING_BACKEND` | `hash` on free Render; use `sentence-transformers` on larger instances |
    | `EMBEDDING_DIMENSIONS` | `256` |
    | `TORCH_NUM_THREADS` | `2` |
@@ -56,10 +61,10 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    Expected response:
 
    ```json
-   {"status":"ok","model_loaded":true,"embedding_model":"hashing-vectorizer-256d","embedding_backend":"hash","memory_profile":"render-512-safe","offline_model":"askmypdf-offline-extractive-v1","offline_provider":"local","fast_model":"llama-3.1-8b-instant","fast_provider":"groq","thinking_model":"llama-3.3-70b-versatile","thinking_provider":"groq","available_models":[{"id":"offline","label":"Private Server","mode":"offline","provider":"local","model":"askmypdf-offline-extractive-v1","available":true,"description":"Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request is made."}]}
+   {"status":"ok","model_loaded":true}
    ```
 
-   If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2` and `memory_profile` is `semantic-full`. In that case, use the full `requirements.txt` dependency set or a custom image that includes sentence-transformers and Torch.
+   `/health` is intentionally minimal. It should not expose model names, provider routes, or embedding details.
 
 8. Verify the browser-facing health rewrite:
 
@@ -67,7 +72,16 @@ This guide ships AskMyPDF as a Render backend plus a Vercel frontend.
    curl https://<vercel-url>/api/health
    ```
 
-   This endpoint powers the live production status panel on the frontend.
+   This endpoint powers the live production status panel and model selector on the frontend. It returns the detailed browser-facing model catalog. If you deploy on a larger instance with `EMBEDDING_BACKEND=sentence-transformers`, the `embedding_model` value is `all-MiniLM-L6-v2` and `memory_profile` is `semantic-full`. In that case, use the full `requirements.txt` dependency set or a custom image that includes sentence-transformers and Torch.
+
+9. Confirm production docs are closed:
+
+   ```bash
+   curl -i https://<render-url>/docs
+   curl -i https://<render-url>/openapi.json
+   ```
+
+   Both should return `404` unless you deliberately set `ENABLE_API_DOCS=true`.
 
 ## 3. Deploy Frontend To Vercel
 
@@ -100,6 +114,7 @@ Once you have the final Vercel URL:
 4. If `GROQ_API_KEY` is configured, select Fast Online and ask a question.
 5. If an Anthropic or Groq online route is configured, select Deep Online and ask a question.
 6. Confirm tokens stream and completed messages show the model/provider/mode that answered.
+7. Confirm abuse controls are live by checking that repeated `/api/upload` or `/api/chat` calls eventually return `429` with a `Retry-After` header.
 
 ## 6. Local Development
 
