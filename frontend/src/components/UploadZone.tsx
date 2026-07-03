@@ -1,5 +1,5 @@
 import { CheckCircle2, FileText, UploadCloud } from "lucide-react"
-import { type ChangeEvent, type DragEvent, type KeyboardEvent, useRef, useState } from "react"
+import { type ChangeEvent, type DragEvent, type KeyboardEvent, forwardRef, useImperativeHandle, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
 import type { UploadState } from "../types"
@@ -11,9 +11,13 @@ interface UploadZoneProps {
   onReset: () => void
 }
 
+export interface UploadZoneHandle {
+  openPicker: () => void
+}
+
 const fallbackError = "Couldn't process that PDF. Make sure it's not scanned or encrypted."
 
-export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) {
+export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function UploadZone({ uploadState, onUpload, onReset }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [clientError, setClientError] = useState<string | null>(null)
@@ -29,6 +33,8 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
       inputRef.current?.click()
     }
   }
+
+  useImperativeHandle(ref, () => ({ openPicker }), [isBusy])
 
   async function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith(".pdf")) {
@@ -198,4 +204,4 @@ export function UploadZone({ uploadState, onUpload, onReset }: UploadZoneProps) 
       ) : null}
     </>
   )
-}
+})

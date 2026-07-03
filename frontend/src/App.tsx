@@ -17,7 +17,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary"
 import { Header } from "./components/Header"
 import { ModelSelector } from "./components/ModelSelector"
 import { ProductionStatusPanel } from "./components/ProductionStatusPanel"
-import { UploadZone } from "./components/UploadZone"
+import { UploadZone, type UploadZoneHandle } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
 import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
@@ -208,7 +208,7 @@ function FloatingNav({
           <button
             key={link.id}
             type="button"
-            onClick={() => onNavigate(link.id)}
+            onClick={() => (link.id === "upload" ? onStart() : onNavigate(link.id))}
             aria-current={activeView === link.id ? "page" : undefined}
             className={cn(
               "max-focus rounded-full px-3 py-2 text-sm font-black uppercase tracking-widest transition hover:-translate-y-1 hover:rotate-1 hover:bg-[#FFE600] hover:text-[#0D0D1A]",
@@ -620,6 +620,7 @@ function Landing({
   const rootRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
   const uploadRef = useRef<HTMLElement>(null)
+  const uploadZoneRef = useRef<UploadZoneHandle>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
@@ -654,7 +655,14 @@ function Landing({
   }, [activeView, prefersReducedMotion])
 
   function scrollToUpload() {
+    const isAlreadyOnUpload = activeView === "upload"
     onNavigate("upload")
+
+    if (isAlreadyOnUpload) {
+      uploadZoneRef.current?.openPicker()
+      return
+    }
+
     window.setTimeout(() => {
       uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }, 0)
@@ -705,13 +713,13 @@ function Landing({
           <div className="hero-reveal relative min-w-0">
             <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(255,58,242,0.28),rgba(255,230,0,0.22),rgba(0,245,212,0.24))] blur-2xl" aria-hidden="true" />
             <div className="relative">
-              <UploadZone uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
+              <UploadZone ref={uploadZoneRef} uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
             </div>
           </div>
 
           <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["No external AI option", "Online model routes", "Cited answer stream"].map((item, index) => (
+              {["Private server route", "Online model routes", "Cited answer stream"].map((item, index) => (
                 <p
                   key={item}
                   className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border-4 bg-[#0D0D1A]/86 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.16)]"

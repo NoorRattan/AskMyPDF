@@ -81,7 +81,7 @@ export function ChatMessage({ message, onSave, isSaving = false, isSaved = false
           </p>
           {message.modelUsed ? (
             <p className="mt-3 rounded-xl border-2 border-[#FFE600] bg-[#0D0D1A]/72 px-3 py-2 font-mono text-[11px] font-bold text-[#DCD7FF]">
-              {message.modeUsed === "offline" ? "Answered without external AI using " : "Answered online with "}
+              {message.modeUsed === "offline" ? "Answered by the private server route using " : "Answered online with "}
               {message.modelUsed}
               {message.providerUsed ? ` via ${message.providerUsed}` : ""}
             </p>

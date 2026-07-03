@@ -8,12 +8,12 @@ import type { ModelOption, ModelPreference } from "../types"
 export const fallbackModels: ModelOption[] = [
   {
     id: "offline",
-    label: "Private Extractive",
+    label: "Private Server",
     mode: "offline",
     provider: "local",
     model: "askmypdf-offline-extractive-v1",
     available: true,
-    description: "Server-local extractive answers from retrieved PDF chunks. No Groq, Anthropic, or external AI request.",
+    description: "Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request.",
   },
   {
     id: "fast",
@@ -55,8 +55,8 @@ export function normalizeModels(models?: ModelOption[] | null): ModelOption[] {
     model.id === "offline"
       ? {
           ...model,
-          label: "Private Extractive",
-          description: "Server-local extractive answers from retrieved PDF chunks. No Groq, Anthropic, or external AI request.",
+          label: "Private Server",
+          description: "Runs on the deployed backend using retrieved PDF chunks only. No Groq, Anthropic, or external LLM request.",
         }
       : model,
   )
@@ -72,7 +72,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
         <div>
           <p className="font-mono text-[10px] font-black uppercase tracking-[0.22em] text-[#00F5D4]">Model route</p>
           {!compact ? (
-            <p className="mt-1 text-sm font-semibold leading-6 text-[#DCD7FF]">Choose no external AI or an online reasoning model before you ask.</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-[#DCD7FF]">Choose the private server route or an online reasoning model before you ask.</p>
           ) : null}
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#FFE600] bg-[#0D0D1A] px-2.5 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-white shadow-[3px_3px_0_#FF3AF2]">
@@ -140,7 +140,7 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
                       )}
                     >
                       {option.mode === "online" ? <Wifi size={10} aria-hidden="true" /> : <Laptop size={10} aria-hidden="true" />}
-                      {option.mode === "online" ? "online" : "offline"}
+                      {option.mode === "online" ? "online" : "private"}
                     </span>
                   </span>
                   <span className="mt-1 block truncate font-mono text-[11px] text-[#DCD7FF]/80" title={`${option.model} / ${option.provider}`}>

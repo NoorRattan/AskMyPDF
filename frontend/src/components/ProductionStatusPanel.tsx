@@ -45,6 +45,7 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
   const isOnline = status === "online"
   const availableCount = details?.available_models?.filter((model) => model.available).length ?? 0
   const totalModels = details?.available_models?.length ?? 0
+  const privateModel = details?.available_models?.find((model) => model.id === "offline")
 
   return (
     <motion.aside
@@ -78,7 +79,7 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
       <div className="relative z-10 mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CompactMetric label="Retrieval" value={details?.embedding_model ?? "checking"} />
         <CompactMetric label="Memory" value={details?.memory_profile ?? "checking"} />
-        <CompactMetric label="Private route" value={details ? `${details.offline_model} / ${details.offline_provider}` : "checking"} />
+        <CompactMetric label="Private route" value={details ? `${privateModel?.label ?? "Private Server"} / ${details.offline_provider}` : "checking"} />
         <CompactMetric label="Models ready" value={details ? `${availableCount}/${totalModels} available` : "checking"} />
       </div>
 
