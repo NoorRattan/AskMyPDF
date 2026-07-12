@@ -8,57 +8,24 @@ export function ThinkingIndicator({ label = "Thinking..." }: ThinkingIndicatorPr
   const shouldReduce = useReducedMotion()
 
   return (
-    <motion.div
-      initial={shouldReduce ? false : { opacity: 0, y: 10, scale: 0.97 }}
-      animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-      className="flex items-start gap-2.5 self-start"
-    >
-      <span
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border-4 border-[#FFE600] text-[11px] font-black text-white"
-        style={{
-          background: "linear-gradient(135deg, #FF3AF2, #7B2FFF, #00F5D4)",
-          boxShadow: "0 0 18px rgba(255,58,242,0.56), 4px 4px 0 #00F5D4",
-        }}
-        aria-label="AI thinking"
-      >
-        AI
-      </span>
-
-      <div
-        className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border-4 border-[#00F5D4] px-4 py-3.5"
-        style={{
-          background: "linear-gradient(135deg, rgba(13,13,26,0.96) 0%, rgba(45,27,78,0.92) 100%)",
-          boxShadow: "6px 6px 0 #7B2FFF, 0 0 24px rgba(0,245,212,0.24)",
-        }}
-      >
+    <div className="flex items-start gap-2.5 self-start">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
+        <span className="text-[11px] font-bold text-brand-400">AI</span>
+      </div>
+      <div className="flex items-center gap-2 rounded-2xl rounded-tl-sm border border-ink-700 bg-ink-800/60 px-4 py-3.5">
         {[0, 1, 2].map((idx) => (
           <motion.div
             key={idx}
-            animate={
-              shouldReduce
-                ? {}
-                : {
-                    y: [0, -7, 0],
-                    opacity: [0.4, 1, 0.4],
-                    scale: [1, 1.2, 1],
-                  }
-            }
-            transition={{
-              delay: idx * 0.16,
-              repeat: Infinity,
-              duration: 0.7,
-              ease: "easeInOut",
-            }}
+            animate={shouldReduce ? {} : { y: [0, -6, 0], opacity: [0.4, 1, 0.4] }}
+            transition={{ delay: idx * 0.15, repeat: Infinity, duration: 0.7, ease: "easeInOut" }}
             className="h-2 w-2 rounded-full"
             style={{
-              background: idx === 1 ? "#FFE600" : idx === 2 ? "#FF3AF2" : "#00F5D4",
-              boxShadow: idx === 1 ? "0 0 10px rgba(255,230,0,0.88)" : "0 0 8px rgba(0,245,212,0.72)",
+              background: idx === 0 ? "#3B82F6" : idx === 1 ? "#22D3EE" : "#818CF8",
             }}
           />
         ))}
-        <span className="ml-1 font-mono text-[11px] font-bold text-[#DCD7FF]">{label}</span>
+        <span className="ml-1 font-mono text-[11px] font-medium text-ink-400">{label}</span>
       </div>
-    </motion.div>
+    </div>
   )
 }

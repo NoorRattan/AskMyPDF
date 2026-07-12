@@ -1,7 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { BrainCircuit, Gauge, Laptop, LockKeyhole, Wifi } from "lucide-react"
 
-import { accentAt, maxCardAt } from "../lib/designSystem"
 import { cn } from "../lib/utils"
 import type { ModelOption, ModelPreference } from "../types"
 
@@ -73,7 +72,11 @@ export function selectPreferredModel(current: ModelPreference, models?: ModelOpt
     return current
   }
 
-  return options.find((model) => model.id === "fast" && model.available)?.id ?? options.find((model) => model.available)?.id ?? current
+  return (
+    options.find((model) => model.id === "fast" && model.available)?.id ??
+    options.find((model) => model.available)?.id ??
+    current
+  )
 }
 
 export function ModelSelector({ value, onChange, models, disabled = false, compact = false }: ModelSelectorProps) {
@@ -81,16 +84,16 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
   const options = normalizeModels(models)
 
   return (
-    <div className={cn("model-selector", compact ? "space-y-2" : "space-y-3")}>
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] font-black uppercase tracking-[0.22em] text-[#00F5D4]">Model route</p>
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-wider text-accent-400">Model route</p>
           {!compact ? (
-            <p className="mt-1 text-sm font-semibold leading-6 text-[#DCD7FF]">Choose an online reasoning model before you ask.</p>
+            <p className="mt-1 text-sm text-ink-400">Choose an answer route before you ask.</p>
           ) : null}
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border-2 border-[#FFE600] bg-[#0D0D1A] px-2.5 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-white shadow-[3px_3px_0_#FF3AF2]">
-          <LockKeyhole size={11} aria-hidden="true" />
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-800 px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-wider text-ink-400">
+          <LockKeyhole size={11} />
           PDF scoped
         </span>
       </div>
@@ -100,7 +103,6 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
           const Icon = modelIcons[option.id]
           const selected = value === option.id
           const unavailable = disabled || !option.available
-          const accent = accentAt(index)
 
           return (
             <motion.button
@@ -109,61 +111,56 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
               disabled={unavailable}
               aria-pressed={selected}
               onClick={() => onChange(option.id)}
-              initial={shouldReduce ? false : { opacity: 0, y: 10 }}
+              initial={shouldReduce ? false : { opacity: 0, y: 8 }}
               animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={shouldReduce || unavailable ? undefined : { y: -3, scale: 1.01 }}
+              transition={{ delay: index * 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={shouldReduce || unavailable ? undefined : { y: -2 }}
               whileTap={shouldReduce || unavailable ? undefined : { scale: 0.98 }}
               className={cn(
-                "group relative overflow-hidden rounded-2xl border-4 px-3.5 py-3 text-left outline-none transition-all duration-200 focus-visible:ring-4 focus-visible:ring-[#FFE600] focus-visible:ring-offset-4 focus-visible:ring-offset-[#0D0D1A]",
-                compact ? "min-h-[88px] px-2.5 py-2.5" : "min-h-[112px]",
+                "group relative overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left outline-none transition-all duration-200",
+                "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
+                compact ? "min-h-[80px] px-3 py-2.5" : "min-h-[100px]",
                 selected
-                  ? cn("bg-[#0D0D1A]/96", maxCardAt(index))
-                  : "border-white/16 bg-[#1B1238]/82 shadow-[4px_4px_0_rgba(255,255,255,0.08)] hover:bg-[#2D1B4E]",
-                unavailable && "cursor-not-allowed opacity-45",
+                  ? "border-brand-500 bg-brand-500/10"
+                  : "border-ink-700 bg-ink-800/50 hover:border-ink-600 hover:bg-ink-800",
+                unavailable && "cursor-not-allowed opacity-40",
               )}
             >
-              <span
-                className={cn(
-                  "pointer-events-none absolute inset-y-0 left-0 w-2 transition-opacity",
-                  selected ? "opacity-100" : "opacity-0 group-hover:opacity-70",
-                )}
-                style={{ backgroundColor: accent }}
-                aria-hidden="true"
-              />
-              <span className="pointer-events-none absolute inset-0 pattern-dots opacity-0 transition-opacity group-hover:opacity-25" aria-hidden="true" />
-              <span className={cn("relative flex items-start gap-3", compact && "gap-2")}>
-                <span
+              <div className={cn("flex items-start gap-3", compact && "gap-2")}>
+                <div
                   className={cn(
-                    "grid shrink-0 place-items-center rounded-xl border-4 transition",
-                    compact ? "h-8 w-8" : "h-10 w-10",
-                    selected ? "border-white bg-[#0D0D1A] text-white" : "border-white/18 bg-[#0D0D1A]/70 text-white",
+                    "flex shrink-0 items-center justify-center rounded-lg border transition",
+                    compact ? "h-8 w-8" : "h-9 w-9",
+                    selected
+                      ? "border-brand-500/40 bg-brand-500/10 text-brand-400"
+                      : "border-ink-700 bg-ink-800 text-ink-400 group-hover:text-ink-300",
                   )}
-                  style={{ color: accent, boxShadow: selected ? `4px 4px 0 ${accent}` : undefined }}
                 >
-                  <Icon size={compact ? 15 : 18} aria-hidden="true" />
-                </span>
-                <span className="min-w-0">
-                  <span className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className={cn("font-heading font-black text-white", compact && "text-xs leading-tight")}>{option.label}</span>
+                  <Icon size={compact ? 15 : 17} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <span className={cn("font-semibold text-ink-100", compact && "text-xs")}>{option.label}</span>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider",
+                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider",
                         compact && "hidden sm:inline-flex",
-                        option.mode === "offline" ? "border-[#00F5D4] bg-[#00F5D4]/12 text-[#A7FFF4]" : "border-[#FFE600] bg-[#FFE600]/12 text-[#FFF7A0]",
+                        option.mode === "offline"
+                          ? "border-ink-600 bg-ink-800 text-ink-400"
+                          : "border-accent-500/30 bg-accent-500/10 text-accent-400",
                       )}
                     >
-                      {option.mode === "online" ? <Wifi size={10} aria-hidden="true" /> : <Laptop size={10} aria-hidden="true" />}
+                      {option.mode === "online" ? <Wifi size={10} /> : <Laptop size={10} />}
                       {option.mode === "online" ? "online" : "backend"}
                     </span>
-                  </span>
-                  <span className="mt-1 block truncate font-mono text-[11px] text-[#DCD7FF]/80" title={`${option.model} / ${option.provider}`}>
+                  </div>
+                  <p className="mt-1 truncate font-mono text-[11px] text-ink-500" title={`${option.model} / ${option.provider}`}>
                     {compact ? option.provider : `${option.model} / ${option.provider}`}
-                  </span>
-                  {!compact ? <span className="mt-2 block text-xs font-semibold leading-5 text-[#DCD7FF]/88">{option.description}</span> : null}
-                  {!option.available ? <span className="mt-1 block text-xs font-bold text-[#FCA5A5]">API key not configured</span> : null}
-                </span>
-              </span>
+                  </p>
+                  {!compact ? <p className="mt-1.5 text-xs leading-5 text-ink-400">{option.description}</p> : null}
+                  {!option.available ? <p className="mt-1 text-xs font-medium text-danger">API key not configured</p> : null}
+                </div>
+              </div>
             </motion.button>
           )
         })}

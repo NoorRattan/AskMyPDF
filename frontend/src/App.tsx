@@ -1,16 +1,6 @@
-import gsap from "gsap"
-import {
-  ArrowDown,
-  CalendarDays,
-  CheckCircle2,
-  CircuitBoard,
-  FileSearch,
-  MousePointer2,
-  ScanLine,
-  TerminalSquare,
-  Waves,
-} from "lucide-react"
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from "react"
+import { motion, useReducedMotion } from "framer-motion"
+import { ArrowRight, FileSearch, FileText, MessageSquareQuote, Sparkles, Zap } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 import { ChatInterface } from "./components/ChatInterface"
 import { ErrorBoundary } from "./components/ErrorBoundary"
@@ -21,644 +11,31 @@ import { UploadZone, type UploadZoneHandle } from "./components/UploadZone"
 import { useChat } from "./hooks/useChat"
 import { useSystemStatus } from "./hooks/useSystemStatus"
 import { useUpload } from "./hooks/useUpload"
-import { accentAt, maxCardAt } from "./lib/designSystem"
-import { cn } from "./lib/utils"
 import type { ModelPreference } from "./types"
 
-type LandingView = "upload" | "signal" | "artifacts" | "protocol" | "privacy" | "terms" | "security"
-
-const navLinks: Array<{ id: LandingView; label: string }> = [
-  { id: "upload", label: "Upload" },
-  { id: "signal", label: "Signal" },
-  { id: "artifacts", label: "Artifacts" },
-  { id: "protocol", label: "Protocol" },
-]
-
-const legalLinks: Array<{ id: LandingView; label: string }> = [
-  { id: "privacy", label: "Privacy" },
-  { id: "terms", label: "Terms" },
-  { id: "security", label: "Security" },
-]
-
-const landingLinks = [...navLinks, ...legalLinks] as const
-
-function landingViewFromHash(): LandingView {
-  const hash = window.location.hash.replace("#", "")
-  return landingLinks.some((link) => link.id === hash) ? (hash as LandingView) : "upload"
-}
-
-const valueProps = [
+const features = [
   {
-    title: "PDFs become searchable signal",
-    descriptor: "AskMyPDF indexes each page into retrievable context before a single answer is written.",
+    icon: FileText,
+    title: "Document-aware retrieval",
+    description: "Your PDF is indexed into searchable chunks before the first question is asked.",
   },
   {
-    title: "Ask like the author is online",
-    descriptor: "Natural language questions stream through the document, not around it.",
+    icon: MessageSquareQuote,
+    title: "Cited, grounded answers",
+    description: "Every answer references the page and passage it came from. No hallucinated sources.",
   },
   {
-    title: "Every answer keeps receipts",
-    descriptor: "Citations, page references, and session boundaries keep the workspace accountable.",
+    icon: Zap,
+    title: "Streaming responses",
+    description: "Answers arrive token by token via Server-Sent Events for real-time feedback.",
   },
 ] as const
 
-const shufflerLabels = ["Parse pages", "Embed passages", "Rank context"] as const
-
-const telemetryLines = [
-  "question.receive('summarize the risk')",
-  "retriever.match(page: 04, confidence: 0.91)",
-  "context.lock(session: scoped)",
-  "answer.stream(tokens: cited)",
+const steps = [
+  { number: "01", title: "Upload your PDF", description: "Drop a file in. The backend extracts, chunks, and embeds it in the background." },
+  { number: "02", title: "Pick a model route", description: "Choose Fast Online for quick lookups or Deep Online for synthesis and summaries." },
+  { number: "03", title: "Ask and cite", description: "Ask in natural language. Answers stream back with page citations attached." },
 ] as const
-
-const weekDays = [
-  { short: "S", label: "Sunday" },
-  { short: "M", label: "Monday" },
-  { short: "T", label: "Tuesday" },
-  { short: "W", label: "Wednesday" },
-  { short: "T", label: "Thursday" },
-  { short: "F", label: "Friday" },
-  { short: "S", label: "Saturday" },
-] as const
-
-const protocolSteps = [
-  {
-    number: "01",
-    title: "Ingest the document field",
-    description: "A dense PDF enters a scoped session, then resolves into pages, chunks, and document structure.",
-    icon: CircuitBoard,
-  },
-  {
-    number: "02",
-    title: "Scan for semantic pressure",
-    description: "Retrieval searches the indexed field for the passages that matter to the question in front of you.",
-    icon: ScanLine,
-  },
-  {
-    number: "03",
-    title: "Stream a cited response",
-    description: "The assistant answers from retrieved context and keeps the visible source trail attached.",
-    icon: Waves,
-  },
-] as const
-
-const floatingShapes = [
-  { label: "PDF", className: "left-[3%] top-[14%] h-16 w-16 -rotate-6 animate-[float_6s_ease-in-out_infinite]", color: "#FFE600" },
-  { label: "AI", className: "right-[7%] top-[18%] h-20 w-20 rotate-6 animate-[float-reverse_5s_ease-in-out_infinite]", color: "#00F5D4" },
-  { label: "GO", className: "bottom-[18%] right-[11%] h-16 w-16 -rotate-3 animate-[float_7s_ease-in-out_infinite]", color: "#FF3AF2" },
-] as const
-
-const legalContent = {
-  privacy: {
-    eyebrow: "Privacy",
-    title: "PDF sessions stay scoped to the document you upload.",
-    body: "AskMyPDF processes each document for the active session, keeps answers tied to retrieved chunks, and sends only the retrieved excerpts needed by the selected online model route.",
-    points: ["PDF-scoped context", "No public document browsing", "Session cleanup ready through the backend contract"],
-  },
-  terms: {
-    eyebrow: "Terms",
-    title: "Use AskMyPDF for document-grounded answers.",
-    body: "The app is built for asking questions about PDFs you are allowed to upload. Answers are generated from retrieved document context and should be checked against the cited source pages for important decisions.",
-    points: ["Upload only permitted files", "Review cited pages", "Online routes require configured provider keys"],
-  },
-  security: {
-    eyebrow: "Security",
-    title: "The project exposes explicit online model routes.",
-    body: "Fast Online and Deep Online are deliberate choices backed by the production API. Completed messages report the provider and model that answered.",
-    points: ["Model route chosen before upload", "Citations remain visible", "Backend health reports online model routes"],
-  },
-} as const
-
-function FloatingShapes() {
-  return (
-    <>
-      {floatingShapes.map((shape) => (
-        <span
-          key={shape.label}
-          className={`floating-shape z-0 hidden rounded-[1.5rem] opacity-70 lg:grid ${shape.className}`}
-          style={{ color: shape.color }}
-          aria-hidden="true"
-        >
-          {shape.label}
-        </span>
-      ))}
-    </>
-  )
-}
-
-function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(query.matches)
-
-    function handleChange(event: MediaQueryListEvent) {
-      setPrefersReducedMotion(event.matches)
-    }
-
-    query.addEventListener("change", handleChange)
-    return () => query.removeEventListener("change", handleChange)
-  }, [])
-
-  return prefersReducedMotion
-}
-
-function splitWords(text: string) {
-  return text.split(" ").map((word, index) => (
-    <span key={`${word}-${index}`} className="manifesto-word inline-block">
-      {word}
-      {index < text.split(" ").length - 1 ? "\u00a0" : ""}
-    </span>
-  ))
-}
-
-function MagneticButton({
-  children,
-  className = "",
-  onClick,
-  href,
-}: {
-  children: ReactNode
-  className?: string
-  onClick?: () => void
-  href?: string
-}) {
-  const content = (
-    <>
-      <span className="button-slide" aria-hidden="true" />
-      <span className="relative z-10 inline-flex items-center gap-2">{children}</span>
-    </>
-  )
-
-  if (href) {
-    return (
-      <a href={href} onClick={onClick} className={`magnetic-button ${className}`}>
-        {content}
-      </a>
-    )
-  }
-
-  return (
-    <button type="button" onClick={onClick} className={`magnetic-button ${className}`}>
-      {content}
-    </button>
-  )
-}
-
-function FloatingNav({
-  onStart,
-  onNavigate,
-  activeView,
-  navRef,
-}: {
-  onStart: () => void
-  onNavigate: (view: LandingView) => void
-  activeView: LandingView
-  navRef: RefObject<HTMLElement | null>
-}) {
-  return (
-    <nav
-      ref={navRef}
-      className="landing-nav fixed left-1/2 top-4 z-50 flex w-[calc(100%-1rem)] max-w-5xl -translate-x-1/2 flex-wrap items-center justify-between gap-2 rounded-[1.75rem] px-3 py-2 text-ghost sm:top-6 sm:w-[min(92vw,980px)] sm:rounded-full sm:px-4"
-      aria-label="Landing navigation"
-    >
-      <button type="button" onClick={() => onNavigate("upload")} className="max-focus flex min-w-0 items-center gap-3 rounded-full" aria-label="Return to AskMyPDF home">
-        <span className="brand-glyph grid h-10 w-10 shrink-0 place-items-center rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] text-[#00F5D4] shadow-[0_0_22px_rgba(0,245,212,0.65),4px_4px_0_#FF6B35]">
-          <FileSearch size={18} aria-hidden="true" />
-          <span className="brand-glyph-pulse" aria-hidden="true" />
-        </span>
-        <span className="truncate font-display text-sm tracking-normal sm:text-base">AskMyPDF</span>
-      </button>
-
-      <div className="order-3 flex w-full items-center justify-center gap-1 overflow-x-auto md:order-none md:w-auto md:justify-start">
-        {navLinks.map((link) => (
-          <button
-            key={link.id}
-            type="button"
-            onClick={() => (link.id === "upload" ? onStart() : onNavigate(link.id))}
-            aria-current={activeView === link.id ? "page" : undefined}
-            className={cn(
-              "max-focus rounded-full px-3 py-2 text-sm font-black uppercase tracking-widest transition hover:-translate-y-1 hover:rotate-1 hover:bg-[#FFE600] hover:text-[#0D0D1A]",
-              activeView === link.id && "bg-[#FFE600] text-[#0D0D1A]",
-            )}
-          >
-            {link.label}
-          </button>
-        ))}
-      </div>
-
-      <MagneticButton onClick={onStart} className="max-button px-4 py-2 text-xs font-black uppercase tracking-widest sm:px-5 sm:text-sm">
-        Upload <ArrowDown size={15} aria-hidden="true" />
-      </MagneticButton>
-    </nav>
-  )
-}
-
-function DiagnosticShuffler() {
-  const [order, setOrder] = useState([0, 1, 2])
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setOrder((current) => {
-        const next = [...current]
-        const last = next.pop()
-
-        if (last !== undefined) {
-          next.unshift(last)
-        }
-
-        return next
-      })
-    }, 3000)
-
-    return () => window.clearInterval(timer)
-  }, [])
-
-  return (
-    <div className="pattern-checker relative h-52 overflow-hidden rounded-[2rem] border-4 border-[#00F5D4] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(0,245,212,0.46),8px_8px_0_#FF6B35]">
-      {order.map((labelIndex, stackIndex) => (
-        <div
-          key={shufflerLabels[labelIndex]}
-          className="absolute left-4 right-4 rounded-[1.5rem] border-4 border-dashed border-[#FFE600] bg-[#2D1B4E]/95 p-4 shadow-[6px_6px_0_#FF3AF2] transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-          style={{
-            top: 18 + stackIndex * 44,
-            zIndex: 10 - stackIndex,
-            transform: `scale(${1 - stackIndex * 0.055}) rotate(${stackIndex % 2 === 0 ? -1.2 : 1.2}deg)`,
-            opacity: 1 - stackIndex * 0.18,
-          }}
-        >
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-white/70">diagnostic layer {labelIndex + 1}</span>
-            <CheckCircle2 size={15} className="text-[#00F5D4]" aria-hidden="true" />
-          </div>
-          <p className="text-lg font-bold text-ghost">{shufflerLabels[labelIndex]}</p>
-          <div className="mt-4 h-3 overflow-hidden rounded-full border-2 border-[#00F5D4] bg-white/8">
-            <span className="block h-full w-4/5 rounded-full bg-gradient-to-r from-[#FF3AF2] via-[#FFE600] to-[#00F5D4]" />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function TelemetryTypewriter() {
-  const [messageIndex, setMessageIndex] = useState(0)
-  const [visibleChars, setVisibleChars] = useState(0)
-  const line = telemetryLines[messageIndex]
-
-  useEffect(() => {
-    const typing = window.setInterval(() => {
-      setVisibleChars((count) => {
-        if (count < line.length) {
-          return count + 1
-        }
-
-        window.clearInterval(typing)
-        window.setTimeout(() => {
-          setVisibleChars(0)
-          setMessageIndex((index) => (index + 1) % telemetryLines.length)
-        }, 900)
-
-        return count
-      })
-    }, 34)
-
-    return () => window.clearInterval(typing)
-  }, [line])
-
-  return (
-    <div className="pattern-dots rounded-[2rem] border-4 border-[#FF3AF2] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(255,58,242,0.46),8px_8px_0_#FFE600]">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white/70">
-          <span className="h-3 w-3 rounded-full bg-[#00F5D4] shadow-[0_0_18px_rgba(0,245,212,0.85)] animate-pulse" />
-          Live Feed
-        </span>
-        <TerminalSquare size={16} className="text-[#FFE600]" aria-hidden="true" />
-      </div>
-      <div className="min-h-40 rounded-[1.5rem] border-4 border-dashed border-[#00F5D4] bg-black/50 p-4 font-mono text-sm leading-7 text-white">
-        <p className="text-white/48">askmypdf.kernel</p>
-        <p className="mt-3">
-          <span className="text-[#FFE600]">$</span> {line.slice(0, visibleChars)}
-          <span className="ml-1 inline-block h-5 w-2 translate-y-1 bg-[#FF3AF2] animate-pulse" aria-hidden="true" />
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function SchedulerArtifact() {
-  const schedulerRef = useRef<HTMLDivElement>(null)
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const dayRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const [activeDay, setActiveDay] = useState(2)
-
-  useEffect(() => {
-    const root = schedulerRef.current
-    const cursor = cursorRef.current
-
-    if (!root || !cursor || dayRefs.current.some((day) => !day)) {
-      return
-    }
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.4, defaults: { ease: "power2.inOut" } })
-      const rootBounds = root.getBoundingClientRect()
-
-      dayRefs.current.forEach((day, index) => {
-        if (!day) {
-          return
-        }
-
-        const bounds = day.getBoundingClientRect()
-        const x = bounds.left - rootBounds.left + bounds.width * 0.55
-        const y = bounds.top - rootBounds.top + bounds.height * 0.48
-
-        tl.to(cursor, { autoAlpha: 1, x, y, duration: 0.72 })
-          .call(() => setActiveDay(index))
-          .to(day, { scale: 0.95, duration: 0.12, yoyo: true, repeat: 1 }, "<")
-          .to(cursor, { scale: 0.9, duration: 0.12, yoyo: true, repeat: 1 }, "<")
-      })
-
-      tl.to(cursor, { x: rootBounds.width - 78, y: rootBounds.height - 34, duration: 0.72 })
-        .to(".scheduler-save", { scale: 0.96, duration: 0.12, yoyo: true, repeat: 1 }, "<")
-        .to(cursor, { autoAlpha: 0, duration: 0.26 })
-    }, root)
-
-    return () => ctx.revert()
-  }, [])
-
-  return (
-    <div ref={schedulerRef} className="pattern-stripes relative overflow-hidden rounded-[2rem] border-4 border-[#FFE600] bg-[#0D0D1A] p-4 shadow-[0_0_26px_rgba(255,230,0,0.42),8px_8px_0_#00F5D4]">
-      <div ref={cursorRef} className="pointer-events-none absolute left-0 top-0 z-20 text-[#00F5D4] opacity-0 drop-shadow-[0_0_10px_rgba(0,245,212,0.9)]">
-        <MousePointer2 size={24} fill="currentColor" />
-      </div>
-      <div className="mb-4 flex items-center justify-between">
-        <span className="font-mono text-xs uppercase tracking-widest text-white/70">citation protocol</span>
-        <CalendarDays size={16} className="text-[#FF3AF2]" aria-hidden="true" />
-      </div>
-      <div className="grid grid-cols-7 gap-2">
-        {weekDays.map((day, index) => (
-          <button
-            key={day.label}
-            ref={(node) => {
-              dayRefs.current[index] = node
-            }}
-            type="button"
-            aria-label={day.label}
-            onClick={() => setActiveDay(index)}
-            className={`aspect-square rounded-[1rem] border font-mono text-xs transition ${
-              activeDay === index
-                ? "border-[#FFE600] bg-[#FFE600] text-[#0D0D1A] shadow-[0_0_28px_rgba(255,230,0,0.58)]"
-                : "border-[#FF3AF2]/45 bg-white/[0.06] text-white/70"
-            }`}
-          >
-            {day.short}
-          </button>
-        ))}
-      </div>
-      <span className="scheduler-save mt-4 block w-full rounded-full border-4 border-[#FF3AF2] bg-[#00F5D4] px-4 py-3 text-center text-sm font-black uppercase text-[#0D0D1A] shadow-[5px_5px_0_#FFE600]">
-        Saved citation trail
-      </span>
-    </div>
-  )
-}
-
-function FeatureArtifacts() {
-  const artifacts = [<DiagnosticShuffler key="diagnostic" />, <TelemetryTypewriter key="telemetry" />, <SchedulerArtifact key="scheduler" />] as const
-
-  return (
-    <section id="artifacts" className="pattern-mesh relative overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-6 lg:px-8">
-      <div className="absolute inset-0 bg-[#0D0D1A]/78" aria-hidden="true" />
-      <div className="relative mx-auto max-w-7xl">
-        <div className="mb-10 grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Interactive artifacts</p>
-            <h2 className="max-subtitle mt-4 max-w-3xl text-4xl leading-none sm:text-6xl">Document intelligence with visible motion.</h2>
-          </div>
-          <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FFE600] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#FF3AF2]">
-            Each surface translates a real AskMyPDF behavior into a software instrument: indexing, retrieval, and citation control.
-          </p>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-3">
-          {valueProps.map((item, index) => (
-            <article
-              key={item.title}
-              className={cn("artifact-card rounded-[2rem] bg-[#0D0D1A]/94 p-4 text-white transition duration-300 hover:-translate-y-2 hover:rotate-1", maxCardAt(index))}
-            >
-              {artifacts[index]}
-              <span
-                className="mt-6 inline-flex rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-[10px] font-black uppercase tracking-widest text-[#0D0D1A]"
-                style={{ backgroundColor: accentAt(index) }}
-              >
-                Signal {index + 1}
-              </span>
-              <h3 className="mt-4 font-heading text-2xl font-black leading-tight">{item.title}</h3>
-              <p className="mt-3 text-sm font-semibold leading-6 text-white/76">{item.descriptor}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ProtocolVisual({ index, accent }: { index: number; accent: string }) {
-  if (index === 0) {
-    return (
-      <svg viewBox="0 0 240 240" className="protocol-motif h-52 w-52" style={{ color: accent }} aria-hidden="true">
-        <defs>
-          <filter id="protocol-glow-1" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <g className="protocol-spin-slow" filter="url(#protocol-glow-1)">
-          <circle cx="120" cy="120" r="76" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.34" strokeDasharray="22 10" />
-          <path d="M72 74c44 18 52 74 96 92M168 74c-44 18-52 74-96 92" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
-        </g>
-        <g className="protocol-spin-reverse" opacity="0.82">
-          <circle cx="120" cy="120" r="44" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="14 8" />
-          {[62, 88, 114, 140, 166].map((y) => (
-            <line key={y} x1="82" x2="158" y1={y} y2={y} stroke="currentColor" strokeWidth="2.5" opacity="0.58" />
-          ))}
-        </g>
-        <circle className="protocol-pulse-dot" cx="120" cy="120" r="8" fill="currentColor" />
-      </svg>
-    )
-  }
-
-  if (index === 1) {
-    return (
-      <svg viewBox="0 0 240 240" className="protocol-scanner h-52 w-52 rounded-[2rem]" style={{ color: accent }} aria-hidden="true">
-        <rect x="10" y="10" width="220" height="220" rx="34" fill="rgba(255,255,255,0.05)" stroke="currentColor" strokeWidth="5" />
-        {Array.from({ length: 36 }, (_, cell) => {
-          const col = cell % 6
-          const row = Math.floor(cell / 6)
-          const delay = (cell % 6) * 0.08 + row * 0.04
-
-          return (
-            <circle key={cell} className="scanner-node" cx={48 + col * 29} cy={48 + row * 29} r="6" fill="white" opacity="0.18" style={{ animationDelay: `${delay}s` }} />
-          )
-        })}
-        <line x1="18" x2="222" y1="44" y2="44" stroke="#FFE600" strokeWidth="5" strokeLinecap="round" className="scan-laser-svg scan-laser" />
-        <rect className="scanner-frame" x="32" y="32" width="176" height="176" rx="22" fill="none" stroke="#FF6B35" strokeWidth="3" strokeDasharray="16 10" />
-      </svg>
-    )
-  }
-
-  return (
-    <svg viewBox="0 0 260 160" className="h-52 w-60" style={{ color: accent }} aria-hidden="true">
-      <defs>
-        <filter id="protocol-glow-3" x="-20%" y="-80%" width="140%" height="260%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <path
-        d="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="11"
-        opacity="0.18"
-      />
-      <path
-        className="waveform-path"
-        d="M5 82h36l10-32 18 74 18-106 20 64h38l16-38 18 74 18-55 13 19h45"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="5"
-        filter="url(#protocol-glow-3)"
-        pathLength="520"
-      />
-      <circle className="waveform-dot" r="5.5" cx="5" cy="82" fill="#FFE600" filter="url(#protocol-glow-3)" />
-    </svg>
-  )
-}
-
-function SignalSection() {
-  return (
-    <section id="signal" className="relative min-h-[100dvh] overflow-hidden bg-[#FFE600] px-4 py-28 text-[#0D0D1A] sm:px-8 lg:px-12">
-      <div className="absolute inset-0 pattern-dots opacity-40" aria-hidden="true" />
-      <div className="absolute -right-20 top-10 h-52 w-52 rotate-12 border-4 border-[#0D0D1A] bg-[#FF3AF2] shadow-[12px_12px_0_#00F5D4]" aria-hidden="true" />
-      <div className="absolute -left-16 bottom-12 h-44 w-64 -rotate-6 border-4 border-[#0D0D1A] bg-[#7B2FFF] shadow-[12px_12px_0_#FF6B35]" aria-hidden="true" />
-      <div className="relative mx-auto max-w-7xl pt-16">
-        <p className="mb-8 inline-flex rounded-full border-4 border-[#0D0D1A] bg-white px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] shadow-[6px_6px_0_#FF3AF2]">The signal</p>
-        <p className="max-w-5xl font-heading text-3xl font-black leading-tight text-[#0D0D1A]/70 sm:text-5xl">
-          Most document AI focuses on: quick summaries and vague chat bubbles.
-        </p>
-        <p className="mt-10 max-w-6xl font-heading text-5xl font-black leading-[0.92] text-[#0D0D1A] sm:text-7xl lg:text-8xl">
-          {splitWords("We focus on: cited conversation that stays locked to your PDF.")}
-        </p>
-      </div>
-    </section>
-  )
-}
-
-function ProtocolSection() {
-  return (
-    <section id="protocol" className="relative min-h-[100dvh] overflow-hidden bg-[#0D0D1A] px-4 py-24 text-white sm:px-8 lg:px-12">
-      <div className="absolute inset-0 pattern-mesh opacity-80" aria-hidden="true" />
-      <div className="absolute inset-0 bg-[#0D0D1A]/74" aria-hidden="true" />
-      <div className="relative mx-auto max-w-7xl pt-16">
-        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-[0.28em] text-[#00F5D4]">Workflow</p>
-            <h2 className="max-subtitle mt-4 max-w-4xl text-4xl leading-none sm:text-6xl">Upload to answer stays visible.</h2>
-          </div>
-          <p className="max-w-2xl rounded-[1.5rem] border-4 border-[#FF6B35] bg-[#2D1B4E]/86 p-5 text-base font-semibold leading-8 text-white shadow-[6px_6px_0_#00F5D4]">
-            Every stage stays visible as the PDF moves from ingestion to retrieval to a cited response, with the source trail carried through the whole workflow.
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-8 lg:grid-cols-3">
-          {protocolSteps.map((step, index) => {
-            const Icon = step.icon
-            const accent = accentAt(index + 2)
-
-            return (
-              <article
-                key={step.number}
-                className={cn(
-                  "protocol-card relative flex min-h-[460px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#0D0D1A]/94 p-6 text-white backdrop-blur-xl transition duration-300 hover:-translate-y-2",
-                  index === 1 && "lg:translate-y-10",
-                  index === 2 && "lg:-translate-y-4",
-                  maxCardAt(index + 2),
-                )}
-              >
-                <div className="absolute inset-0 pattern-checker opacity-35" aria-hidden="true" />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,58,242,0.1))]" aria-hidden="true" />
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="rounded-full border-4 border-white bg-[#0D0D1A] px-3 py-1 font-mono text-sm font-black" style={{ color: accent }}>
-                      STEP {step.number}
-                    </p>
-                    <span
-                      className="grid h-12 w-12 place-items-center rounded-[1.25rem] border-4 bg-[#0D0D1A] shadow-[5px_5px_0_rgba(255,255,255,0.2)]"
-                      style={{ borderColor: accent, color: accent }}
-                    >
-                      <Icon size={22} aria-hidden="true" />
-                    </span>
-                  </div>
-                  <h3 className="mt-8 font-heading text-3xl font-black leading-none sm:text-4xl">{step.title}</h3>
-                  <p className="mt-5 text-sm font-semibold leading-7 text-white/72">{step.description}</p>
-                </div>
-                <div className="relative z-10 mt-8 grid place-items-center">
-                  <ProtocolVisual index={index} accent={accent} />
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function LegalSection({ view }: { view: "privacy" | "terms" | "security" }) {
-  const content = legalContent[view]
-
-  return (
-    <section id={view} className="relative min-h-[100dvh] overflow-hidden bg-[#0D0D1A] px-4 py-28 text-white sm:px-8 lg:px-12">
-      <div className="absolute inset-0 pattern-checker opacity-55" aria-hidden="true" />
-      <div className="absolute inset-0 bg-[#0D0D1A]/78" aria-hidden="true" />
-      <div className="relative z-10 mx-auto grid max-w-6xl gap-8 pt-16 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-        <div>
-          <p className="inline-flex rounded-full border-4 border-[#00F5D4] bg-[#0D0D1A] px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.28em] text-[#FFE600] shadow-[6px_6px_0_#FF3AF2]">
-            {content.eyebrow}
-          </p>
-          <h1 className="max-subtitle mt-6 text-4xl leading-none sm:text-6xl">{content.title}</h1>
-        </div>
-        <div className="max-card max-card-cyan rounded-[2rem] p-5 text-white sm:p-7">
-          <p className="text-base font-bold leading-8 text-[#DCD7FF] sm:text-lg">{content.body}</p>
-          <div className="mt-7 grid gap-3">
-            {content.points.map((point, index) => (
-              <p
-                key={point}
-                className="flex min-h-12 items-center gap-3 rounded-[1.25rem] border-4 bg-[#0D0D1A]/82 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.12)]"
-                style={{ borderColor: accentAt(index), color: index === 1 ? "#FFE600" : "#FFFFFF" }}
-              >
-                <CheckCircle2 size={16} className="shrink-0" style={{ color: accentAt(index + 1) }} aria-hidden="true" />
-                <span>{point}</span>
-              </p>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 function Landing({
   uploadState,
@@ -667,8 +44,6 @@ function Landing({
   systemStatus,
   selectedModel,
   onModelChange,
-  activeView,
-  onNavigate,
 }: {
   uploadState: ReturnType<typeof useUpload>["state"]
   uploadFile: ReturnType<typeof useUpload>["uploadFile"]
@@ -676,189 +51,168 @@ function Landing({
   systemStatus: ReturnType<typeof useSystemStatus>
   selectedModel: ModelPreference
   onModelChange: (model: ModelPreference) => void
-  activeView: LandingView
-  onNavigate: (view: LandingView) => void
 }) {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const navRef = useRef<HTMLElement>(null)
   const uploadRef = useRef<HTMLElement>(null)
   const uploadZoneRef = useRef<UploadZoneHandle>(null)
-  const prefersReducedMotion = usePrefersReducedMotion()
-
-  useEffect(() => {
-    function handleScroll() {
-      navRef.current?.classList.toggle("landing-nav-scrolled", window.scrollY > window.innerHeight * 0.7)
-    }
-
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  useEffect(() => {
-    const root = rootRef.current
-
-    if (!root || prefersReducedMotion) {
-      return
-    }
-
-    const ctx = gsap.context(() => {
-      gsap.from(".hero-reveal", {
-        y: 40,
-        opacity: 0,
-        duration: 1.1,
-        stagger: 0.08,
-        ease: "power3.out",
-      })
-    }, root)
-
-    return () => ctx.revert()
-  }, [activeView, prefersReducedMotion])
+  const shouldReduce = useReducedMotion()
 
   function scrollToUpload() {
-    const isAlreadyOnUpload = activeView === "upload"
-    onNavigate("upload")
-
-    if (isAlreadyOnUpload) {
-      uploadZoneRef.current?.openPicker()
-      return
-    }
-
-    window.setTimeout(() => {
-      uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-    }, 0)
+    uploadZoneRef.current?.openPicker()
+    uploadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   return (
-    <div ref={rootRef} id="top" className="dopamine-shell relative min-h-screen overflow-hidden text-white">
-      <FloatingShapes />
-      <FloatingNav onStart={scrollToUpload} onNavigate={onNavigate} activeView={activeView} navRef={navRef} />
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="grid-bg pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div className="glow-blue pointer-events-none absolute -top-40 left-1/4 h-96 w-96 rounded-full" aria-hidden="true" />
+      <div className="glow-cyan pointer-events-none absolute top-1/3 right-0 h-80 w-80 rounded-full" aria-hidden="true" />
 
-      {activeView === "upload" ? (
-      <section
-        id="upload"
-        ref={uploadRef}
-        className="relative min-h-[100dvh] overflow-hidden px-4 pb-14 pt-28 text-white sm:px-8 lg:px-12"
-      >
-        <div className="absolute inset-0 pattern-mesh opacity-95" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,58,242,0.12)_2px,transparent_2px),linear-gradient(0deg,rgba(0,245,212,0.09)_2px,transparent_2px)] bg-[size:76px_76px]" aria-hidden="true" />
-        <div className="absolute inset-0 bg-[#0D0D1A]/56" aria-hidden="true" />
-
-        <div className="relative mx-auto grid min-h-[calc(100dvh-8rem)] max-w-7xl gap-7 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
-          <div className="hero-reveal min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border-4 border-[#00F5D4] bg-[#0D0D1A] px-4 py-2 font-mono text-xs font-black uppercase tracking-[0.18em] text-[#FFE600] shadow-[6px_6px_0_#FF3AF2]">
-              <TerminalSquare size={14} aria-hidden="true" />
-              AskMyPDF workspace
-            </p>
-            <h1 className="max-title mt-6 max-w-3xl text-[clamp(3rem,7.2vw,6.8rem)] leading-[0.86]">
-              Choose model.
-              <span className="block max-gradient-text">Drop PDF.</span>
-              Ask fast.
-            </h1>
-            <p className="mt-7 max-w-2xl rounded-[1.5rem] border-4 border-[#FFE600] bg-[#2D1B4E]/88 p-5 text-base font-bold leading-7 text-white shadow-[6px_6px_0_#00F5D4] sm:text-lg">
-              The document flow starts here. Pick the answer route before uploading, then AskMyPDF indexes the PDF and opens the chat workspace with citations attached.
-            </p>
-
+      <nav className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
+            <FileSearch size={18} className="text-brand-400" />
           </div>
+          <span className="text-base font-bold tracking-tight text-ink-100">AskMyPDF</span>
+        </div>
+        <button
+          type="button"
+          onClick={scrollToUpload}
+          className="flex items-center gap-1.5 rounded-lg border border-ink-700 bg-ink-800/60 px-4 py-2 text-sm font-medium text-ink-200 transition hover:border-brand-500/50 hover:bg-ink-800"
+        >
+          Get started
+          <ArrowRight size={15} />
+        </button>
+      </nav>
 
-          <div className="hero-reveal relative min-w-0">
-            <div className="absolute -inset-5 rounded-[3rem] bg-[linear-gradient(135deg,rgba(255,58,242,0.28),rgba(255,230,0,0.22),rgba(0,245,212,0.24))] blur-2xl" aria-hidden="true" />
-            <div className="relative space-y-6">
-              <UploadZone ref={uploadZoneRef} uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
-              <div className="max-card max-card-cyan rounded-[2rem] p-4 text-white">
-                <ModelSelector
-                  compact
-                  value={selectedModel}
-                  onChange={onModelChange}
-                  models={systemStatus.details?.available_models}
-                  disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
-                />
-              </div>
-              <p className="rounded-[1.25rem] border-4 border-[#FFE600] bg-[#0D0D1A]/88 px-4 py-3 text-xs font-bold leading-5 text-[#DCD7FF] shadow-[5px_5px_0_#FF3AF2]">
-                PDFs are processed temporarily for this session. Online routes send retrieved PDF excerpts to Groq or Anthropic and completed answers report the provider used.
-              </p>
+      <section className="relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-12 sm:px-10 sm:pt-20">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
+          <motion.div
+            initial={shouldReduce ? false : { opacity: 0, y: 20 }}
+            animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-700 bg-ink-800/60 px-3.5 py-1.5 font-mono text-xs font-medium text-ink-400">
+              <Sparkles size={13} className="text-accent-400" />
+              RAG-powered PDF intelligence
             </div>
-          </div>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-ink-50 sm:text-5xl lg:text-6xl">
+              Chat with your PDFs.
+              <br />
+              <span className="gradient-text">Get cited answers.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-400">
+              Upload a document, ask questions in plain language, and receive streamed answers grounded in the text — with page citations for every claim.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={scrollToUpload}
+                className="flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+              >
+                Upload a PDF
+                <ArrowRight size={16} />
+              </button>
+              <a
+                href="https://github.com/NoorRattan/AskMyPDF"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800/60 px-6 py-3 text-sm font-semibold text-ink-200 transition hover:border-ink-600 hover:bg-ink-800"
+              >
+                View source
+              </a>
+            </div>
+          </motion.div>
 
-          <div className="hero-reveal grid gap-4 lg:col-span-2 lg:grid-cols-[0.84fr_1.16fr]">
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {["Backend-scoped retrieval", "Online model routes", "Cited answer stream"].map((item, index) => (
-                <p
-                  key={item}
-                  className="flex min-h-12 items-center gap-2 rounded-[1.25rem] border-4 bg-[#0D0D1A]/86 px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[5px_5px_0_rgba(255,255,255,0.16)]"
-                  style={{ borderColor: accentAt(index), color: index === 2 ? "#FFE600" : "#FFFFFF" }}
-                >
-                  <CheckCircle2 size={16} className="shrink-0" style={{ color: accentAt(index + 1) }} aria-hidden="true" />
-                  <span>{item}</span>
-                </p>
+          <motion.div
+            initial={shouldReduce ? false : { opacity: 0, y: 20 }}
+            animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="glass rounded-2xl border border-ink-700 p-6"
+          >
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink-500">How it works</p>
+            <div className="space-y-4">
+              {steps.map((step) => (
+                <div key={step.number} className="flex gap-4">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10 font-mono text-xs font-bold text-brand-400">
+                    {step.number}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink-100">{step.title}</p>
+                    <p className="mt-0.5 text-sm text-ink-400">{step.description}</p>
+                  </div>
+                </div>
               ))}
             </div>
-
-            <ProductionStatusPanel {...systemStatus} />
-          </div>
+          </motion.div>
         </div>
       </section>
-      ) : null}
 
-      {activeView === "artifacts" ? <FeatureArtifacts /> : null}
-      {activeView === "signal" ? <SignalSection /> : null}
-      {activeView === "protocol" ? <ProtocolSection /> : null}
-      {activeView === "privacy" || activeView === "terms" || activeView === "security" ? <LegalSection view={activeView} /> : null}
-
-      <Footer onNavigate={onNavigate} />
-    </div>
-  )
-}
-
-function Footer({ onNavigate }: { onNavigate: (view: LandingView) => void }) {
-  return (
-    <footer className="pattern-stripes relative z-10 rounded-t-[3rem] border-t-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-12 text-white shadow-[0_-18px_0_#7B2FFF] sm:px-8 lg:px-12">
-      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.3fr_0.7fr_0.7fr_0.8fr]">
-        <div className="relative z-10">
-          <p className="font-display text-2xl">AskMyPDF</p>
-          <p className="mt-4 max-w-sm text-sm font-semibold leading-6 text-white/68">Conversational PDF intelligence for documents that deserve precise answers.</p>
+      <section className="relative z-10 mx-auto max-w-7xl px-6 py-12 sm:px-10">
+        <div className="grid gap-4 sm:grid-cols-3">
+          {features.map((feature, idx) => (
+            <motion.div
+              key={feature.title}
+              initial={shouldReduce ? false : { opacity: 0, y: 16 }}
+              whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.4, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-ink-700 bg-ink-800/40 p-5"
+            >
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-brand-500/30 bg-brand-500/10">
+                <feature.icon size={20} className="text-brand-400" />
+              </div>
+              <h3 className="font-semibold text-ink-100">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-400">{feature.description}</p>
+            </motion.div>
+          ))}
         </div>
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#00F5D4]">Navigate</p>
-          <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
-            {navLinks
-              .filter((link) => link.id !== "upload")
-              .map((link) => (
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={() => onNavigate(link.id)}
-                  className="rounded text-left transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]"
-                >
-                  {link.label}
-                </button>
-              ))}
+      </section>
+
+      <section id="upload" ref={uploadRef} className="relative z-10 mx-auto max-w-3xl scroll-mt-8 px-6 py-12 sm:px-10">
+        <motion.div
+          initial={shouldReduce ? false : { opacity: 0, y: 16 }}
+          whileInView={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-ink-100 sm:text-3xl">Upload your document</h2>
+            <p className="mt-2 text-ink-400">Choose a model route, then drop your PDF to start asking questions.</p>
           </div>
-        </div>
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#FF3AF2]">Legal</p>
-          <div className="mt-4 grid gap-2 text-sm font-bold text-white/74">
-            {legalLinks.map((link) => (
-              <button
-                key={link.id}
-                type="button"
-                onClick={() => onNavigate(link.id)}
-                className="rounded text-left transition hover:-translate-y-px hover:text-[#FFE600] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE600]"
-              >
-                {link.label}
-              </button>
-            ))}
+
+          <UploadZone ref={uploadZoneRef} uploadState={uploadState} onUpload={uploadFile} onReset={reset} />
+
+          <div className="rounded-2xl border border-ink-700 bg-ink-800/40 p-4">
+            <ModelSelector
+              compact
+              value={selectedModel}
+              onChange={onModelChange}
+              models={systemStatus.details?.available_models}
+              disabled={uploadState.status === "uploading" || uploadState.status === "processing"}
+            />
           </div>
-        </div>
-        <div className="self-start rounded-[2rem] border-4 border-[#00F5D4] bg-[#2D1B4E] p-5 shadow-[6px_6px_0_#FF3AF2]">
-          <p className="flex items-center gap-2 font-mono text-xs font-black uppercase tracking-widest text-white">
-            <span className="h-3 w-3 rounded-full bg-[#00F5D4] shadow-[0_0_18px_rgba(0,245,212,0.9)] animate-pulse" />
-            System Operational
+
+          <p className="rounded-lg border border-ink-700 bg-ink-800/30 px-4 py-3 text-xs leading-5 text-ink-500">
+            PDFs are processed temporarily for this session. Online routes send retrieved PDF excerpts to Groq or Anthropic. Completed answers report the provider used.
           </p>
+
+          <ProductionStatusPanel {...systemStatus} />
+        </motion.div>
+      </section>
+
+      <footer className="relative z-10 border-t border-ink-800 px-6 py-8 sm:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
+              <FileSearch size={14} className="text-brand-400" />
+            </div>
+            <span className="text-sm font-medium text-ink-400">AskMyPDF</span>
+          </div>
+          <p className="text-sm text-ink-500">Conversational PDF intelligence with cited answers.</p>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
   )
 }
 
@@ -867,7 +221,6 @@ export default function App() {
   const { messages, isLoading, error, sendMessage, clearChat } = useChat(uploadState.sessionId)
   const systemStatus = useSystemStatus()
   const [selectedModel, setSelectedModel] = useState<ModelPreference>("fast")
-  const [activeView, setActiveView] = useState<LandingView>(() => landingViewFromHash())
   const isChat = uploadState.status === "ready"
 
   useEffect(() => {
@@ -882,35 +235,14 @@ export default function App() {
     }
   }, [selectedModel, systemStatus.details?.available_models])
 
-  useEffect(() => {
-    function syncHash() {
-      setActiveView(landingViewFromHash())
-      window.scrollTo({ top: 0, behavior: "smooth" })
-    }
-
-    window.addEventListener("hashchange", syncHash)
-    window.addEventListener("popstate", syncHash)
-    return () => {
-      window.removeEventListener("hashchange", syncHash)
-      window.removeEventListener("popstate", syncHash)
-    }
-  }, [])
-
-  function navigateLanding(view: LandingView) {
-    setActiveView(view)
-    window.history.pushState(null, "", `#${view}`)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
   function handleReset() {
     reset()
     clearChat()
-    navigateLanding("upload")
   }
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[#0D0D1A] text-white">
+      <div className="min-h-screen bg-ink-950 text-ink-100">
         {isChat ? <Header uploadState={uploadState} onReset={handleReset} onHome={handleReset} /> : null}
 
         <main>
@@ -922,22 +254,18 @@ export default function App() {
               systemStatus={systemStatus}
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
-              activeView={activeView}
-              onNavigate={navigateLanding}
             />
           ) : (
-            <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden">
-              <ChatInterface
-                uploadState={uploadState}
-                messages={messages}
-                isLoading={isLoading}
-                error={error}
-                modelPreference={selectedModel}
-                onModelPreferenceChange={setSelectedModel}
-                availableModels={systemStatus.details?.available_models}
-                onSend={sendMessage}
-              />
-            </div>
+            <ChatInterface
+              uploadState={uploadState}
+              messages={messages}
+              isLoading={isLoading}
+              error={error}
+              modelPreference={selectedModel}
+              onModelPreferenceChange={setSelectedModel}
+              availableModels={systemStatus.details?.available_models}
+              onSend={sendMessage}
+            />
           )}
         </main>
       </div>

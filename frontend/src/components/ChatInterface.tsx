@@ -1,9 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion"
-import { BarChart3, BookOpen, FileSearch, ListTree, Send, Sparkles } from "lucide-react"
+import { BookOpen, FileSearch, ListTree, Send, Sparkles, TrendingUp } from "lucide-react"
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import { saveCitedAnswer } from "../lib/api"
-import { accentAt } from "../lib/designSystem"
 import { cn } from "../lib/utils"
 import type { Message, ModelOption, ModelPreference, UploadState } from "../types"
 import { ChatMessage } from "./ChatMessage"
@@ -23,10 +22,10 @@ interface ChatInterfaceProps {
 }
 
 const SUGGESTED_QUESTIONS = [
-  { icon: Sparkles, text: "Summarize this document.", color: "#FF3AF2" },
-  { icon: FileSearch, text: "What are the key findings?", color: "#00F5D4" },
-  { icon: ListTree, text: "List the main topics covered.", color: "#FFE600" },
-  { icon: BarChart3, text: "Are there any numbers or statistics I should know?", color: "#FF6B35" },
+  { icon: Sparkles, text: "Summarize this document." },
+  { icon: FileSearch, text: "What are the key findings?" },
+  { icon: ListTree, text: "List the main topics covered." },
+  { icon: TrendingUp, text: "Are there any numbers or statistics I should know?" },
 ] as const
 
 export function ChatInterface({
@@ -61,7 +60,7 @@ export function ChatInterface({
     () => ({
       id: "welcome-message",
       role: "assistant",
-      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Fast Online"}. Ask me anything - I'll answer from the document.`,
+      content: `I've read your PDF (${uploadState.pageCount ?? 0} pages, ${uploadState.chunkCount ?? 0} chunks indexed).\nSelected model: ${activeModel?.label ?? "Fast Online"}. Ask me anything — I'll answer from the document.`,
       isStreaming: false,
       timestamp: new Date(),
     }),
@@ -155,90 +154,59 @@ export function ChatInterface({
   const charPct = (value.length / 1000) * 100
 
   return (
-    <section className="chat-workspace relative flex h-[calc(100vh-64px)] flex-col overflow-hidden">
-      <div className="chat-live-bg pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="chat-grid" />
-        <div className="chat-scanline" />
-        <div className="chat-energy chat-energy-a" />
-        <div className="chat-energy chat-energy-b" />
-      </div>
+    <section className="relative flex h-[calc(100vh-64px)] flex-col overflow-hidden bg-ink-950">
+      <div className="grid-bg pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
 
-      <motion.div
-        initial={shouldReduce ? false : { opacity: 0, y: -8 }}
-        animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 flex items-center justify-center gap-3 border-b-4 border-[#FF3AF2] bg-[#0D0D1A]/70 px-4 py-2 backdrop-blur-sm"
-      >
-        <span className="flex min-w-0 items-center gap-1.5">
-          <BookOpen size={13} className="shrink-0 text-[#FFE600]" aria-hidden="true" />
-          <span className="min-w-0 truncate font-mono text-[11px] font-bold text-[#DCD7FF]">
-            <span className="text-white">{uploadState.filename}</span>
-            <span className="mx-2 opacity-40">/</span>
-            <span className="text-[#00F5D4]">{uploadState.pageCount ?? 0} pages</span>
-            <span className="mx-2 opacity-40">/</span>
-            <span>{uploadState.chunkCount ?? 0} chunks</span>
-          </span>
+      <div className="relative z-10 flex items-center justify-center gap-3 border-b border-ink-800 bg-ink-900/60 px-4 py-2.5 backdrop-blur-sm">
+        <BookOpen size={13} className="shrink-0 text-accent-400" />
+        <span className="min-w-0 truncate font-mono text-[11px] font-medium text-ink-400">
+          <span className="text-ink-200">{uploadState.filename}</span>
+          <span className="mx-2 opacity-40">/</span>
+          <span className="text-accent-400">{uploadState.pageCount ?? 0} pages</span>
+          <span className="mx-2 opacity-40">/</span>
+          <span>{uploadState.chunkCount ?? 0} chunks</span>
         </span>
-        <span
-          className="h-2 w-2 shrink-0 rounded-full bg-[#00F5D4]"
-          style={{ animation: shouldReduce ? undefined : "success-ping 2s ease-out infinite" }}
-          aria-hidden="true"
-        />
-      </motion.div>
+        <span className={`h-2 w-2 shrink-0 rounded-full bg-success ${!shouldReduce ? "animate-pulse-soft" : ""}`} />
+      </div>
 
       <div
         role="log"
         aria-live="polite"
         aria-label="Chat messages"
-        className="relative z-10 flex flex-1 overflow-y-auto scroll-smooth px-4 py-6 sm:px-6"
+        className="relative z-10 flex-1 overflow-y-auto scroll-smooth px-4 py-6 sm:px-6"
       >
-        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5">
           {isEmpty ? (
             <>
               <ChatMessage message={welcomeMessage} />
 
               <motion.div
-                initial={shouldReduce ? false : { opacity: 0, y: 22 }}
+                initial={shouldReduce ? false : { opacity: 0, y: 16 }}
                 animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-                transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ delay: 0.12, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 className="flex flex-1 flex-col items-center justify-center gap-5 py-6"
               >
-                <p className="rounded-full border-4 border-[#FFE600] bg-[#0D0D1A] px-4 py-2 font-mono text-[11px] font-black uppercase tracking-widest text-white shadow-[5px_5px_0_#FF3AF2]">Quick prompts</p>
-                <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-                  {SUGGESTED_QUESTIONS.map(({ icon: Icon, text, color }, idx) => (
+                <p className="rounded-full border border-ink-700 bg-ink-800/60 px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-ink-400">
+                  Quick prompts
+                </p>
+                <div className="grid w-full max-w-2xl grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  {SUGGESTED_QUESTIONS.map(({ icon: Icon, text }, idx) => (
                     <motion.button
                       key={text}
                       type="button"
                       onClick={() => handleSuggestion(text)}
                       disabled={isLoading || !selectedModelAvailable}
-                      initial={shouldReduce ? false : { opacity: 0, y: 16, scale: 0.97 }}
-                      animate={shouldReduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 0.28 + idx * 0.08, duration: 0.3, ease: "easeOut" }}
-                      whileHover={
-                        shouldReduce || isLoading || !selectedModelAvailable
-                          ? undefined
-                          : {
-                              y: -5,
-                              scale: 1.02,
-                              boxShadow: `0 0 34px ${color}66, 7px 7px 0 ${accentAt(idx + 1)}`,
-                            }
-                      }
-                      whileTap={shouldReduce ? undefined : { scale: 0.97 }}
-                      className="suggestion-card group relative flex min-h-[86px] cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border-4 bg-[#0D0D1A]/88 px-4 py-3.5 text-left text-sm font-black text-white outline-none backdrop-blur-sm transition-colors duration-200 focus-visible:ring-4 focus-visible:ring-[#FFE600] disabled:cursor-not-allowed disabled:opacity-60"
-                      style={{ borderColor: color, boxShadow: `5px 5px 0 ${accentAt(idx + 1)}` }}
+                      initial={shouldReduce ? false : { opacity: 0, y: 12 }}
+                      animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + idx * 0.06, duration: 0.25, ease: "easeOut" }}
+                      whileHover={shouldReduce || isLoading || !selectedModelAvailable ? undefined : { y: -3 }}
+                      whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                      className="group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border border-ink-700 bg-ink-800/40 px-4 py-3.5 text-left text-sm font-medium text-ink-200 transition hover:border-brand-500/40 hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <span
-                        className="pointer-events-none absolute -left-3 -top-3 h-16 w-16 rounded-full opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-40"
-                        style={{ background: color }}
-                        aria-hidden="true"
-                      />
-                      <span
-                        className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border-4 border-white bg-[#2D1B4E] transition-colors duration-200 group-hover:bg-[#0D0D1A]"
-                        style={{ color }}
-                      >
-                        <Icon size={18} aria-hidden="true" />
-                      </span>
-                      <span className="relative leading-5">{text}</span>
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-ink-700 bg-ink-800 text-brand-400 transition group-hover:border-brand-500/30 group-hover:bg-brand-500/10">
+                        <Icon size={17} />
+                      </div>
+                      <span className="leading-5">{text}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -280,9 +248,9 @@ export function ChatInterface({
 
           {error ? (
             <motion.p
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
+              className="self-start rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm font-medium text-danger"
             >
               {error}
             </motion.p>
@@ -290,9 +258,9 @@ export function ChatInterface({
 
           {saveError ? (
             <motion.p
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="self-start rounded-xl border-4 border-[#EF4444] bg-[#0D0D1A] px-4 py-2.5 text-sm font-bold text-[#FCA5A5] shadow-[5px_5px_0_#FF3AF2] backdrop-blur"
+              className="self-start rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm font-medium text-danger"
             >
               {saveError}
             </motion.p>
@@ -304,14 +272,12 @@ export function ChatInterface({
 
       <div className="relative z-10 px-4 py-4 sm:px-6">
         <div
-          className="mx-auto max-w-4xl overflow-hidden rounded-2xl border-4 border-[#00F5D4] bg-[#0D0D1A]/88 shadow-[0_0_34px_rgba(0,245,212,0.34),8px_8px_0_#FF3AF2] backdrop-blur-xl transition-all duration-300"
-          style={
-            isInputFocused
-              ? { borderColor: "#FFE600", boxShadow: "0 0 0 4px rgba(255,58,242,0.34), 10px 10px 0 #00F5D4, 0 -4px 64px rgba(255,230,0,0.2)" }
-              : undefined
-          }
+          className={cn(
+            "mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-ink-900/80 backdrop-blur-xl transition-all duration-300",
+            isInputFocused ? "border-brand-500/50 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]" : "border-ink-700",
+          )}
         >
-          <div className="border-b-4 border-[#FF3AF2] px-3 py-3">
+          <div className="border-b border-ink-800 px-3 py-3">
             <ModelSelector
               compact
               value={modelPreference}
@@ -338,60 +304,46 @@ export function ChatInterface({
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             className={cn(
-              "w-full resize-none bg-transparent px-5 pb-3 pt-4 text-[15px] font-semibold leading-6 text-white",
-              "placeholder:text-[#DCD7FF]/52 outline-none",
+              "w-full resize-none bg-transparent px-5 pb-3 pt-4 text-[15px] font-medium leading-6 text-ink-100",
+              "placeholder:text-ink-500 outline-none",
               isLoading && "cursor-not-allowed opacity-50",
             )}
           />
 
-          <div className="flex items-center justify-between border-t-4 border-[#2D1B4E] px-4 py-2.5">
+          <div className="flex items-center justify-between border-t border-ink-800 px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-2 w-20 overflow-hidden rounded-full border border-white/20 bg-[#2D1B4E]">
+              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-ink-700">
                 <div
                   className="h-full rounded-full transition-all duration-200"
                   style={{
                     width: `${charPct}%`,
-                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #FF3AF2, #FFE600, #00F5D4)",
+                    background: charPct > 90 ? "#EF4444" : "linear-gradient(90deg, #3B82F6, #22D3EE)",
                   }}
                 />
               </div>
-              <span
-                className={cn(
-                  "font-mono text-[11px] tabular-nums",
-                  value.length >= 950 ? "text-[#FCA5A5]" : "text-[#DCD7FF]/64",
-                )}
-              >
+              <span className={cn("font-mono text-[11px] tabular-nums", value.length >= 950 ? "text-danger" : "text-ink-500")}>
                 {value.length}/1000
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <motion.button
-                type="button"
-                aria-label="Send message"
-                disabled={isLoading || !value.trim() || !selectedModelAvailable}
-                onClick={() => void handleSend()}
-                whileHover={
-                  shouldReduce
-                    ? undefined
-                    : {
-                        y: -2,
-                        scale: 1.08,
-                        boxShadow: "0 0 0 4px rgba(255,230,0,0.36), 5px 5px 0 #00F5D4",
-                      }
-                }
-                whileTap={shouldReduce ? undefined : { scale: 0.92 }}
-                transition={{ type: "spring", stiffness: 450, damping: 18 }}
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-4 outline-none transition-all duration-200 focus-visible:ring-4 focus-visible:ring-[#FFE600] disabled:cursor-not-allowed disabled:opacity-35",
-                  value.trim() && !isLoading && selectedModelAvailable
-                    ? "border-[#FFE600] bg-[#FF3AF2] text-white shadow-[4px_4px_0_#00F5D4]"
-                    : "border-white/16 bg-[#2D1B4E] text-[#DCD7FF]",
-                )}
-              >
-                <Send size={15} aria-hidden="true" />
-              </motion.button>
-            </div>
+            <motion.button
+              type="button"
+              aria-label="Send message"
+              disabled={isLoading || !value.trim() || !selectedModelAvailable}
+              onClick={() => void handleSend()}
+              whileHover={shouldReduce ? undefined : { scale: 1.05 }}
+              whileTap={shouldReduce ? undefined : { scale: 0.95 }}
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 outline-none transition-all duration-200",
+                "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
+                "disabled:cursor-not-allowed disabled:opacity-30",
+                value.trim() && !isLoading && selectedModelAvailable
+                  ? "border-brand-500 bg-brand-500 text-white hover:bg-brand-600"
+                  : "border-ink-700 bg-ink-800 text-ink-500",
+              )}
+            >
+              <Send size={15} />
+            </motion.button>
           </div>
         </div>
       </div>
