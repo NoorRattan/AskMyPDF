@@ -21,12 +21,13 @@ export function ChatMessage({ message, onSave, isSaving = false, isSaved = false
   if (message.role === "user") {
     return (
       <motion.div
-        initial={shouldReduce ? false : { opacity: 0, y: 10 }}
-        animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        initial={shouldReduce ? false : { opacity: 0, y: 10, rotateX: -8 }}
+        animate={shouldReduce ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        style={{ transformStyle: "preserve-3d" }}
         className="flex max-w-full flex-col items-end gap-1 self-end"
       >
-        <div className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm border border-brand-500/30 bg-brand-500/10 px-4 py-3">
+        <div style={{ transform: "translateZ(20px)" }} className="min-w-0 max-w-[82%] rounded-2xl rounded-tr-sm border border-brand-500/30 bg-brand-500/10 px-4 py-3">
           <p className="whitespace-pre-wrap break-words text-[15px] font-medium leading-6 text-ink-100 [overflow-wrap:anywhere]">
             {message.content}
           </p>
@@ -38,12 +39,13 @@ export function ChatMessage({ message, onSave, isSaving = false, isSaved = false
 
   return (
     <motion.div
-      initial={shouldReduce ? false : { opacity: 0, y: 10 }}
-      animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      initial={shouldReduce ? false : { opacity: 0, y: 10, rotateX: 8 }}
+      animate={shouldReduce ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      style={{ transformStyle: "preserve-3d" }}
       className="flex max-w-full flex-col gap-1 self-start"
     >
-      <div className="flex max-w-full items-start gap-2.5">
+      <div style={{ transform: "translateZ(20px)" }} className="flex max-w-full items-start gap-2.5">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
           <span className="text-[11px] font-bold text-brand-400">AI</span>
         </div>

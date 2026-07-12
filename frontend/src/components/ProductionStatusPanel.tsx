@@ -17,7 +17,7 @@ const statusCopy = {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-ink-700 bg-ink-800/40 px-3.5 py-2.5">
+    <div className="rounded-xl border border-ink-700 bg-ink-800/40 px-3.5 py-2.5" style={{ transform: "translateZ(15px)" }}>
       <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-500">{label}</p>
       <p className="mt-1 truncate text-sm font-medium text-ink-200" title={value}>
         {value}
@@ -35,12 +35,13 @@ export function ProductionStatusPanel({ status, details, error }: ProductionStat
 
   return (
     <motion.div
-      initial={shouldReduce ? false : { opacity: 0, y: 14 }}
-      animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+      initial={shouldReduce ? false : { opacity: 0, y: 14, rotateX: -6 }}
+      animate={shouldReduce ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="glass relative overflow-hidden rounded-2xl border border-ink-700 p-4"
+      style={{ transformStyle: "preserve-3d" }}
+      className="perspective-near glass relative overflow-hidden rounded-2xl border border-ink-700 p-4"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div style={{ transform: "translateZ(25px)" }} className="flex items-start justify-between gap-4">
         <div>
           <p className="flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-wider text-ink-500">
             <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-success" : "bg-warning"} ${!shouldReduce ? "animate-pulse-soft" : ""}`} />

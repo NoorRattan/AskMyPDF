@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { BrainCircuit, Gauge, Laptop, LockKeyhole, Wifi } from "lucide-react"
+import { type MouseEvent, useCallback, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
 import type { ModelOption, ModelPreference } from "../types"
@@ -98,73 +99,130 @@ export function ModelSelector({ value, onChange, models, disabled = false, compa
         </span>
       </div>
 
-      <div className={cn("grid gap-2", compact ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1")}>
+      <div className={cn("perspective-near grid gap-2", compact ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1")}>
         {options.map((option, index) => {
           const Icon = modelIcons[option.id]
           const selected = value === option.id
           const unavailable = disabled || !option.available
 
           return (
-            <motion.button
+            <ModelCard
               key={option.id}
-              type="button"
-              disabled={unavailable}
-              aria-pressed={selected}
-              onClick={() => onChange(option.id)}
-              initial={shouldReduce ? false : { opacity: 0, y: 8 }}
-              animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={shouldReduce || unavailable ? undefined : { y: -2 }}
-              whileTap={shouldReduce || unavailable ? undefined : { scale: 0.98 }}
-              className={cn(
-                "group relative overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left outline-none transition-all duration-200",
-                "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-                compact ? "min-h-[80px] px-3 py-2.5" : "min-h-[100px]",
-                selected
-                  ? "border-brand-500 bg-brand-500/10"
-                  : "border-ink-700 bg-ink-800/50 hover:border-ink-600 hover:bg-ink-800",
-                unavailable && "cursor-not-allowed opacity-40",
-              )}
-            >
-              <div className={cn("flex items-start gap-3", compact && "gap-2")}>
-                <div
-                  className={cn(
-                    "flex shrink-0 items-center justify-center rounded-lg border transition",
-                    compact ? "h-8 w-8" : "h-9 w-9",
-                    selected
-                      ? "border-brand-500/40 bg-brand-500/10 text-brand-400"
-                      : "border-ink-700 bg-ink-800 text-ink-400 group-hover:text-ink-300",
-                  )}
-                >
-                  <Icon size={compact ? 15 : 17} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className={cn("font-semibold text-ink-100", compact && "text-xs")}>{option.label}</span>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider",
-                        compact && "hidden sm:inline-flex",
-                        option.mode === "offline"
-                          ? "border-ink-600 bg-ink-800 text-ink-400"
-                          : "border-accent-500/30 bg-accent-500/10 text-accent-400",
-                      )}
-                    >
-                      {option.mode === "online" ? <Wifi size={10} /> : <Laptop size={10} />}
-                      {option.mode === "online" ? "online" : "backend"}
-                    </span>
-                  </div>
-                  <p className="mt-1 truncate font-mono text-[11px] text-ink-500" title={`${option.model} / ${option.provider}`}>
-                    {compact ? option.provider : `${option.model} / ${option.provider}`}
-                  </p>
-                  {!compact ? <p className="mt-1.5 text-xs leading-5 text-ink-400">{option.description}</p> : null}
-                  {!option.available ? <p className="mt-1 text-xs font-medium text-danger">API key not configured</p> : null}
-                </div>
-              </div>
-            </motion.button>
+              option={option}
+              icon={Icon}
+              selected={selected}
+              unavailable={unavailable}
+              compact={compact}
+              index={index}
+              shouldReduce={shouldReduce}
+              onSelect={onChange}
+            />
           )
         })}
       </div>
     </div>
+  )
+}
+
+interface ModelCardProps {
+  option: ModelOption
+  icon: typeof Laptop
+  selected: boolean
+  unavailable: boolean
+  compact: boolean
+  index: number
+  shouldReduce: boolean | null
+  onSelect: (id: ModelPreference) => void
+}
+
+function ModelCard({ option, icon: Icon, selected, unavailable, compact, index, shouldReduce, onSelect }: ModelCardProps) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 })
+
+  const handleMouseMove = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      if (shouldReduce || unavailable || !ref.current) {
+        return
+      }
+
+      const rect = ref.current.getBoundingClientRect()
+      const x = (event.clientX - rect.left) / rect.width - 0.5
+      const y = (event.clientY - rect.top) / rect.height - 0.5
+
+      setTilt({ rotateX: -y * 8, rotateY: x * 8 })
+    },
+    [shouldReduce, unavailable],
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ rotateX: 0, rotateY: 0 })
+  }, [])
+
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      disabled={unavailable}
+      aria-pressed={selected}
+      onClick={() => onSelect(option.id)}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      initial={shouldReduce ? false : { opacity: 0, y: 8 }}
+      animate={shouldReduce ? undefined : { opacity: 1, y: 0, rotateX: tilt.rotateX, rotateY: tilt.rotateY }}
+      transition={{
+        opacity: { delay: index * 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+        y: { delay: index * 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+        rotateX: { type: "spring", stiffness: 200, damping: 15 },
+        rotateY: { type: "spring", stiffness: 200, damping: 15 },
+      }}
+      style={{ transformStyle: "preserve-3d" }}
+      whileHover={shouldReduce || unavailable ? undefined : { y: -4, scale: 1.02 }}
+      whileTap={shouldReduce || unavailable ? undefined : { scale: 0.98 }}
+      className={cn(
+        "group relative overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left outline-none transition-colors duration-200",
+        "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
+        compact ? "min-h-[80px] px-3 py-2.5" : "min-h-[100px]",
+        selected
+          ? "border-brand-500 bg-brand-500/10"
+          : "border-ink-700 bg-ink-800/50 hover:border-ink-600 hover:bg-ink-800",
+        unavailable && "cursor-not-allowed opacity-40",
+      )}
+    >
+      <div className={cn("flex items-start gap-3", compact && "gap-2")} style={{ transform: "translateZ(20px)" }}>
+        <div
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-lg border transition",
+            compact ? "h-8 w-8" : "h-9 w-9",
+            selected
+              ? "border-brand-500/40 bg-brand-500/10 text-brand-400"
+              : "border-ink-700 bg-ink-800 text-ink-400 group-hover:text-ink-300",
+          )}
+        >
+          <Icon size={compact ? 15 : 17} />
+        </div>
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className={cn("font-semibold text-ink-100", compact && "text-xs")}>{option.label}</span>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider",
+                compact && "hidden sm:inline-flex",
+                option.mode === "offline"
+                  ? "border-ink-600 bg-ink-800 text-ink-400"
+                  : "border-accent-500/30 bg-accent-500/10 text-accent-400",
+              )}
+            >
+              {option.mode === "online" ? <Wifi size={10} /> : <Laptop size={10} />}
+              {option.mode === "online" ? "online" : "backend"}
+            </span>
+          </div>
+          <p className="mt-1 truncate font-mono text-[11px] text-ink-500" title={`${option.model} / ${option.provider}`}>
+            {compact ? option.provider : `${option.model} / ${option.provider}`}
+          </p>
+          {!compact ? <p className="mt-1.5 text-xs leading-5 text-ink-400">{option.description}</p> : null}
+          {!option.available ? <p className="mt-1 text-xs font-medium text-danger">API key not configured</p> : null}
+        </div>
+      </div>
+    </motion.button>
   )
 }

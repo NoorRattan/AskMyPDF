@@ -175,7 +175,7 @@ export function ChatInterface({
         aria-label="Chat messages"
         className="relative z-10 flex-1 overflow-y-auto scroll-smooth px-4 py-6 sm:px-6"
       >
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
           {isEmpty ? (
             <>
               <ChatMessage message={welcomeMessage} />
@@ -184,29 +184,30 @@ export function ChatInterface({
                 initial={shouldReduce ? false : { opacity: 0, y: 16 }}
                 animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
                 transition={{ delay: 0.12, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="flex flex-1 flex-col items-center justify-center gap-5 py-6"
+                className="flex flex-col items-center gap-5 py-6"
               >
                 <p className="rounded-full border border-ink-700 bg-ink-800/60 px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-ink-400">
                   Quick prompts
                 </p>
-                <div className="grid w-full max-w-2xl grid-cols-1 gap-2.5 sm:grid-cols-2">
+                <div className="perspective-near grid w-full max-w-2xl grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {SUGGESTED_QUESTIONS.map(({ icon: Icon, text }, idx) => (
                     <motion.button
                       key={text}
                       type="button"
                       onClick={() => handleSuggestion(text)}
                       disabled={isLoading || !selectedModelAvailable}
-                      initial={shouldReduce ? false : { opacity: 0, y: 12 }}
-                      animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+                      initial={shouldReduce ? false : { opacity: 0, y: 12, rotateX: -8 }}
+                      animate={shouldReduce ? undefined : { opacity: 1, y: 0, rotateX: 0 }}
                       transition={{ delay: 0.2 + idx * 0.06, duration: 0.25, ease: "easeOut" }}
-                      whileHover={shouldReduce || isLoading || !selectedModelAvailable ? undefined : { y: -3 }}
+                      whileHover={shouldReduce || isLoading || !selectedModelAvailable ? undefined : { y: -4, rotateX: -4, scale: 1.02 }}
                       whileTap={shouldReduce ? undefined : { scale: 0.98 }}
+                      style={{ transformStyle: "preserve-3d" }}
                       className="group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-xl border border-ink-700 bg-ink-800/40 px-4 py-3.5 text-left text-sm font-medium text-ink-200 transition hover:border-brand-500/40 hover:bg-ink-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-ink-700 bg-ink-800 text-brand-400 transition group-hover:border-brand-500/30 group-hover:bg-brand-500/10">
+                      <div style={{ transform: "translateZ(20px)" }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-ink-700 bg-ink-800 text-brand-400 transition group-hover:border-brand-500/30 group-hover:bg-brand-500/10">
                         <Icon size={17} />
                       </div>
-                      <span className="leading-5">{text}</span>
+                      <span style={{ transform: "translateZ(10px)" }} className="leading-5">{text}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -274,7 +275,7 @@ export function ChatInterface({
         <div
           className={cn(
             "mx-auto max-w-3xl overflow-hidden rounded-2xl border bg-ink-900/80 backdrop-blur-xl transition-all duration-300",
-            isInputFocused ? "border-brand-500/50 shadow-[0_0_0_3px_rgba(59,130,246,0.15)]" : "border-ink-700",
+            isInputFocused ? "border-brand-500/50 shadow-[0_8px_30px_rgba(59,130,246,0.12)]" : "border-ink-700",
           )}
         >
           <div className="border-b border-ink-800 px-3 py-3">
@@ -331,8 +332,9 @@ export function ChatInterface({
               aria-label="Send message"
               disabled={isLoading || !value.trim() || !selectedModelAvailable}
               onClick={() => void handleSend()}
-              whileHover={shouldReduce ? undefined : { scale: 1.05 }}
-              whileTap={shouldReduce ? undefined : { scale: 0.95 }}
+              whileHover={shouldReduce ? undefined : { scale: 1.08, z: 20 }}
+              whileTap={shouldReduce ? undefined : { scale: 0.92 }}
+              style={{ transformStyle: "preserve-3d" }}
               className={cn(
                 "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 outline-none transition-all duration-200",
                 "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",

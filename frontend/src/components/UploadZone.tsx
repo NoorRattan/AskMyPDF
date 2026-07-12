@@ -1,5 +1,6 @@
 import { FileText, CloudUpload as UploadCloud } from "lucide-react"
-import { type ChangeEvent, type DragEvent, type KeyboardEvent, forwardRef, useImperativeHandle, useRef, useState } from "react"
+import { motion, useReducedMotion } from "framer-motion"
+import { type ChangeEvent, type DragEvent, type KeyboardEvent, type MouseEvent, forwardRef, useImperativeHandle, useRef, useState } from "react"
 
 import { cn } from "../lib/utils"
 import type { UploadState } from "../types"
@@ -21,8 +22,11 @@ export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function
   ref,
 ) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [clientError, setClientError] = useState<string | null>(null)
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 })
+  const shouldReduce = useReducedMotion()
 
   const isBusy = uploadState.status === "uploading" || uploadState.status === "processing"
   const isError = uploadState.status === "error" || Boolean(clientError)
@@ -77,75 +81,99 @@ export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function
     event.target.value = ""
   }
 
+  function handleMouseMove(event: MouseEvent<HTMLDivElement>) {
+    if (shouldReduce || isBusy || !cardRef.current) {
+      return
+    }
+
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width - 0.5
+    const y = (event.clientY - rect.top) / rect.height - 0.5
+
+    setTilt({ rotateX: -y * 6, rotateY: x * 6 })
+  }
+
+  function handleMouseLeave() {
+    setTilt({ rotateX: 0, rotateY: 0 })
+  }
+
   return (
     <>
       <input ref={inputRef} type="file" accept=".pdf" onChange={handleChange} className="sr-only" />
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Upload a PDF file - click or drag and drop"
-        onClick={openPicker}
-        onKeyDown={handleKeyDown}
-        onDragOver={(event) => {
-          event.preventDefault()
-          setIsDragging(true)
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        className={cn(
-          "group relative flex min-h-[240px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 p-8 text-center transition-all duration-300",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
-          isDragging && "border-brand-400 bg-brand-500/5 scale-[1.01]",
-          !isDragging && !isBusy && !isError && "border-ink-700 bg-ink-800/40 hover:border-brand-500/50 hover:bg-ink-800/60",
-          isBusy && "pointer-events-none border-brand-500/50 bg-ink-800/60",
-          isError && "border-danger/50 bg-danger/5",
-        )}
-      >
-        {isBusy ? (
-          <div role="status" aria-label="Processing" className="flex flex-col items-center">
-            <div className="relative mb-5 flex h-16 w-16 items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-2 border-ink-700" />
-              <div className="absolute inset-0 animate-spin-slow rounded-full border-2 border-transparent border-t-brand-400" />
-              <div className="absolute inset-2 animate-spin-slow rounded-full border-2 border-transparent border-b-accent-400" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
-              <FileText size={24} className="text-brand-400" />
+      <div className="perspective-near">
+        <motion.div
+          ref={cardRef}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload a PDF file - click or drag and drop"
+          onClick={openPicker}
+          onKeyDown={handleKeyDown}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onDragOver={(event) => {
+            event.preventDefault()
+            setIsDragging(true)
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          animate={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY, scale: isDragging ? 1.02 : 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 18 }}
+          style={{ transformStyle: "preserve-3d" }}
+          className={cn(
+            "group relative flex min-h-[240px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 p-8 text-center transition-colors duration-300",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
+            isDragging && "border-brand-400 bg-brand-500/5",
+            !isDragging && !isBusy && !isError && "border-ink-700 bg-ink-800/40 hover:border-brand-500/50 hover:bg-ink-800/60",
+            isBusy && "pointer-events-none border-brand-500/50 bg-ink-800/60",
+            isError && "border-danger/50 bg-danger/5",
+          )}
+        >
+          {isBusy ? (
+            <div role="status" aria-label="Processing" className="flex flex-col items-center" style={{ transform: "translateZ(30px)" }}>
+              <div className="relative mb-5 flex h-16 w-16 items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-2 border-ink-700" />
+                <div className="absolute inset-0 animate-spin-slow rounded-full border-2 border-transparent border-t-brand-400" />
+                <div className="absolute inset-2 animate-spin-slow rounded-full border-2 border-transparent border-b-accent-400" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <FileText size={24} className="text-brand-400" />
+              </div>
+              <div className="mb-3 h-1.5 w-48 overflow-hidden rounded-full bg-ink-700">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-brand-500 to-accent-400 transition-all duration-500"
+                  style={{ width: `${Math.max(2, Math.min(100, progress))}%` }}
+                />
+              </div>
+              <p className="font-mono text-xs font-medium text-ink-400">
+                {stageLabel} · {Math.round(progress)}%
+              </p>
+              <p className="mt-2 max-w-xs text-sm text-ink-500">{uploadState.message ?? "Processing..."}</p>
             </div>
-            <div className="mb-3 h-1.5 w-48 overflow-hidden rounded-full bg-ink-700">
+          ) : (
+            <div className="flex flex-col items-center" style={{ transform: "translateZ(30px)" }}>
               <div
-                className="h-full rounded-full bg-gradient-to-r from-brand-500 to-accent-400 transition-all duration-500"
-                style={{ width: `${Math.max(2, Math.min(100, progress))}%` }}
-              />
+                className={cn(
+                  "mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-ink-700 bg-ink-800 transition-all duration-300 group-hover:border-brand-500/50 group-hover:bg-brand-500/10",
+                  isDragging && "border-brand-400 bg-brand-500/10",
+                )}
+              >
+                <UploadCloud size={28} className={cn("text-ink-400 transition-colors group-hover:text-brand-400", isDragging && "text-brand-400")} />
+              </div>
+              <p className="text-lg font-semibold text-ink-100">
+                {isDragging ? "Drop your PDF here" : "Upload a PDF"}
+              </p>
+              <p className="mt-1.5 text-sm text-ink-500">Drag and drop or click to browse</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {["PDF only", "50MB max", "Session-scoped"].map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-ink-700 bg-ink-800/60 px-3 py-1 font-mono text-[11px] font-medium text-ink-400"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
-            <p className="font-mono text-xs font-medium text-ink-400">
-              {stageLabel} · {Math.round(progress)}%
-            </p>
-            <p className="mt-2 max-w-xs text-sm text-ink-500">{uploadState.message ?? "Processing..."}</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <div
-              className={cn(
-                "mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-ink-700 bg-ink-800 transition-all duration-300 group-hover:border-brand-500/50 group-hover:bg-brand-500/10",
-                isDragging && "border-brand-400 bg-brand-500/10",
-              )}
-            >
-              <UploadCloud size={28} className={cn("text-ink-400 transition-colors group-hover:text-brand-400", isDragging && "text-brand-400")} />
-            </div>
-            <p className="text-lg font-semibold text-ink-100">
-              {isDragging ? "Drop your PDF here" : "Upload a PDF"}
-            </p>
-            <p className="mt-1.5 text-sm text-ink-500">Drag and drop or click to browse</p>
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              {["PDF only", "50MB max", "Session-scoped"].map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-ink-700 bg-ink-800/60 px-3 py-1 font-mono text-[11px] font-medium text-ink-400"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
+        </motion.div>
       </div>
 
       {isError ? (

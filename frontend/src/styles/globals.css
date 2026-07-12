@@ -21,6 +21,7 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -76,9 +77,41 @@ body {
   animation: gradient-shift 6s ease infinite;
 }
 
+.perspective-near {
+  perspective: 800px;
+}
+
+.perspective-far {
+  perspective: 1400px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.float-3d {
+  animation: float-3d 6s ease-in-out infinite;
+}
+
+.float-3d-slow {
+  animation: float-3d 9s ease-in-out infinite;
+}
+
 @keyframes gradient-shift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes float-3d {
+  0%, 100% { transform: translateY(0) rotateZ(0deg); }
+  25% { transform: translateY(-12px) rotateZ(1deg); }
+  50% { transform: translateY(-6px) rotateZ(0deg); }
+  75% { transform: translateY(-16px) rotateZ(-1deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
