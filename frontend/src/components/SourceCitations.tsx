@@ -1,66 +1,11 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
-import { BookOpen, ChevronDown } from "lucide-react"
+import { ChevronDown, Quote } from "lucide-react"
 import { useState } from "react"
 
 import type { SourceChunk } from "../types"
 
-interface SourceCitationsProps {
-  sources: SourceChunk[]
-}
-
-export function SourceCitations({ sources }: SourceCitationsProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export function SourceCitations({ sources }: { sources: SourceChunk[] }) {
+  const [open, setOpen] = useState(false)
   const shouldReduce = useReducedMotion()
-
-  return (
-    <div className="mt-3 border-t border-ink-700/60 pt-3">
-      <button
-        type="button"
-        onClick={() => setIsOpen((value) => !value)}
-        className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800/50 px-2.5 py-1.5 text-xs font-medium text-ink-300 transition hover:bg-ink-700 hover:text-ink-100"
-      >
-        <BookOpen size={12} className="text-accent-400" />
-        <span>{isOpen ? "Hide sources" : `View ${sources.length} source${sources.length !== 1 ? "s" : ""}`}</span>
-        <motion.span
-          animate={shouldReduce ? undefined : { rotate: isOpen ? 180 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        >
-          <ChevronDown size={12} />
-        </motion.span>
-      </button>
-
-      <AnimatePresence>
-        {isOpen ? (
-          <motion.div
-            initial={shouldReduce ? false : { opacity: 0, height: 0 }}
-            animate={shouldReduce ? undefined : { opacity: 1, height: "auto" }}
-            exit={shouldReduce ? undefined : { opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2.5 flex flex-col gap-2">
-              {sources.map((src, idx) => (
-                <motion.div
-                  key={`${src.page_number}-${src.chunk_index}-${idx}`}
-                  initial={shouldReduce ? false : { opacity: 0, x: -6 }}
-                  animate={shouldReduce ? undefined : { opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.04, duration: 0.2, ease: "easeOut" }}
-                  className="rounded-lg border border-ink-700 bg-ink-800/40 p-3 transition hover:border-ink-600"
-                >
-                  <div className="mb-1.5">
-                    <span className="rounded-md border border-accent-500/30 bg-accent-500/10 px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-accent-400">
-                      Page {src.page_number}
-                    </span>
-                  </div>
-                  <p className="break-words font-mono text-xs leading-relaxed text-ink-400 [overflow-wrap:anywhere]">
-                    {src.text.length > 220 ? `${src.text.slice(0, 220)}...` : src.text}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
-  )
+  return <div className="citations"><button type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} className="citation-toggle"><Quote size={12} /><span>{sources.length} cited {sources.length === 1 ? "passage" : "passages"}</span><motion.span animate={shouldReduce ? undefined : { rotate: open ? 180 : 0 }}><ChevronDown size={12} /></motion.span></button><AnimatePresence>{open ? <motion.div initial={shouldReduce ? false : { opacity: 0, height: 0 }} animate={shouldReduce ? undefined : { opacity: 1, height: "auto" }} exit={shouldReduce ? undefined : { opacity: 0, height: 0 }} className="citation-list">{sources.map((source, index) => <article key={`${source.page_number}-${source.chunk_index}-${index}`}><span>Page {source.page_number}</span><p>{source.text.length > 250 ? `${source.text.slice(0, 250)}…` : source.text}</p></article>)}</motion.div> : null}</AnimatePresence></div>
 }
