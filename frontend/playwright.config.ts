@@ -20,6 +20,8 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: {
         EMBEDDING_BACKEND: "hash",
+        GROQ_API_KEY: "",
+        ANTHROPIC_API_KEY: "",
         RATE_LIMIT_ENABLED: "false",
         ENABLE_API_DOCS: "false",
         UPLOAD_DIR: "./data/e2e_uploads",

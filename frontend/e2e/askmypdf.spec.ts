@@ -44,7 +44,7 @@ function makePdf(lines: string[]) {
 }
 
 test("uploads a PDF and receives a cited backend-only answer when online keys are absent", async ({ page }) => {
-  await page.goto("/#upload")
+  await page.goto("/#workspace")
 
   await page.locator('input[type="file"]').setInputFiles({
     name: "askmypdf-smoke.pdf",
@@ -56,11 +56,14 @@ test("uploads a PDF and receives a cited backend-only answer when online keys ar
     ]),
   })
 
-  await expect(page.getByRole("textbox", { name: "Ask a question about your PDF" })).toBeVisible({ timeout: 30_000 })
-  await page.getByRole("textbox", { name: "Ask a question about your PDF" }).fill("What is AskMyPDF?")
+  await expect(page.getByRole("textbox", { name: "Ask a question about this document" })).toBeVisible({ timeout: 30_000 })
+  await page.getByRole("textbox", { name: "Ask a question about this document" }).fill("What is AskMyPDF?")
   await page.getByRole("button", { name: "Send message" }).click()
 
   await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("From the document:", { timeout: 30_000 })
-  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("Answered by the backend-only route")
-  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("source")
+  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("Private route")
+  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("askmypdf-offline-extractive-v1")
+  await page.getByRole("button", { name: /^\d+ cited passages?$/ }).click()
+  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("Page 1")
+  await expect(page.getByRole("log", { name: "Chat messages" })).toContainText("AskMyPDF is a portfolio RAG chatbot")
 })
