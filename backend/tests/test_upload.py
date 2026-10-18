@@ -1,9 +1,11 @@
 import re
+import pytest
 
 from pypdf import PdfWriter
 from reportlab.pdfgen import canvas
 
 
+@pytest.mark.integration
 def test_embeddings_are_semantic():
     """Semantically similar sentences must be closer than unrelated ones."""
     import numpy as np

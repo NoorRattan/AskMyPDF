@@ -4,12 +4,13 @@ import { defineConfig } from "vite"
 export default defineConfig({
   plugins: [react()],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          motion: ["framer-motion", "gsap"],
-          icons: ["lucide-react"],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return
+          if (/[/\\](react|react-dom|scheduler)[/\\]/.test(id)) return "react"
+          if (/[/\\](framer-motion|motion-dom|motion-utils|gsap)[/\\]/.test(id)) return "motion"
+          if (id.includes("lucide-react")) return "icons"
         },
       },
     },

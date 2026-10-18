@@ -179,7 +179,7 @@ function ModelCard({ option, icon: Icon, selected, unavailable, compact, index, 
       whileHover={shouldReduce || unavailable ? undefined : { y: -4, scale: 1.02 }}
       whileTap={shouldReduce || unavailable ? undefined : { scale: 0.98 }}
       className={cn(
-        "group relative overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left outline-none transition-colors duration-200",
+        "group relative overflow-hidden rounded-xl border-2 px-3.5 py-3 text-left outline-hidden transition-colors duration-200",
         "focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
         compact ? "min-h-[80px] px-3 py-2.5" : "min-h-[100px]",
         selected

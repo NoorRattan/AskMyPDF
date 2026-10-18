@@ -121,7 +121,7 @@ export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function
           style={{ transformStyle: "preserve-3d" }}
           className={cn(
             "group relative flex min-h-[240px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 p-8 text-center transition-colors duration-300",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
+            "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950",
             isDragging && "border-brand-400 bg-brand-500/5",
             !isDragging && !isBusy && !isError && "border-ink-700 bg-ink-800/40 hover:border-brand-500/50 hover:bg-ink-800/60",
             isBusy && "pointer-events-none border-brand-500/50 bg-ink-800/60",
@@ -138,7 +138,7 @@ export const UploadZone = forwardRef<UploadZoneHandle, UploadZoneProps>(function
               </div>
               <div className="mb-3 h-1.5 w-48 overflow-hidden rounded-full bg-ink-700">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-brand-500 to-accent-400 transition-all duration-500"
+                  className="h-full rounded-full bg-linear-to-r from-brand-500 to-accent-400 transition-all duration-500"
                   style={{ width: `${Math.max(2, Math.min(100, progress))}%` }}
                 />
               </div>

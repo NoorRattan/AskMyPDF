@@ -120,3 +120,7 @@ That production profile deliberately excludes Torch, sentence-transformers, NumP
 ## License
 
 MIT
+
+## Local verification
+
+Use Python 3.12 and Node.js 24 LTS. Run `pytest tests -q` from `backend` for the local suite. The semantic embedding test downloads a Hugging Face model and is opt-in: `pytest tests -q -m integration`. From `frontend`, run `npm ci`, `npm run lint`, and `npm run build`.

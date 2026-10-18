@@ -1,5 +1,6 @@
 import logging
 import time
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -15,6 +16,12 @@ from app.services.vector_service import get_client
 
 logger = logging.getLogger("uvicorn.error")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    warm_up_services()
+    yield
+
+
 app = FastAPI(
     title="AskMyPDF",
     description="Upload PDFs and ask questions about their contents.",
@@ -22,6 +29,7 @@ app = FastAPI(
     docs_url="/docs" if settings.enable_api_docs else None,
     redoc_url="/redoc" if settings.enable_api_docs else None,
     openapi_url="/openapi.json" if settings.enable_api_docs else None,
+    lifespan=lifespan,
 )
 
 allowed_origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
@@ -169,7 +177,6 @@ async def http_exception_handler(req: Request, exc: HTTPException) -> JSONRespon
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
-@app.on_event("startup")
 def warm_up_services() -> None:
     tune_optional_runtime_threads()
     if settings.anthropic_api_key:
